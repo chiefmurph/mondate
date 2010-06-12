@@ -1,0 +1,29 @@
+exportPattern("^[[:alpha:]]+")
+exportMethods(
+    "[",
+    "array",
+    "as.character",
+    "as.Date",
+    "as.numeric",
+    "as.POSIXct",
+    "as.POSIXlt",
+    "c",
+    "day",
+    "matrix",
+    "mean",
+    "mondate",
+    "month",
+    "print",
+    "rep",
+    "show",
+    "unique",
+    "year" 
+)
+exportClasses(
+    "mondate" 
+)
+S3method(as.data.frame, mondate)
+S3method(format, mondate)
+S3method(cbind, mondate)
+S3method(rbind, mondate)
+S3method(seq, mondate)
