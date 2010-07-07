@@ -1,0 +1,42 @@
+importFrom(utils, head, head.matrix, tail, tail.matrix)
+exportPattern("^[[:alpha:]]+")
+exportMethods(
+    "[",
+    "array",
+    "as.character",
+    "as.Date",
+    "as.numeric",
+    "as.POSIXct",
+    "as.POSIXlt",
+    "c",
+	cbind,
+    "day",
+	mondateDisplayFormat,
+    "matrix",
+    "mean",
+    "mondate",
+    "month",
+    "print",
+    "rep",
+	rbind,
+    "show",
+	mondateTimeunits,
+    "unique",
+    "year" 
+)
+exportClasses(
+    	mondate,
+	numarray,
+	"mondAtomic",
+	"mondArray_or_Atomic",
+	"mondate_possible",
+	"mondAtomic_w_date",
+	"mondArray_or_Atomic_w_date",
+	"mondate_possible_w_date"
+
+)
+S3method(as.data.frame, mondate)
+S3method(format, mondate)
+S3method(seq, mondate)
+S3method(head, mondate)
+S3method(tail, mondate)
