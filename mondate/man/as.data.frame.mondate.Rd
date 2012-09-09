@@ -1,13 +1,13 @@
-\name{data.frame-methods}
+\name{as.data.frame method}
 \alias{as.data.frame.mondate}
 \title{
-Insert a mondate into a data.frame
+Coerce a mondate to a Data Frame
 }
 \description{
 Function to coerce a mondate for containment in a data.frame.
 }
 \usage{
-\method{as.data.frame}{mondate}(x, row.names=NULL, optional=FALSE, \dots)
+\S3method{as.data.frame}{mondate}(x, row.names = NULL, optional = FALSE, \dots)
 }
 \arguments{
 \item{x}{
@@ -43,6 +43,6 @@ the \code{as.data.frame.Date} method.
 \code{\link{format}}
 }
 \examples{
-M<-mondate.mdy(12,31,2001:2005)
-data.frame(YearEnd=M, Liability=1000*1.05^(1:5)) # 5% annual inflation
+YE <- mondate.mdy(12, 31, 2001:2005)
+data.frame(yearend = YE, value = 1000 * 1.05^(1:5)) # 5% annual inflation
 }

@@ -1,0 +1,17 @@
+Version 0.9.9.01
+================
+Bug Fixes
+   
+================
+NEW FEATURES
+   o New 'as.mondate' function for coercing R objects to a mondate
+================
+Changes
+
+   o Reverted any S4 method better implemented as S3 to an S3 version. 
+	In particular, 'format' and 'unique' enable 'aggregate' to work
+	with a mondate object specified in 'by' argument
+   o Removed deprecated 'displayFormat' argument from as.character.mondate method
+   o Clarified some of the documentation
+   
+

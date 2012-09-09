@@ -7,7 +7,7 @@
 \description{
 A \code{mondate} represents a date as a \code{numeric} equalling
 the number of months since the beginning of
-the current millennium. 
+the current millennium (the "mondate epoch"). 
 Somewhat arbitrarily, 
 and at the risk of reopening a decade-old debate, 
 "the beginning of the current millennium"
@@ -47,7 +47,7 @@ where a year is comprised of twelve months of equal "accounting weight."
 That gives rise to a date as measured in months, coined "mondate".
 
 A \code{mondate} is simply a real number whose fractional part represents 
-the fraction at which the day of the month falls within the month. 
+the fraction of the month as of the end of the day. 
 E.g., the fractional part of January 1st = 1/31; the fractional part of 
 February 1st = 1/28 or 1/29, depending on the year.
 A \code{mondate} which is a whole number 
@@ -76,6 +76,11 @@ c(mondate("2008-12-31"), mondate("2009-12-31"))
 }
 could be used to represent such an interval.
 
+A \code{mondate} allows "infinite dates",
+which are helpful constructs for modeling "ultimate" events
+in actuarial, longitudinal, and time series analyses
+(see the \code{mondate} method for signature "numeric").
+
 A \code{mondate} has two important properties (in S4 parlance, "slots").
 The first is \code{displayFormat} which is the format 
 of the date when the \code{mondate} is printed or \code{show}n.
@@ -93,42 +98,47 @@ Objects can be created by calls of the form \code{mondate(x, ...)}.
   \describe{
     \item{\code{.Data}:}{Object of class \code{"numeric"} or a numeric array }
     \item{\code{displayFormat}:}{Object of class \code{"character"}.
-    The is the format of the date when displayed. 
-    Currently, there are four choices:
-    \enumerate{
-    \item "%m/%d/%Y"
-    \item "%m-%d-%Y"
-    \item "%Y-%m-%d"
-    \item "%Y/%m/%d"
-    }
-    Currently, by default a "United States" locale will use the first choice,
-    otherwise the default will be the third choice.
-    Also, by default, a character date coerced to a \code{mondate}
-    will read the format of the character date and store that
-    format in the \code{displayFormat} unless explicitly overridden.
-    }
-    \item{\code{timeunits}:}{Object of class \code{"character"}}
-    There are three options:
-    \describe{
-        \item{"months":}{the default}
-        \item{"years":}{although it is assumed that "month" 
-        is the fundamental unit of time, 
-        sometimes it is more convenient to report the result of 
-        date arithmetic in terms of "years", 
-        for example, in actuarial analyses when 
-        events are measured over the course of years, not months. 
-        Of course, one "year" = twelve "months".
+        The is the format of the date when displayed. 
+        Currently, there are four choices:
+        \enumerate{
+            \item "%m/%d/%Y"
+            \item "%m-%d-%Y"
+            \item "%Y-%m-%d"
+            \item "%Y/%m/%d"
+            }
+        Currently, the default displayFormat for a "United States" locale is
+        mm/dd/YYYY ("%m/%d/%Y"), 
+        in all other locales YYYY-mm-dd ("%Y-%m-%d").
+        The default can be changed to another format
+        using the \code{options(mondate.displayFormat = myFormat)} command.
+        See Examples.
         }
-        \item{"days":}{mostly for convenience when the number of days
-        between events needs to be reported.
-        Of course, unlike with "years", there is no simple relationship
-        between "days" and "months" -- it depends on the month and year of
-        the date.
-        If the \emph{fundamental} unit of time for a particular problem 
-        is "days", not "months", then a different date class
-        (e.g., class \code{Date}) might be a better tool for modeling
-        the passage of time for that problem.
-        }
+    \item{\code{timeunits}:}{Object of class \code{"character"}
+        There are three options:
+        \describe{
+            \item{"months":}{the default}
+            \item{"years":}{although it is assumed that "month" 
+                is the fundamental unit of time, 
+                sometimes it is more convenient to report the result of 
+                date arithmetic in terms of "years", 
+                for example, in actuarial analyses when 
+                events are measured over the course of years, not months. 
+                Of course, one "year" = twelve "months".
+                }
+            \item{"days":}{mostly for convenience when the number of days
+                between events needs to be reported.
+                Of course, unlike with "years", there is no simple relationship
+                between "days" and "months" -- it depends on the month and year of
+                the date.
+                If the \emph{fundamental} unit of time for a particular problem 
+                is "days", not "months", then a different date class
+                (e.g., class \code{Date}) might be a better tool for modeling
+                the passage of time for that problem.
+                }
+            }
+        The default can be changed to a different unit
+        using the \code{options(mondate.timeunits = myUnits)} command.
+        See Examples.
         }
     \item{\code{.S3Class}:}{Object of class \code{"logical"}}
     Currently \code{TRUE} so that S3 method-based functionality that 
@@ -160,6 +170,12 @@ mondate("1-1-2010")
 
 # generate 10 random dates in calendar year 2000; will be
 # displayed in local format
+mondate(runif(10,0,12)) 
+
+# Change the default format so that the character representation of the date
+#   sorts in chronological order.
+options(mondate.displayFormat = "\%Y-\%m-\%d")
+# January
 mondate(runif(10,0,12)) 
 
 # generate 10 random dates in calendar year 2010;

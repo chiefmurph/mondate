@@ -36,14 +36,15 @@ the \code{head} and \code{rbind} methods will behave just as they
 would if \code{x} were \code{numeric}.
 }
 \examples{
-(m<-structure(mondate.ymd(2001:2005,12,31),names=LETTERS[1:5]))
+(m<-structure(mondate.ymd(2001:2010,12,31),names=LETTERS[1:10]))
 m[1]
 m[2:5]
-(m<-cbind(begin=m-12,end=m))  # a matrix
-m[1:3,]    # '[' works with matrix mondates
-head(m,2)  # 'head' works with matrix mondates
-head(c(m)) # and with vectors
-tail(m,2)  # Same for 'tail'
-tail(c(m)) 
+head(m)
+tail(m,2)
+
+(M<-cbind(m-12,m,m+12, deparse.level=2))  # a matrix
+M[1:5,1:2]    # '[' works with matrix mondates
+head(M,2)  # as does 'head'
+
 }
 \keyword{methods}

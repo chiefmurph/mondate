@@ -4,9 +4,19 @@
 \alias{Arith,mondate,mondate-method}
 \alias{Arith,mondate,numeric-method}
 \alias{Arith,numeric,mondate-method}
+\alias{MonthsBetween}
+\alias{MonthsBetween-methods}
+\alias{MonthsBetween,mondate,mondate-method}
+\alias{YearsBetween}
+\alias{YearsBetween-methods}
+\alias{YearsBetween,mondate,mondate-method}
+\alias{DaysBetween}
+\alias{DaysBetween-methods}
+\alias{DaysBetween,mondate,mondate-method}
 \title{Methods for Function Group Arith}
 \description{
 Arithmetic methods for class \code{mondate}.
+Includes three special "subtraction" methods.
 }
 \section{Methods}{
 \describe{
@@ -53,14 +63,39 @@ the operation is performed
 and the result converted to a \code{mondate}. 
 (See the \code{convert} option of the \code{as.numeric("mondate")} function.)
 }
+
+\item{\code{MonthsBetween(from = "mondate", to = "mondate")}}{
+Same as \code{abs(from - to)} in months.
+}
+
+\item{\code{YearsBetween(from = "mondate", to = "mondate")}}{
+Same as \code{abs(from - to)} in years, 
+which is also the number of months between divided by 12.
+}
+
+\item{\code{DaysBetween(from = "mondate", to = "mondate")}}{
+Same as \code{abs(from - to)} in days,
+which is also the difference between the \code{as.Date}
+representation of \code{from} and \code{to}.
+}
+
 }}
 \seealso{
 \code{\link{Arith}}
 }
 \examples{
-M<-mondate("1-1-2010") # will display in U.S. date format
-M-1:12 # the 1st of the month for all months in 2009
+M <- mondate("1-1-2010") # will display in U.S. date format
+M - 1:12 # the 1st of the month for all months in 2009
        # in reverse chronological order; inherits M's displayFormat
+
+x <- mondate(matrix(12 * 1:4, 2, 2)) # 2x2 matrix of 2000-2003 year ends
+x                                
+y <- x + 12                          # one year later, also a matrix
+y
+y - x                      # 2x2 matrix of 12s, with an attribute ("months")
+MonthsBetween(x, y)        # same, without the attribute
+YearsBetween(x, y)
+DaysBetween(x, y)
 }
 \keyword{methods}
 \keyword{arith}

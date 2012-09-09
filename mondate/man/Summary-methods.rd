@@ -21,8 +21,8 @@ The usual rules apply as to the shape of the result.
 }}
 \examples{
 A<-mondate.ymd(2001:2010,12,31) # ten yearends
-min(A)
-max(A)
+min(A)                  # December 31, 2001
+max(A)                  # December 31, 2010
 range(A)
 }
 \keyword{methods}
