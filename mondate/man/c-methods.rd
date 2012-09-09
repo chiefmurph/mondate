@@ -2,12 +2,8 @@
 \docType{methods}
 \alias{c-methods}
 \alias{c,mondate-method}
-\alias{cbind}
-\alias{cbind,mondate-method}
-\alias{cbind.mondate}
-\alias{rbind}
-\alias{rbind,mondate-method}
-\alias{rbind.mondate}
+\alias{cbindmondate}
+\alias{rbindmondate}
 \alias{rep.mondate}
 \title{Methods for Combining Mondates}
 \description{
@@ -18,9 +14,9 @@ The package calls \code{setGeneric("c-rbind")}.
 }
 
 \usage{
+ cbindmondate(\dots, deparse.level = 1)
+ rbindmondate(\dots, deparse.level = 1)
  \S3method{rep}{mondate}(x, \dots)
- \method{cbind}{mondate}(\dots, deparse.level = 0)
- \method{rbind}{mondate}(\dots, deparse.level = 1)
  \S4method{c}{mondate}(x, ..., recursive = FALSE)
 }
 
@@ -43,16 +39,6 @@ The result will be a \code{mondate} with properties equal to those of
 \code{x}.
 }
 
-\item{\code{c-rbind(... = "mondate")}}{
-The \code{cbind} and \code{rbind} methods 
-use the \code{base} \code{cbind} and \code{rbind} functions,
-respectively,
-to combine the arguments
-and the result is converted to a \code{mondate}
-with \code{displayFormat} and \code{timeunits} properties
-equal to those of the first argument in \code{\dots}.
-}
-
 \item{\code{rep(x = "mondate", \dots)}}{
 Replicates a \code{mondate}.
 The behavior mimics that of the \code{base} function.
@@ -61,9 +47,24 @@ The result will be a \code{mondate} with properties equal to those of
 \code{x}.
 }
 }}
+
 \value{
-A \code{mondate}. 
-For \code{cbind} and \code{rbind}, a \code{matrix}.
+\item{\code{c-rbindmondate(...)}}{
+The \code{cbindmondate} and \code{rbindmondate} functions
+are similar to the \code{base} \code{cbind} and \code{rbind} functions,
+respectively,
+to combine the arguments.
+If all arguments are \code{mondate}s
+then the result is converted to a \code{mondate}
+with \code{displayFormat} and \code{timeunits} properties
+equal to those of the first argument in \code{\dots}.
+If not all arguments are \code{mondate}s
+then the result is a \code{data.frame} by virtue of the call
+\code{cbind.data.frame(...)}.
+}
+
+A \code{mondate} (or a data.frame from 
+\code{c-rbindmondate} when \dots holds non-\code{mondate} arguments).
 For \code{c} and \code{rep}, a \code{vector}.
 }
 \examples{
@@ -73,15 +74,15 @@ c(0,x)            # result is "numeric", as determined by the first argument
 
 M<-mondate.ymd(2001:2005,12,31) # 5 year-ends
 names(M)<-LETTERS[1:5]
-cbind(M)                      # as a 5x1 matrix
-rbind(M,M)
+cbindmondate(M)                      # as a 5x1 matrix
+rbindmondate(M,M)
 begin_date <- M-12
-cbind(begin_date,end_date=M)  # 5 pairs of year boundary-dates. Columns are
-                              # "automatically" named in the default case 
+cbindmondate(begin_date,end_date=M)  # 5 pairs of year boundary-dates. Columns 
+                              # are "automatically" named in the default case 
                               # (all mondates with timeunits="months").
 dayt <- as.Date("2010-6-30")
-cbind(x,mondate(dayt))        # column names show as 'x' and blank
-cbind(x=x,DateColumn=mondate("2010-6-30")) # both columns are named
+cbindmondate(x,mondate(dayt))        # column names show as 'x' and blank
+cbindmondate(x=x,DateColumn=mondate("2010-6-30")) # both columns are named
 
 rep(mondate("2010-2-14"), 3)
 

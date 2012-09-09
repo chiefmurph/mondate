@@ -411,35 +411,35 @@ setMethod("show", "mondate", function(object) {
 
 # C/RBIND array, matrix subsection
 
-setGeneric("cbind", function(..., deparse.level = 1) standardGeneric("cbind"), signature = c("..."))# -> message about creating generic, signatures differ
+#setGeneric("cbind", function(..., deparse.level = 1) standardGeneric("cbind"), signature = c("..."))# -> message about creating generic, signatures differ
 #setGeneric("cbind")  # just this alone doesn't work...cannot "find" cbind(mondate) method below
-setMethod("cbind","mondate", function (..., deparse.level = 0) {
-    y <- .Internal(cbind(deparse.level = deparse.level, ...))
-    structure(
-        new("mondate", 
-            c(y), 
-            displayFormat = displayFormat(..1),
-            timeunits = timeunits(..1)
-            ),
-        dim = dim(y), 
-        dimnames = dimnames(y)
-        )
-    })
+#setMethod("cbind","mondate", function (..., deparse.level = 0) {
+#    y <- .Internal(cbind(deparse.level = deparse.level, ...))
+#    structure(
+#        new("mondate", 
+#            c(y), 
+#            displayFormat = displayFormat(..1),
+#            timeunits = timeunits(..1)
+#            ),
+#        dim = dim(y), 
+#        dimnames = dimnames(y)
+#        )
+#    })
     
-setGeneric("rbind", function(..., deparse.level = 1) standardGeneric("rbind"), signature = c("..."))# -> message about creating generic, signatures differ
+#setGeneric("rbind", function(..., deparse.level = 1) standardGeneric("rbind"), signature = c("..."))# -> message about creating generic, signatures differ
 #setGeneric("rbind")
-setMethod("rbind","mondate", function (..., deparse.level = 0) {
-    y <- .Internal(rbind(deparse.level = deparse.level, ...))
-    structure(
-        new("mondate", 
-            c(y), 
-            displayFormat = displayFormat(..1),
-            timeunits = timeunits(..1)
-            ),
-        dim = dim(y), 
-        dimnames = dimnames(y)
-        )
-    })
+#setMethod("rbind","mondate", function (..., deparse.level = 0) {
+#    y <- .Internal(rbind(deparse.level = deparse.level, ...))
+#    structure(
+#        new("mondate", 
+#            c(y), 
+#            displayFormat = displayFormat(..1),
+#            timeunits = timeunits(..1)
+#            ),
+#        dim = dim(y), 
+#        dimnames = dimnames(y)
+#        )
+#    })
 
 setGeneric("array")
 setMethod("array", "mondate", function(data = NA, dim = length(data), dimnames = NULL) 
@@ -485,6 +485,28 @@ as.data.frame.mondate <- function(x, row.names = NULL, optional = FALSE, ...) {
 format.mondate<- function(x, ...) as.character(x, ...)
 
 unique.mondate<-function(x, ...) mondate(unique(unclass(x), ...))
+
+cbindmondate <- function(..., deparse.level = 1) {
+  y <- list(...)
+  dspFmt <- displayFormat(y[[1L]])
+  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
+  tu <- timeunits(y[[1L]])
+  if (is.null(tu)) tu <- .default.timeunits
+  cls <- sapply(y, function(x) class(x)[1L])
+  if (all(cls == cls[1L])) mondate(cbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu)
+  else cbind.data.frame(...)
+  }
+
+rbindmondate <- function(..., deparse.level = 1) {
+  y <- list(...)
+  dspFmt <- displayFormat(y[[1L]])
+  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
+  tu <- timeunits(y[[1L]])
+  if (is.null(tu)) tu <- .default.timeunits
+  cls <- sapply(y, function(x) class(x)[1L])
+  if (all(cls == cls[1L])) mondate(rbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu)
+  else rbind.data.frame(...)
+  }
 
 rep.mondate<-function(x, ...) mondate(rep(unclass(x), ...), 
     displayFormat = x@displayFormat, timeunits = x@timeunits)
