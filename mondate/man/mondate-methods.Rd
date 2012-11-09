@@ -24,7 +24,7 @@ All purpose \bold{mondate} constructor / coercer.
     \S4method{mondate}{numeric}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{Date}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{POSIXt}(x, displayFormat, timeunits, ...)
-    \S4method{mondate}{character}(x, displayFormat, timeunits, format = "", ...)
+    \S4method{mondate}{character}(x, displayFormat = "keep", timeunits, format, ...)
     \S4method{mondate}{array}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{missing}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{ANY}(x, displayFormat, timeunits, ...)
@@ -87,10 +87,10 @@ If \code{timeunits} = "days" then it is presumed
 that the value of x represents the number of days since the beginning
 of the millennium, 
 in which case the value is calculated using \code{as.Date}.
-
-Note that infinite values of \code{x} are allowed 
-("infinite" dates are helpful in modeling events "at ultimate"
-in actuarial, longitudinal, and time series analyses).
+Note that infinite values of \code{x} are allowed, 
+helpful in actuarial 
+("at ultimate")
+longitudinal, and time series modeling.
 }
 
 \item{\code{signature(x = "Date")}}{
@@ -106,18 +106,21 @@ If \code{format} is provided, then that format
 is used to attempt to convert the character value to a date.
 Otherwise, 
 characters are converted to dates using the first format found in the 
-set of valid formats. 
-The current set of valid formts is
+set of valid formats 
+that successfully converts the first non-NA entry in \code{x}, 
+and that format is retained as the
+\code{displayFormat} of the result unless
+the user explicitly provides a value for \code{displayFormat}.
+The current set of valid formats is
 "\%m/\%d/\%Y", "\%m-\%d-\%Y", "\%Y-\%m-\%d", and "\%Y/\%m/\%d".
-If none of the valid formats successfully converts \code{x} to a date, 
+If any entries of \code{x} do not convert successfully, 
+those entries get the value \code{NA} and a warning is issued.
+Finally, if \code{format} is not provided and
+none of the valid formats successfully converts \code{x} to a date, 
 then as a last resort
 the character string is attempted to be coerced to a 
 \code{numeric} and then
 to a \code{mondate}.
-If a format is found that converts x to a date, 
-then the successful format can be retained as the \code{displayFormat}
-of the \code{mondate} by specifying 
-\code{displayFormat = "keep"}.
 }
 
 \item{\code{signature(x = "array")}}{
