@@ -5,6 +5,7 @@
 \alias{mondate,ANY-method}
 \alias{mondate,array-method}
 \alias{mondate,character-method}
+\alias{mondate,factor-method}
 \alias{mondate,Date-method}
 \alias{mondate,mondate-method}
 \alias{mondate,numeric-method}
@@ -121,6 +122,10 @@ then as a last resort
 the character string is attempted to be coerced to a 
 \code{numeric} and then
 to a \code{mondate}.
+}
+
+\item{\code{signature(x = "factor")}}{
+The \code{character} method is run on \code{as.character(x)}.
 }
 
 \item{\code{signature(x = "array")}}{

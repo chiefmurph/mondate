@@ -1,3 +1,13 @@
+Version 0.9.10.04
+================
+Changes
+
+	o	year(), month(), day() functions have methods for Date and POSIXt objects.
+	o   New "factor" signature for 'mondate' method converts factor to character
+        then applies the "character" signature method.
+    o   ymd() function retains names of argument if available
+
+
 
 Version 0.9.10.01
 ================

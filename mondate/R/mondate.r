@@ -181,7 +181,7 @@ setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits,
     isnax <- is.na(x)
     m <- match(TRUE, !isnax)
     if (is.na(m)) # all-NA input
-        return(mondate(rep(NA, length(x)), displayFormat = displayFormat, timeunits = timeunits, ...))
+        return(mondate(as.Date(rep(NA, length(x))), displayFormat = displayFormat, timeunits = timeunits, ...))
     # When no date conversion format is specified, find the first format that
     #   can convert the input to a Date
   mf <- missing(format)
@@ -227,6 +227,8 @@ setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits,
   if (any(is.na(z) & !isnax)) warning("format '", format, "' did not convert some characters into dates")
   z
   })
+
+setMethod("mondate", "factor", function(x, displayFormat = "keep", timeunits, ...) mondate(as.character(x), displayFormat, timeunits, ...))
 
 # mondates can hold their shape if they have dim attributes
 setMethod("mondate", "array", function(x, displayFormat, timeunits, ...)
@@ -577,6 +579,8 @@ as.list.mondate <- function(x, ...) lapply(X = NextMethod(), FUN = mondate)
 
 ## Pulling out month, year, and day numbers
 ymd <- function(x) {
+    nms <- names(x)
+    x <- mondate(x)
     xd <- x@.Data
     ym <- floor(xd)
     y <- ym %/% 12L + .mondate.year.zero
@@ -602,6 +606,7 @@ ymd <- function(x) {
     y[nna] <- ynna
     m[nna] <- mnna
     d[nna] <- dnna
+    names(y) <- nms
     cbind(year = y, month = m, day = d)
     }
 
@@ -612,6 +617,30 @@ setMethod("year", "mondate", function(x) {
     dmnms <- dimnames(x)
     nms <- names(x)
     y <- ymd(x)[, "year"]
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("year", "Date", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.numeric(format(x, "%Y"))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("year", "POSIXt", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.numeric(format(x, "%Y"))
     if (!is.null(dm)) {
         dim(y) <- dm
         dimnames(y) <- dmnms
@@ -632,12 +661,60 @@ setMethod("month", "mondate", function(x) {
     else names(y) <- nms
     y
     })
+setMethod("month", "Date", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.numeric(format(x, "%m"))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("month", "POSIXt", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.numeric(format(x, "%m"))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
 setGeneric("day", function(x, ...) standardGeneric("day"))
 setMethod("day", "mondate", function(x) {
     dm <- dim(x)
     dmnms <- dimnames(x)
     nms <- names(x)
     y <- ymd(x)[, "day"]
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("day", "Date", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.numeric(format(x, "%d"))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("day", "POSIXt", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.numeric(format(x, "%d"))
     if (!is.null(dm)) {
         dim(y) <- dm
         dimnames(y) <- dmnms

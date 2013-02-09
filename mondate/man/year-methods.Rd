@@ -2,19 +2,28 @@
 \docType{methods}
 \alias{year-methods}
 \alias{year,mondate-method}
+\alias{year,Date-method}
+\alias{year,POSIXt-method}
 \alias{year}
 \alias{month-methods}
 \alias{month,mondate-method}
+\alias{month,Date-method}
+\alias{month,POSIXt-method}
 \alias{month}
 \alias{day-methods}
 \alias{day,mondate-method}
+\alias{day,Date-method}
+\alias{day,POSIXt-method}
 \alias{day}
 \alias{mondate.mdy}
 \alias{mondate.ymd}
 \alias{ymd}
 \title{Useful Methods for Class mondate}
 \description{
-The methods in this section facilitate \code{mondate} construction
+The methods in this section facilitate 
+year-, month-, and day-number extraction from objects that represent dates, 
+as well as 
+\code{mondate} construction
 using the year, month, and day numbers of the date 
 (as those numbers would be seen in the character representation of the date,
 i.e.., "January" = 1 and the first day of a month = 1).
@@ -34,7 +43,7 @@ mondate.ymd(y, m, d, displayFormat=.default.displayFormat,
 }
 \arguments{
   \item{x}{
-an object of class "mondate."
+an object of class \code{mondate}, \code{Date}, or \code{POSIXt}
 }
   \item{m}{
 the month: 1, ..., 12.
@@ -65,18 +74,20 @@ arguments to be passed to the \code{mondate} constructor.
 }
 }
 \value{
-\code{year} returns the year number (e.g., 2000) as a \code{numeric}.
+\code{year} returns the year \code{numeric} (e.g., 2000).
 
-\code{month} returns the month number (1, ..., 12) as a \code{numeric}.
+\code{month} returns the month \code{numeric} {1, ..., 12}.
 
-\code{day} returns the day of the month as a \code{numeric} starting with 1.
+\code{day} returns the \code{numeric} day of the month.
 
 \code{ymd} returns a matrix with the number of rows equal to the
-length of \code{x} and with appropriately-named 
+length of \code{x},
+with appropriately-named 
 columns 1 through 3 holding the \code{year},
-\code{month}, and \code{day}, respectively.
+\code{month}, and \code{day}, respectively
+and with "rownames" equal to \code{names(x)}.
 
-\code{mondate.mdy} and \code{mondate.ymd} return "mondates" with the given
+\code{mondate.mdy} and \code{mondate.ymd} return \code{mondate}s with the given
 month, day, and year. 
 Arguments \code{m}, \code{d}, and \code{y} may have length > 1;
 the usual recycling rules apply.
