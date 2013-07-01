@@ -34,11 +34,20 @@
      length(grep("en_US",        Sys.getlocale("LC_TIME")))) > 0L, # mac os X
         .displayFormat[1L], .displayFormat[3L]
     )
+.get.default.displayFormat <- function() ifelse (
+    (length(grep("United States",Sys.getlocale("LC_TIME"))) +      # windows
+     length(grep("en_US",        Sys.getlocale("LC_TIME")))) > 0L, # mac os X
+        .displayFormat[1L], .displayFormat[3L]
+    )
 .default.timeunits <- "months"
+.get.default.timeunits <- function() "months"
 
 .date.classes <- c("Date","POSIXt","POSIXct","POSIXlt")
 
 .infinite.strings <- c("Inf", "-Inf")
+
+# Help translate months to quarters
+.qtr <- rep(1:4, each = 3)
 
 ##  USEFUL INTERNAL FUNCTIONS
 
@@ -128,8 +137,10 @@ setReplaceMethod("timeunits", "mondate", function(x, value) {
 #                               timeunits=.default.timeunits, ...) 
 #                      standardGeneric("mondate"))
 setGeneric("mondate", function(x, 
-    displayFormat = getOption("mondate.displayFormat", default = .default.displayFormat), 
-    timeunits = getOption("mondate.timeunits", default = .default.timeunits), 
+#    displayFormat = getOption("mondate.displayFormat", default = .default.displayFormat), 
+    displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
+#    timeunits = getOption("mondate.timeunits", default = .default.timeunits), 
+    timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()), 
     ...) standardGeneric("mondate"))
 
 setMethod("mondate", "mondate", function(x, displayFormat, timeunits, ...) {
@@ -174,7 +185,7 @@ setMethod("mondate", "POSIXt", .date.to.mondate)
 setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits, format, ...) {
     # format is the user's requested format for converting the character
     #   into a date
-    # If missing, then we'll attempt to determing the best conversion format
+    # If missing, then we'll attempt to determine the best conversion format
     #   based on the first non-NA value in x, 
     #   and we'll retain that format as the display format (default = "keep").
     # m is the first non-NA value in x. 
@@ -358,15 +369,18 @@ setMethod("Arith", c("mondate", "mondate"), function(e1, e2) {
         if (timeunits != e2@timeunits) 
             warning("Unequal timeunits, using first mondate's= ", timeunits)
         if (timeunits == "months"){ 
-            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
+#            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
+            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = timeunits, .S3Class = NULL)
             }
         else
         if (timeunits == "years")
-            x <- structure(callGeneric(unclass(e1), unclass(e2)) / 12, displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
+#            x <- structure(callGeneric(unclass(e1), unclass(e2)) / 12, displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
+            x <- structure(callGeneric(unclass(e1), unclass(e2)) / 12, displayFormat = NULL, timeunits = timeunits, .S3Class = NULL)
         else {
             dims <- dim(x)
             dimnms <- dimnames(x)
-            x <- structure(unclass(callGeneric(as.Date(e1), as.Date(e2))), units = NULL, displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits, dim = dims, dimnames = dimnms)
+#            x <- structure(unclass(callGeneric(as.Date(e1), as.Date(e2))), units = NULL, displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits, dim = dims, dimnames = dimnms)
+            x <- structure(unclass(callGeneric(as.Date(e1), as.Date(e2))), units = NULL, displayFormat = NULL, timeunits = timeunits, .S3Class = NULL, dim = dims, dimnames = dimnms)
             }
         }
     x
@@ -509,9 +523,11 @@ unique.mondate<-function(x, ...) mondate(unique(unclass(x), ...))
 cbindmondate <- function(..., deparse.level = 1) {
   y <- list(...)
   dspFmt <- displayFormat(y[[1L]])
-  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
+#  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
+  if (is.null(dspFmt)) dspFmt <- getOption("mondate.displayFormat", default = .get.default.displayFormat())
   tu <- timeunits(y[[1L]])
-  if (is.null(tu)) tu <- .default.timeunits
+#  if (is.null(tu)) tu <- .default.timeunits
+  if (is.null(tu)) tu <- getOption("mondate.timeunits", default = .get.default.timeunits())
   cls <- sapply(y, function(x) class(x)[1L])
   if (all(cls == cls[1L])) mondate(cbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu)
   else cbind.data.frame(...)
@@ -520,9 +536,11 @@ cbindmondate <- function(..., deparse.level = 1) {
 rbindmondate <- function(..., deparse.level = 1) {
   y <- list(...)
   dspFmt <- displayFormat(y[[1L]])
-  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
+#  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
+  if (is.null(dspFmt)) dspFmt <- getOption("mondate.displayFormat", default = .get.default.displayFormat())
   tu <- timeunits(y[[1L]])
-  if (is.null(tu)) tu <- .default.timeunits
+#  if (is.null(tu)) tu <- .default.timeunits
+  if (is.null(tu)) tu <- getOption("mondate.timeunits", default = .get.default.timeunits())
   cls <- sapply(y, function(x) class(x)[1L])
   if (all(cls == cls[1L])) mondate(rbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu)
   else rbind.data.frame(...)
@@ -566,6 +584,9 @@ print.mondate <- function(x, ...) {
     invisible(x)
     }
 
+# 6/30/13
+quarters.mondate <- function(x, abbreviate) quarters(as.Date(x), abbreviate)
+
 # 3/8/12 So mondates can be X arguments in '*apply' functions:
 as.list.mondate <- function(x, ...) lapply(X = NextMethod(), FUN = mondate)
 # 3/8/12 So mondates can be assigned names (which worked before but caused
@@ -574,6 +595,165 @@ as.list.mondate <- function(x, ...) lapply(X = NextMethod(), FUN = mondate)
     names(x@.Data) <- value
     x
     }
+
+# 6/30/2013 Added 'cut'
+#cut.mondate <- function(x, format = displayFormat(x), ...) {
+#  y <- cut(as.Date(x), ...)
+#  if (format != "%Y-%m-%d") levels(y) <- format(as.POSIXlt(levels(y)), format = format, ...)
+#  y
+#  }
+cut.mondate <- function (x, breaks, labels = NULL, 
+                         include.lowest = TRUE, right = TRUE, 
+                         start.on.monday = TRUE, ...) {
+  if (!"mondate" %in% class(x)) stop("'x' must be a mondate")
+  if (missing(breaks)) stop("argument 'breaks' is missing, with no default")
+  if (is.numeric(breaks)) {
+    breaks <- sort(breaks)
+#    res <- NextMethod(breaks = breaks, labels = labels,
+    res <- cut.default(x, breaks = breaks, labels = labels,
+                      include.lowest = include.lowest, right = right, ...)
+    if (!is.factor(res)) return(res) # see code for cut.default to determine what causes this
+    lvls <- levels(res)
+    nl <- length(lvls)
+#    codes.only <- FALSE
+    if (is.null(labels)) {
+      #  Change the levels to display the mondate at the endpoints.
+#      levels(res) <- sapply(levels(res), function(z) {
+      lvls <- sapply(levels(res), function(z) {
+        lchar <- substr(z, 1L, 1L)
+        rchar <- substr(z, (nc<-nchar(z)), nc)
+        paste(
+          lchar,
+          paste(
+            mondate(
+              as.numeric(strsplit(substr(z, 2L, nc - 1L), ",", fixed = TRUE)[[1L]])
+              , displayFormat = displayFormat(x)
+              )
+            , collapse = ","
+            ),
+          rchar,
+          sep = ""
+          )
+        })
+      }
+    }
+  else
+  if (!is.character(breaks)) stop("'breaks' must be numeric or character")
+  else {
+    if (length(breaks) > 1) stop("invalid specification of 'breaks'")
+    by2 <- strsplit(breaks, " ", fixed = TRUE)[[1L]]
+    if (length(by2) > 2L || length(by2) < 1L) stop("invalid specification of 'breaks'")
+    valid <- pmatch(by2[length(by2)], c("days", "weeks", "months", "years", "quarters"))
+    if (is.na(valid)) stop("invalid specification of 'breaks'")
+    step <- ifelse(length(by2) == 2L, as.integer(by2[1L]), 1L)
+    # if days
+#    if (breaks %in% c("day", "days")) {
+    if (valid == 1L) {
+      # right = TRUE yields NA in first element, but not pertinent in this case
+      res <- cut(as.Date(x), breaks = breaks, labels = labels, ...)
+      if (!is.factor(res)) return(res)
+      if (is.null(labels)) {
+        lvls <- as.Date(levels(res))
+        if (step > 1L) lvls <- lvls + step - 1L
+        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x)))
+        }
+      else lvls <- labels
+      }
+    else
+    if (valid == 2L) {
+#    if (breaks %in% c("week", "weeks")) {    
+      # if weeks, add 6 days to the levels to get to the end of the week, 
+      #   format appropriately
+      res <- cut(as.Date(x), breaks = breaks, labels = labels, right = FALSE, start.on.monday = start.on.monday, ...)
+      if (!is.factor(res)) return(res)
+      if (is.null(labels)) {
+        lvls <- as.Date(levels(res))
+        if (right) lvls <- lvls + (step - 1L) * 7L + 6L
+        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x)))
+        }
+      else lvls <- labels
+      }
+    else
+    if (valid == 3L) {
+#    if (breaks %in% c("month", "months")) {
+      # cut.Date with breaks = "months" is only approximate per the following
+      #   post to R-devel by Mark Schwartz:
+      #   http://tolstoy.newcastle.edu.au/R/e4/devel/08/01/0101.html
+      # Therefore, rather than falling back on the cut.Date method,
+      #   we'll cut it from scratch
+      rng <- range(x)
+      # peg endpoints to last day of the month
+      rng <- mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months")
+      # generate the sequence of months a-la cut.Date
+      brks <- seq(rng[1], rng[2], by = step) + step - 1L
+      # append a month ahead a-la cut.numeric
+      brks1 <- c(brks[1L] - step, brks)
+      # run the default method
+      res <- cut.default(x, breaks = brks1, labels = labels,
+                      include.lowest = include.lowest, right = right, ...)
+      # label appropriately
+      lvls <- as.character(
+                if (right) brks
+                else { 
+                  if (step > 1L) brks <- brks - step + 1L
+                  mondate.ymd(year(brks), month(brks), 1, displayFormat = displayFormat(x))
+                  }
+                )
+      }
+    else
+    if (valid == 5L) {
+    #    if (breaks %in% c("quarter", "quarters")) {
+      rng <- range(x)
+      # peg endpoints to last day of the last month of the quarter
+      rng <- mondate.ymd(year(rng), .qtr[month(rng)] * 3) + (step - 1L) * 3L
+      # generate the sequence of quarters
+      brks <- seq(rng[1], rng[2], by = step * 3L)
+      # append a quarter ahead a-la cut.numeric
+      brks1 <- c(brks[1L] - 3L * step, brks)
+      # run the default method
+      res <- cut.default(x, breaks = brks1, labels = labels,
+                      include.lowest = include.lowest, right = right, ...)
+      # label appropriately
+      # If "left", label with first day quarter begins rather than last day quarter ends
+      lvls <- as.character(
+                if (right) brks
+                else {
+                  brks <- brks - ((step - 1L) * 3L + 2L)
+                  mondate.ymd(year(brks), month(brks), 1L, displayFormat = displayFormat(x))
+                  }
+                )
+      }
+    else {
+      #    if (valid == 4L) {
+      #    if (breaks %in% c("year", "years")) {
+      rng <- range(x)
+      # peg endpoints to last day of the year
+      rng <- mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years")
+      # generate the sequence of years a-la cut.Date
+      brks <- seq(rng[1], rng[2], by = step) + step - 1L
+      # append a year ahead a-la cut.numeric
+      brks1 <- c(brks[1L] - 1L * step, brks)
+      # run the default method
+      res <- cut.default(x, breaks = brks1, labels = labels,
+                      include.lowest = include.lowest, right = right, ...)
+      # label appropriately
+      lvls <- as.character(
+                if (right) brks
+                else { 
+                  if (step > 1L) brks <- brks - step + 1L
+                  mondate.ymd(year(brks), 1L, 1, displayFormat = displayFormat(x))
+                  }
+                )
+      }
+    }
+  if (any(duplicated(lvls))) {
+    warning("As called, date-represented levels are not unique. 'Range_' used instead.")
+    lvls <- paste("Range", seq_along(lvls), sep = "_")
+    }
+  levels(res) <- lvls
+  res
+  } # end cut.mondate
+
 
 ## HELPFUL USER FUNCTIONS
 
@@ -723,6 +903,44 @@ setMethod("day", "POSIXt", function(x) {
     y
     })
 
+setGeneric("quarter", function(x, ...) standardGeneric("quarter"))
+setMethod("quarter", "mondate", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- (as.POSIXlt(x)$mon)%/%3L + 1L
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("quarter", "Date", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- (as.POSIXlt(x)$mon)%/%3L + 1L
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("quarter", "POSIXt", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- (as.POSIXlt(x)$mon)%/%3L + 1L
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+
 setGeneric("MonthsBetween", function(from, to) standardGeneric("MonthsBetween"))
 setMethod("MonthsBetween", c("mondate", "mondate"), function(from, to) {
     if (length(from) >= length(to)) {
@@ -733,7 +951,9 @@ setMethod("MonthsBetween", c("mondate", "mondate"), function(from, to) {
         dims <- dim(to)
         dimnams <- dimnames(to)
         }
-    y <- c(as.numeric(to)) - c(as.numeric(from))
+    # 3/12/2013 Fixed bug -- intention is to return a magnitude (directionless)
+    #   No bug in DaysBetween as 'abs' was originally coded 
+    y <- abs(c(as.numeric(to)) - c(as.numeric(from)))
     structure(
         y
         , dim = dims
@@ -752,8 +972,9 @@ setMethod("YearsBetween", c("mondate", "mondate"), function(from, to) {
         dims <- dim(to)
         dimnams <- dimnames(to)
         }
-    y <- c(as.numeric(to)) - c(as.numeric(from))
-    y <- y / 12
+    # 3/12/2013 Fixed bug -- intention is to return a magnitude (directionless)
+    #   No bug in DaysBetween as 'abs' was originally coded 
+    y <- abs(c(as.numeric(to)) - c(as.numeric(from))) / 12
     structure(
         y
         , dim = dims
@@ -782,14 +1003,16 @@ setMethod("DaysBetween", c("mondate", "mondate"), function(from, to) {
     })
 
 ## Constructing with month, year, and day numbers
-mondate.mdy <- function(m, d, y, displayFormat = .default.displayFormat, 
-                               timeunits = .default.timeunits, ...) 
+#mondate.mdy <- function(m, d, y, displayFormat = .default.displayFormat, 
+#                               timeunits = .default.timeunits, ...) 
+mondate.mdy <- function(m, d, y, ...) 
     mondate(ISOdate(y, m, d), 
-            displayFormat = displayFormat, 
-            timeunits = timeunits,
+#            displayFormat = displayFormat, 
+#            timeunits = timeunits,
             ...)
-mondate.ymd <- function(y, m, d, displayFormat = .default.displayFormat, 
-                               timeunits = .default.timeunits, ...) {
+#mondate.ymd <- function(y, m, d, displayFormat = .default.displayFormat, 
+#                               timeunits = .default.timeunits, ...) {
+mondate.ymd <- function(y, m, d, ...) {
     if (missing(d)) {
         if (missing(m)) m <- 12
         else m <- as.numeric(m)
@@ -800,13 +1023,13 @@ mondate.ymd <- function(y, m, d, displayFormat = .default.displayFormat,
         #   for NA days, so we'll allow NA values of d to be TRUE for "isf"
         isf <- is.finite(d) | is.na(d) 
         if (all(isf)) mondate(ISOdate(y, m, d),
-                              displayFormat = displayFormat, 
-                              timeunits = timeunits,
+#                              displayFormat = displayFormat, 
+#                              timeunits = timeunits,
                               ...)
         else {
             md <- mondate(ISOdate(y, m, d),
-                              displayFormat = displayFormat, 
-                              timeunits = timeunits,
+#                              displayFormat = displayFormat, 
+#                              timeunits = timeunits,
                               ...)
             nisf <- !isf
             md[nisf] <- Inf
@@ -820,14 +1043,15 @@ mondate.ymd <- function(y, m, d, displayFormat = .default.displayFormat,
             z <- rep(NA, max(length(y), length(m), length(d)))
             isfin <- !isinf
             z[isfin] <- ISOdate(y[isfin], m[isfin], d[isfin])
-            z <- mondate(z, displayFormat = displayFormat, timeunits = timeunits, ...)
+#            z <- mondate(z, displayFormat = displayFormat, timeunits = timeunits, ...)
+            z <- mondate(z, ...)
             z[isinf] <- Inf
             if (any(neg <- (y[isinf] < 0))) z[isinf][neg] <- -Inf
             z
             }
         else mondate(ISOdate(y, m, d), 
-                 displayFormat = displayFormat, 
-                 timeunits = timeunits,
+#                 displayFormat = displayFormat, 
+#                 timeunits = timeunits,
                  ...)
         }
     }

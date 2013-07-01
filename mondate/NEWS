@@ -1,18 +1,47 @@
-Version 0.9.10.04
+Version 0.9.10.05
 ================
 Changes
 
+	o	A new cut.mondate method
+        - Fashioned after a combination of cut.default and cut.Date
+        - Adheres to the "end-of-business-day" spirit of "mondate"
+            *   When dates are used in the identification of the intervals
+                within the levels, the last day of the interval is the
+                default. Can be over-ridden with "right = FALSE".
+            *   Intervals are represented by default as left-open /
+                right-closed. This turns out to be in agreement with 
+                cut.default.
+        -   include-lowest = TRUE by default. This ensures that the
+            minimum value of the mondate is included in the first
+            level. The first interval, therefore, is also left-closed.
+            This is probably an issue only when breaks is a scalar.
+        -   A la cut.Date, allows the capability of an integer step when 
+            breaks is "days", "weeks", etc.
+    o   A new "quarters" S3 method 
+        -   Returns the "Q1 - Q3" representation of the calendar quarter 
+            of the mondate.
+    o   A new "quarter" S4 generic with methods for mondate, Date, POSIXt
+        -   Returns the numeric value of the calendar quarter 
+
+Bug Fixes
+    o   The default values for displayFormat (especially) and timeunits
+        were not being set correctly on package load. As a result,
+        the default displayFormat was always the international date standard
+        even when the user's locale was in the United States.
+        These values are now being determined at the time 
+        a mondate instance is created.
+        
+Version 0.9.10.04
+================
+Changes
 	o	year(), month(), day() functions have methods for Date and POSIXt objects.
 	o   New "factor" signature for 'mondate' method converts factor to character
         then applies the "character" signature method.
     o   ymd() function retains names of argument if available
 
-
-
 Version 0.9.10.01
 ================
 Changes
-
 	o	Replaced S4 methods cbind and rbind with functions cbindmondate and rbindmondate. This removed the two Internal calls in the package. As a result, the functionality is slightly changed:
 		- Whereas mondate's and non-mondate's could previously be c/r-binded together with the result being a mondate, such a "mixed combination" now results in a data.frame. If necessary, non-mondates should be coerced to mondates ahead of time. 
 		- When all the arguments are mondates, the result is a mondate as before.
@@ -31,7 +60,6 @@ NEW FEATURES
    o New 'as.mondate' function for coercing R objects to a mondate
 ================
 Changes
-
    o Reverted any S4 method better implemented as S3 to an S3 version. 
 	In particular, 'format' and 'unique' enable 'aggregate' to work
 	with a mondate object specified in 'by' argument

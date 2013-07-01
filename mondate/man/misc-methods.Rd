@@ -5,19 +5,22 @@
 \alias{pmean-methods}
 \alias{pmean,mondate-method}
 \alias{unique.mondate}
-\title{Miscellaneous Methods for Mondates}
+\alias{quarters.mondate}
+\title{Miscellaneous Methods for mondate's}
 \description{
 Miscellaneous \code{mondate} methods.
 }
 \usage{
  \S3method{mean}{mondate}(x, trim = 0, na.rm = FALSE, \dots)
  \S3method{unique}{mondate}(x, \dots)
+ \S3method{quarters}{mondate}(x, abbreviate)
 }
 
 \arguments{
     \item{x}{a mondate}
     \item{trim}{see \code{base::mean}}
     \item{na.rm}{see \code{base::mean}}
+    \item{abbreviate}{\code{logical}. Should the names be abbreviated?}
     \item{\dots}{arguments passed to and from other methods}
     }
 
@@ -45,6 +48,11 @@ Miscellaneous \code{mondate} methods.
         For an explanation of the arguments in \code{\dots}, 
         see \code{base::unique}.
         }
+
+    \item{\code{quarters(x = "mondate", abbreviate)}}{
+        Returns a \code{character} vector of "Q1" to "Q4".
+        See \code{\link{quarters}}.
+        }
 }}
 \examples{
 (M<-mondate.mdy(12,31,2001:2003))
@@ -63,5 +71,7 @@ unique(M,M)                       # just M
 rbind(M,M)                        # 2 M's, stacked
 unique(rbind(M,M))                # M again, still a matrix
 
+m <- mondate.ymd(2013, 1:12)      # end of the months of 2013
+quarters(m)
 }
 \keyword{methods}

@@ -18,8 +18,8 @@ All purpose \bold{mondate} constructor / coercer.
 }
 \usage{
     mondate(x, 
-        displayFormat = getOption("mondate.displayFormat", default = .default.displayFormat), 
-        timeunits = getOption("mondate.timeunits", default = .default.timeunits),
+        displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
+        timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()),
         ...)
     \S4method{mondate}{mondate}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{numeric}(x, displayFormat, timeunits, ...)
@@ -41,12 +41,15 @@ All purpose \bold{mondate} constructor / coercer.
     \item{displayFormat}{
         character string representing the date format with which to display 
         the \code{mondate}. 
-        The default.displayFormat is determined according to Sys.getlocale("LC_TIME"):
+        The default.displayFormat is determined 
+        at the time an instance is created
+        according to Sys.getlocale("LC_TIME"):
         if it contains the words "United States", the default will be 
         "\%m/\%d/\%Y" 
         \cr
         (MM/DD/YYYY), otherwise "\%Y-\%m-\%d" (YYYY-MM-DD). 
         Other choices are "\%m-\%d-\%Y" and "\%Y/\%m/\%d".
+        See "Details" section for how to change defaults.
         }
     \item{timeunits}{
         character string "months" (default), "years", or "days" indicating the units
@@ -61,6 +64,19 @@ All purpose \bold{mondate} constructor / coercer.
     arguments to be passed to other methods.
     }
     }
+\details{
+  Package users can change the default values of 
+  \code{displayFormat} and \code{timeunits} using \code{options()} with the names
+  "mondate.displayFormat" and "mondate.timeunits", respectively.
+  Warning! Use with care! 
+  No checks are performed if and when the options are established.
+  It is up to the user to ensure the new defaults are valid -- 
+  \code{displayFormat} must be appropriate for formatting dates in \R and 
+  \code{timeunits} must be one of
+  "months", "years", or "days".
+  See an example below.
+  }
+
 \section{Methods}{
 \describe{
 
@@ -149,7 +165,10 @@ relative to the \code{numeric} conversion, otherwise execution will
 be \code{stop}ped.
 }
 
-}}
+}
+
+}
+
 \seealso{
 \code{\link{POSIXt}}, \code{\link[zoo]{yearmon}}, \code{\link[zoo]{yearqtr}}
 }
@@ -208,6 +227,19 @@ x <- mondate(as.Date("2012-3-1"), displayFormat="\%Y")
 x                # shows as the year 2012, but month and day are nevertheless retained
 month(x)         # 3
 day(x)           # 1
+
+# Change the default displayFormat to only display the year and month
+options(mondate.displayFormat = "\%Y-\%m")
+y <- mondate(as.Date("2013-12-31"))
+y
+# mondate: timeunits="months"
+# [1] 2013-12
+# Previous mondate instances retain their display formats:
+x
+# mondate: timeunits="months"
+# [1] 2012
+
+
 
 }
 

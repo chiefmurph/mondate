@@ -5,6 +5,11 @@
 \alias{year,Date-method}
 \alias{year,POSIXt-method}
 \alias{year}
+\alias{quarter-methods}
+\alias{quarter,mondate-method}
+\alias{quarter,Date-method}
+\alias{quarter,POSIXt-method}
+\alias{quarter}
 \alias{month-methods}
 \alias{month,mondate-method}
 \alias{month,Date-method}
@@ -21,7 +26,7 @@
 \title{Useful Methods for Class mondate}
 \description{
 The methods in this section facilitate 
-year-, month-, and day-number extraction from objects that represent dates, 
+year-, month-, day-, and quarter-number extraction from objects that represent dates, 
 as well as 
 \code{mondate} construction
 using the year, month, and day numbers of the date 
@@ -32,13 +37,12 @@ i.e.., "January" = 1 and the first day of a month = 1).
 year(x, ...)
 month(x, ...)
 day(x, ...)
+quarter(x, ...)
 ymd(x)
 
-mondate.mdy(m, d, y, displayFormat=.default.displayFormat,
-            timeunits=.default.timeunits, ...)
+mondate.mdy(m, d, y, ...)
 
-mondate.ymd(y, m, d, displayFormat=.default.displayFormat,
-            timeunits=.default.timeunits, ...)
+mondate.ymd(y, m, d, ...)
 
 }
 \arguments{
@@ -58,19 +62,12 @@ the last day of the month is inserted.
   \item{y}{
 the four-digit year.
 }
-  \item{displayFormat}{
-the date format with which to display 
-the \code{mondate}.
-}
-  \item{timeunits}{
-character string "months" (default), "years", or "days" indicating the units
-in which date arithmetic will be carried out.
-}
   \item{\dots}{
 For \code{year}, \code{month}, and \code{day},
 not used.
 For \code{mondate.mdy} and \code{mondate.ymd}
-arguments to be passed to the \code{mondate} constructor.
+arguments to be passed to the \code{mondate} constructor,
+e.g., \code{displayFormat} and \code{timeunits}.
 }
 }
 \value{
@@ -79,6 +76,9 @@ arguments to be passed to the \code{mondate} constructor.
 \code{month} returns the month \code{numeric} {1, ..., 12}.
 
 \code{day} returns the \code{numeric} day of the month.
+
+\code{quarter} returns the \code{numeric} calendar quarter of the year:
+1 for January - March, 2 for April - June, etc.
 
 \code{ymd} returns a matrix with the number of rows equal to the
 length of \code{x},
@@ -109,18 +109,26 @@ See the \bold{Examples} section.
 
 }
 \examples{
-M<-mondate.mdy(6,30,2008)
+M <- mondate.mdy(6,30,2008)
 year(M)     # 2008
 month(M)    # 6
 day(M)      # 30
+
 mondate.ymd(2008,6,30)  # ditto
 mondate.ymd(2008,6)     # ditto; 'day' argument is "missing" so
                         # returns the last day of the month
 mondate.ymd(2008,1:12)  # all month-ends of 2008, a leapyear
-# year-ends 2001 through 2010, displaying only the 4-digit year when shown
-mondate.ymd(2001:2010, displayFormat="\%Y")
+# year-ends 2001 through 2013, displaying only the 4-digit year when shown
+mondate.ymd(2001:2013, displayFormat = "\%Y")
 mondate.ymd(2010:2012, NA) # NA mondate vector of length 3
 mondate.ymd(Inf,11,31)  # An infinite mondate even though only 30 days in 
                         # November
+                        
+x <- mondate.ymd(2013, 1:12) # month-ends in 2013
+# Give x some shape
+dim(x) <- 3:4
+dimnames(x) <- list(A = letters[1:3], B = LETTERS[1:4])
+# Return the quarter numbers in an array with the same shape and dimnames
+quarter(x) 
 }
 \keyword{methods}
