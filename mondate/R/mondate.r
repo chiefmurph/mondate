@@ -719,8 +719,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
       # Therefore, rather than falling back on the cut.Date method,
       #   we'll cut it from scratch
       rng <- range(x)
-      # peg interval endpoints to last day of the month (whole numbers)
-      rng <- mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
+      # peg interval endpoints to last/first day of the month
+      rng <- if (right) mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
+             else mondate.ymd(year(rng), month(rng), 1L, displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
       # generate the sequence of months a-la cut.Date
       brks <- seq(rng[1], rng[2], by = step) + step - 1L
       # append 'step' month(s) ahead or subsequent a-la cut.numeric
@@ -742,8 +743,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
     if (valid == 5L) {
     #    if (breaks %in% c("quarter", "quarters")) {
       rng <- range(x)
-      # peg interval endpoints to last day of the last month of the quarter (whole numbers)
-      rng <- mondate.ymd(year(rng), .qtr[month(rng)] * 3, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
+      # peg interval endpoints to last/first day of the last/first month of the quarter
+      rng <- if (right) mondate.ymd(year(rng), .qtr[month(rng)] * 3, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
+             else mondate.ymd(year(rng), .qtr[month(rng)] * 3 - 2L, 1L, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
       # generate the sequence of quarters
       brks <- seq(rng[1], rng[2], by = step * 3L)
       # append a quarter ahead a-la cut.numeric
@@ -768,8 +770,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
       #    if (valid == 4L) {
       #    if (breaks %in% c("year", "years")) {
       rng <- range(x)
-      # peg interval endpoints to last day of the year (whole numbers)
-      rng <- mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
+      # peg interval endpoints to last/first day of the year
+      rng <- if (right) mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
+             else mondate.ymd(year(rng), 1L, 1L, displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
       # generate the sequence of years a-la cut.Date
       brks <- seq(rng[1], rng[2], by = step) + step - 1L
       # append a year ahead a-la cut.numeric
