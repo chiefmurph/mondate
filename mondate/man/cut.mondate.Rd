@@ -101,6 +101,11 @@ x <- mondate.ymd(2013, 1:12, 15) # 15th day of each month in 2013
 cut(x, breaks = "months") # labeled by last day of the month
 cut(x, breaks = "months", right = FALSE) # labeled by first day of the month
 cut(x, breaks = "2 months") # labeled by last day of the month
+x1 <- mondate.ymd(2008, 6)
+x2 <- mondate.ymd(2008:2011, 6)
+cx1 <- cut(x1, "month", right = FALSE)
+cx2 <- cut(x2, "month", right = FALSE)
+stopifnot(levels(cx1)[cx1] == levels(cx2)[cx2[1]])
 
 # quarters
 x <- mondate.ymd(2013, 1:12, 15) # 15th day of each month in 2013
@@ -120,5 +125,10 @@ cut(x, "years")                  # 6 levels labeled by last day of the year
 cut(x, "years", right = FALSE)   # 6 levels labeled by first day of the year
 cut(x, "3 years")                # 2 levels
 cut(x, "3 years", right = FALSE) # 2 levels
+x1 <- mondate.ymd(2008, 12)
+x2 <- mondate.ymd(2008:2011, 12)
+cx1 <- cut(x1, "year", right = FALSE)
+cx2 <- cut(x2, "year", right = FALSE)
+stopifnot(levels(cx1)[cx1] == levels(cx2)[cx2[1]])
 }
 \keyword{methods}

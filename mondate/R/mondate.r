@@ -719,12 +719,13 @@ cut.mondate <- function (x, breaks, labels = NULL,
       # Therefore, rather than falling back on the cut.Date method,
       #   we'll cut it from scratch
       rng <- range(x)
-      # peg endpoints to last day of the month
+      # peg interval endpoints to last day of the month (whole numbers)
       rng <- mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
       # generate the sequence of months a-la cut.Date
       brks <- seq(rng[1], rng[2], by = step) + step - 1L
-      # append a month ahead a-la cut.numeric
-      brks1 <- c(brks[1L] - step, brks)
+      # append 'step' month(s) ahead or subsequent a-la cut.numeric
+      brks1 <- if (right) c(brks[1L] - step, brks)
+               else c(brks, tail(brks, 1) + step)
       # run the default method
       res <- cut.default(x, breaks = brks1, labels = labels,
                       include.lowest = include.lowest, right = right, ...)
@@ -741,12 +742,15 @@ cut.mondate <- function (x, breaks, labels = NULL,
     if (valid == 5L) {
     #    if (breaks %in% c("quarter", "quarters")) {
       rng <- range(x)
-      # peg endpoints to last day of the last month of the quarter
+      # peg interval endpoints to last day of the last month of the quarter (whole numbers)
       rng <- mondate.ymd(year(rng), .qtr[month(rng)] * 3, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
       # generate the sequence of quarters
       brks <- seq(rng[1], rng[2], by = step * 3L)
       # append a quarter ahead a-la cut.numeric
-      brks1 <- c(brks[1L] - 3L * step, brks)
+      # append 'step' quarter(s) ahead or subsequent a-la cut.numeric
+#      brks1 <- c(brks[1L] - 3L * step, brks)
+      brks1 <- if (right) c(brks[1L] - step, brks)
+               else c(brks, tail(brks, 1) + 3L * step)
       # run the default method
       res <- cut.default(x, breaks = brks1, labels = labels,
                       include.lowest = include.lowest, right = right, ...)
@@ -764,12 +768,14 @@ cut.mondate <- function (x, breaks, labels = NULL,
       #    if (valid == 4L) {
       #    if (breaks %in% c("year", "years")) {
       rng <- range(x)
-      # peg endpoints to last day of the year
+      # peg interval endpoints to last day of the year (whole numbers)
       rng <- mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
       # generate the sequence of years a-la cut.Date
       brks <- seq(rng[1], rng[2], by = step) + step - 1L
       # append a year ahead a-la cut.numeric
-      brks1 <- c(brks[1L] - 1L * step, brks)
+      # append 'step' year(s) ahead or subsequent a-la cut.numeric
+      brks1 <- if (right) c(brks[1L] - step, brks)
+               else c(brks, tail(brks, 1) + step)
       # run the default method
       res <- cut.default(x, breaks = brks1, labels = labels,
                       include.lowest = include.lowest, right = right, ...)
