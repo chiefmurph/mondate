@@ -1,12 +1,5 @@
 \name{timeunits-methods}
 \docType{methods}
-\alias{mondateTimeunits-methods}
-\alias{mondateTimeunits,mondate-method}
-\alias{mondateTimeunits,ANY-method}
-\alias{mondateTimeunits}
-\alias{mondateTimeunits<--methods}
-\alias{mondateTimeunits<-,mondate-method}
-\alias{mondateTimeunits<-}
 \alias{timeunits-methods}
 \alias{timeunits,mondate-method}
 \alias{timeunits,ANY-method}
@@ -22,9 +15,6 @@ Methods to get and set the \code{timeunits} value of a \code{mondate}.
 \S4method{timeunits}{mondate}(x)
 \S4method{timeunits}{ANY}(x)
 \S4method{timeunits}{mondate}(x)<-value
-\S4method{mondateTimeunits}{mondate}(x)
-\S4method{mondateTimeunits}{ANY}(x)
-\S4method{mondateTimeunits}{mondate}(x)<-value
 }
 \arguments{
 \item{x}{
@@ -45,19 +35,19 @@ the "get" value returned is \code{NULL}.
 }
 }
 \note{
-The \code{mondateTimeunits} versions are being deprecated.
+The \code{mondateTimeunits} versions have been deprecated.
 }
 \examples{
-x<-mondate("2010-6-30") # The middle of 2010
-mondateTimeunits(x)     # "months"
-y<-x+12                 # One year (12 months) later.
-mondateTimeunits(y)     # "months"
-y-x                     # Result is 12 months
-mondateTimeunits(y) <- "years"
-y-x                     # Result is 1 year, with a warning because 
-                        # x@timeunits != y@timeunits. Units of result
-                        # comes from the first argument.
-mondateTimeunits(y) <- "days"
-suppressWarnings(y-x)   # Result is 365 days -- warning suppressed
+x <- mondate("2010-6-30") # The middle of 2010
+timeunits(x)              # "months"
+y <- x + 12               # One year (12 months) later.
+timeunits(y)              # "months"
+y - x                     # Result is 12 months
+timeunits(y) <- "years"
+y - x                     # Result is 1 year, with a warning because 
+                          # x@timeunits != y@timeunits. Units of result
+                          # comes from the first argument.
+timeunits(y) <- "days"
+suppressWarnings(y - x)   # Result is 365 days -- warning suppressed
 }
 \keyword{methods}

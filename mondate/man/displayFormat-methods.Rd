@@ -1,12 +1,5 @@
 \name{displayFormat-methods}
 \docType{methods}
-\alias{mondateDisplayFormat-methods}
-\alias{mondateDisplayFormat,mondate-method}
-\alias{mondateDisplayFormat,ANY-method}
-\alias{mondateDisplayFormat}
-\alias{mondateDisplayFormat<--methods}
-\alias{mondateDisplayFormat<-,mondate-method}
-\alias{mondateDisplayFormat<-}
 \alias{displayFormat-methods}
 \alias{displayFormat,mondate-method}
 \alias{displayFormat,ANY-method}
@@ -22,9 +15,6 @@ Methods to get and set the \code{displayFormat} value of a \code{mondate}.
 \S4method{displayFormat}{mondate}(x)
 \S4method{displayFormat}{ANY}(x)
 \S4method{displayFormat}{mondate}(x)<-value
-\S4method{mondateDisplayFormat}{mondate}(x)
-\S4method{mondateDisplayFormat}{ANY}(x)
-\S4method{mondateDisplayFormat}{mondate}(x)<-value
 }
 \arguments{
 \item{x}{
@@ -36,17 +26,17 @@ a \code{character} string indicating the date format with which to
 display the \code{mondate}.
 Choices are currently
     \enumerate{
-    \item "%m/%d/%Y"
-    \item "%m-%d-%Y"
-    \item "%Y-%m-%d"
-    \item "%Y/%m/%d"
+    \item "\%m/\%d/\%Y"
+    \item "\%m-\%d-\%Y"
+    \item "\%Y-\%m-\%d"
+    \item "\%Y/\%m/\%d"
     }
 If \code{x} is not a \code{mondate}, 
 the "get" value returned is \code{NULL}.
 }
 }
 \note{
-The \code{mondateDisplayFormat} versions are being deprecated.
+The \code{mondateDisplayFormat} versions have been deprecated.
 }
 \examples{
 x<-mondate("2010-6-30")            # The middle of 2010

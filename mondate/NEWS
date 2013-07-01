@@ -1,5 +1,5 @@
-Version 0.9.10.05
-================
+Version 0.10.01.01
+==================
 Changes
 
 	o	A new cut.mondate method
@@ -9,19 +9,31 @@ Changes
                 within the levels, the last day of the interval is the
                 default. Can be over-ridden with "right = FALSE".
             *   Intervals are represented by default as left-open /
-                right-closed. This turns out to be in agreement with 
-                cut.default.
+                right-closed. This is in agreement with cut.default.
         -   include-lowest = TRUE by default. This ensures that the
             minimum value of the mondate is included in the first
             level. The first interval, therefore, is also left-closed.
             This is probably an issue only when breaks is a scalar.
-        -   A la cut.Date, allows the capability of an integer step when 
-            breaks is "days", "weeks", etc.
+        -   A-la cut.Date, allows the capability of an integer step when 
+            breaks is "days", "weeks", "months", "quarters", or "years".
+    o   A new "formatFUN" slot
+        -   The purpose of this slot is to allow for the user to define
+            a special formatting function for converting mondate's to
+            character. For example, there is no format string that 
+            will format dates in terms of calendar quarter, but this
+            can now be accomplished by specifying 'formatFUN' when
+            the mondate is created.
+        -   A function that will represent mondate's in YYYYQ* format,
+            for * = 1-4, is exported in mondate's namespace under the
+            name 'YearQuartersFormat'.
+        -   The default value of formatFUN is NULL, in which case
+            mondate uses the previous behavior -- i.e., formatting
+            as a date according to the displayFormat of the mondate.
     o   A new "quarters" S3 method 
         -   Returns the "Q1 - Q3" representation of the calendar quarter 
-            of the mondate.
+            of the mondate. Same behavior as the quarters.Date method.
     o   A new "quarter" S4 generic with methods for mondate, Date, POSIXt
-        -   Returns the numeric value of the calendar quarter 
+        -   Returns the numeric value of the calendar quarter.
 
 Bug Fixes
     o   The default values for displayFormat (especially) and timeunits

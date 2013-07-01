@@ -77,7 +77,7 @@ i.e., "labels such as "Range3" will be used."
 A factor is returned, unless \code{labels = FALSE} which returns the integer level codes.
 }
 \author{
-Dan Murphy
+Dan Murphy. Many thanks to the R-development team for cut and cut.Date.
 }
 \seealso{
 \code{\link{cut}} and \code{\link{cut.Date}}

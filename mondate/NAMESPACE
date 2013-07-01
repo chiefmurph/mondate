@@ -6,15 +6,13 @@ exportMethods(
     "as.numeric",
     "c",
     "day",
-	mondateDisplayFormat,
 	displayFormat,
     "matrix",
     "mondate",
     "month",
     "show",
-	mondateTimeunits,
 	timeunits,
-    "year" 
+    "year"
 )
 exportClasses(
     	mondate

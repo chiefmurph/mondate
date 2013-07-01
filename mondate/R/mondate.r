@@ -82,50 +82,65 @@
 
 ##  THE CLASS
 
+setClassUnion("funcNULL", c("function", "NULL"))
 setClass("mondate",
     representation(
         displayFormat = "character",
-        timeunits = "character"),
+        timeunits = "character",
+        formatFUN = "funcNULL"
+        ),
     contains = "numeric",
     prototype = prototype(
         numeric(0),
         displayFormat = character(0),
-        timeunits = character(0)),
+        timeunits = character(0),
+        formatFUN = NULL
+        ),
     S3methods = TRUE
     )
+
+#setMethod("initialize", "mondate",
+#           function(.Object, x, displayFormat, timeunits, formatFUN, ...){
+#  .Object@.Data <- x
+#               .Object@displayFormat <- displayFormat
+#               .Object@timeunits <- timeunits
+#               if (missing(formatFUN)) .Object@formatFUN <- function(x) format.Date(x, .Object@displayFormat, ...)
+#               else .Object@formatFUN <- formatFUN
+#               .Object
+#           })
 
 ## S4 METHODS
 
 ## SLOT ACCESS
-setGeneric("mondateDisplayFormat", function(x) standardGeneric("mondateDisplayFormat"))
-setMethod("mondateDisplayFormat","mondate", function(x) x@displayFormat)
-setMethod("mondateDisplayFormat","ANY", function(x) NULL)
-setGeneric("mondateDisplayFormat<-",function(x,value) standardGeneric("mondateDisplayFormat<-"))
-setReplaceMethod("mondateDisplayFormat", "mondate", function(x, value) { 
-    x@displayFormat <- value
-    x 
-    })
+#setGeneric("mondateDisplayFormat", function(x) standardGeneric("mondateDisplayFormat"))
+#setMethod("mondateDisplayFormat", "mondate", function(x) x@displayFormat)
+#setMethod("mondateDisplayFormat", "ANY", function(x) NULL)
+#setGeneric("mondateDisplayFormat<-", function(x, value) standardGeneric("mondateDisplayFormat<-"))
+#setReplaceMethod("mondateDisplayFormat", "mondate", function(x, value) { 
+#    x@displayFormat <- value
+#    x 
+#    })
 setGeneric("displayFormat", function(x) standardGeneric("displayFormat"))
-setMethod("displayFormat","mondate", function(x) x@displayFormat)
-setMethod("displayFormat","ANY", function(x) NULL)
-setGeneric("displayFormat<-",function(x,value) standardGeneric("displayFormat<-"))
+setMethod("displayFormat", "mondate", function(x) x@displayFormat)
+setMethod("displayFormat", "ANY", function(x) NULL)
+setGeneric("displayFormat<-", function(x, value) standardGeneric("displayFormat<-"))
 setReplaceMethod("displayFormat", "mondate", function(x, value) { 
     x@displayFormat <- value
     x 
     })
 
-setGeneric("mondateTimeunits", function(x) standardGeneric("mondateTimeunits"))
-setMethod("mondateTimeunits","mondate", function(x) x@timeunits)
-setMethod("mondateTimeunits","ANY", function(x) NULL)
-setGeneric("mondateTimeunits<-",function(x,value) standardGeneric("mondateTimeunits<-"))
-setReplaceMethod("mondateTimeunits", "mondate", function(x, value) { 
-    x@timeunits <- value
-    x 
-    })
+#setGeneric("mondateTimeunits", function(x) standardGeneric("mondateTimeunits"))
+#setMethod("mondateTimeunits", "mondate", function(x) x@timeunits)
+#setMethod("mondateTimeunits", "ANY", function(x) NULL)
+#setGeneric("mondateTimeunits<-", function(x, value) standardGeneric("mondateTimeunits<-"))
+#setReplaceMethod("mondateTimeunits", "mondate", function(x, value) { 
+#    x@timeunits <- value
+#    x 
+#    })
 setGeneric("timeunits", function(x) standardGeneric("timeunits"))
-setMethod("timeunits","mondate", function(x) x@timeunits)
-setMethod("timeunits","ANY", function(x) NULL)
-setGeneric("timeunits<-",function(x,value) standardGeneric("timeunits<-"))
+setMethod("timeunits", "mondate", function(x) x@timeunits)
+setMethod("timeunits", "ANY", function(x) NULL)
+setGeneric("timeunits<-", function(x, value) standardGeneric("timeunits<-"))
 setReplaceMethod("timeunits", "mondate", function(x, value) { 
     x@timeunits <- value
     x 
@@ -143,11 +158,14 @@ setGeneric("mondate", function(x,
     timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()), 
     ...) standardGeneric("mondate"))
 
-setMethod("mondate", "mondate", function(x, displayFormat, timeunits, ...) {
+setMethod("mondate", "mondate", function(x, displayFormat, timeunits, formatFUN, ...) {
+  if (missing(formatFUN))
     new("mondate",
         x@.Data,
         displayFormat = if (missing(displayFormat)) x@displayFormat else displayFormat,
-        timeunits = if(missing(timeunits)) x@timeunits else timeunits)
+        timeunits = if(missing(timeunits)) x@timeunits else timeunits,
+        formatFUN = if(missing(formatFUN)) x@formatFUN else formatFUN,
+        ...)
     })
 
 setMethod("mondate", "numeric", function(x, displayFormat, timeunits, ...) {
@@ -160,7 +178,8 @@ setMethod("mondate", "numeric", function(x, displayFormat, timeunits, ...) {
         new("mondate", (x$year - .origin.diff.years) * 12 + x$mon + x$mday /
                        .daysinmonth(x$year + .ISO.year.zero, x$mon + 1),
             displayFormat = displayFormat,
-            timeunits = timeunits)
+            timeunits = timeunits,
+            ...)
         }
     })
 
@@ -177,24 +196,25 @@ setMethod("mondate", "numeric", function(x, displayFormat, timeunits, ...) {
     new("mondate", (x$year - .origin.diff.years) * 12 + x$mon + x$mday /
                    .daysinmonth(x$year + .ISO.year.zero, x$mon + 1),
                    displayFormat = displayFormat,
-                   timeunits = timeunits)
+                   timeunits = timeunits,
+                   ...)
     }
 setMethod("mondate", "Date",   .date.to.mondate)
 setMethod("mondate", "POSIXt", .date.to.mondate)
 
 setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits, format, ...) {
-    # format is the user's requested format for converting the character
-    #   into a date
-    # If missing, then we'll attempt to determine the best conversion format
-    #   based on the first non-NA value in x, 
-    #   and we'll retain that format as the display format (default = "keep").
-    # m is the first non-NA value in x. 
-    isnax <- is.na(x)
-    m <- match(TRUE, !isnax)
-    if (is.na(m)) # all-NA input
-        return(mondate(as.Date(rep(NA, length(x))), displayFormat = displayFormat, timeunits = timeunits, ...))
-    # When no date conversion format is specified, find the first format that
-    #   can convert the input to a Date
+  # format is the user's requested format for converting the character
+  #   into a date
+  # If missing, then we'll attempt to determine the best conversion format
+  #   based on the first non-NA value in x, 
+  #   and we'll retain that format as the display format (default = "keep").
+  # m is the first non-NA value in x. 
+  isnax <- is.na(x)
+  m <- match(TRUE, !isnax)
+  if (is.na(m)) # all-NA input
+      return(mondate(as.Date(rep(NA, length(x))), displayFormat = displayFormat, timeunits = timeunits, ...))
+  # When no date conversion format is specified, find the first format that
+  #   can convert the input to a Date
   mf <- missing(format)
   if (!mf && length(format) > 1) {
     format <- format[1L]
@@ -230,7 +250,7 @@ setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits,
     winfty <- which(infty)
     }
   if (!mf) displayFormat <- format
-  z <- .date.to.mondate(y, displayFormat = displayFormat, timeunits = timeunits)
+  z <- .date.to.mondate(y, displayFormat = displayFormat, timeunits = timeunits, ...)
   if (length(wisnayx)) {
     if (length(winfty)) z[wisnayx[winfty]]@.Data <- as.numeric(ty[infty])
     
@@ -245,7 +265,7 @@ setMethod("mondate", "factor", function(x, displayFormat = "keep", timeunits, ..
 setMethod("mondate", "array", function(x, displayFormat, timeunits, ...)
     structure(mondate(c(x), displayFormat, timeunits, ...), dim = dim(x), dimnames = dimnames(x)))
 
-setMethod("mondate", "missing", function(x, displayFormat, timeunits, ...) new("mondate", displayFormat = displayFormat, timeunits = timeunits))
+setMethod("mondate", "missing", function(x, displayFormat, timeunits, ...) new("mondate", displayFormat = displayFormat, timeunits = timeunits, ...))
 
 setMethod("mondate", "ANY", function(x, displayFormat, timeunits, ...) {
     warning("Attempting to convert class '", class(x),
@@ -257,7 +277,7 @@ setMethod("mondate", "ANY", function(x, displayFormat, timeunits, ...) {
                 stop("Cannot convert class '", class(x), "' to class 'mondate'")
             )
         )
-    mondate(y, displayFormat = displayFormat, timeunits = timeunits)
+    mondate(y, displayFormat = displayFormat, timeunits = timeunits, ...)
     })
 
 
@@ -336,18 +356,26 @@ setMethod("as.numeric", "mondate", function(x,
     })
 
 as.character.mondate <- function(x, format, ...) {
-    if (missing(format)) format <- slot(x, "displayFormat")
+    if (missing(format)) {
+      formatFUN <- slot(x, "formatFUN")
+      if (is.null(formatFUN))
+        formatFUN <- local({
+          fmt <- displayFormat(x)
+          function(x) format.Date(x, format = fmt)
+          })
+      }
+    else formatFUN <- function(x) format.Date(x, format, ...)
     dims <- dim(x)
     dimnms <- dimnames(x)
     nams <- names(x)
     y <- character(length(x))
     if (any(i <- is.infinite(x))) {
-        y[!i] <- format(as.Date(x[!i]), format = format, ...)
+        y[!i] <- formatFUN(as.Date(x[!i]))
         ipos <- x[i] > 0
         y[i][ipos] <- "Inf"
         y[i][!ipos] <- "-Inf"
         }
-    else y <- format(as.Date(x), format = format, ...)
+    else y <- formatFUN(as.Date(x))
     dim(y) <- dims
     if (is.null(dims)) names(y) <- nams
     else dimnames(y) <- dimnms
@@ -370,44 +398,49 @@ setMethod("Arith", c("mondate", "mondate"), function(e1, e2) {
             warning("Unequal timeunits, using first mondate's= ", timeunits)
         if (timeunits == "months"){ 
 #            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
-            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = timeunits, .S3Class = NULL)
+            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = timeunits, formatFUN = NULL, .S3Class = NULL)
             }
         else
         if (timeunits == "years")
 #            x <- structure(callGeneric(unclass(e1), unclass(e2)) / 12, displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
-            x <- structure(callGeneric(unclass(e1), unclass(e2)) / 12, displayFormat = NULL, timeunits = timeunits, .S3Class = NULL)
+            x <- structure(callGeneric(unclass(e1), unclass(e2)) / 12, displayFormat = NULL, timeunits = timeunits, formatFUN = NULL, .S3Class = NULL)
         else {
             dims <- dim(x)
             dimnms <- dimnames(x)
 #            x <- structure(unclass(callGeneric(as.Date(e1), as.Date(e2))), units = NULL, displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits, dim = dims, dimnames = dimnms)
-            x <- structure(unclass(callGeneric(as.Date(e1), as.Date(e2))), units = NULL, displayFormat = NULL, timeunits = timeunits, .S3Class = NULL, dim = dims, dimnames = dimnms)
+            x <- structure(unclass(callGeneric(as.Date(e1), as.Date(e2))), units = NULL, displayFormat = NULL, timeunits = timeunits, formatFUN = NULL, .S3Class = NULL, dim = dims, dimnames = dimnms)
             }
         }
     x
     })
 setMethod("Arith", c("numeric", "mondate"), function(e1, e2) {
     mondate(callGeneric(e1, as.numeric(e2, convert= TRUE)), 
-            timeunits = e2@timeunits, displayFormat = e2@displayFormat)
+            timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
     })
 setMethod("Arith", c("mondate", "numeric"), function(e1, e2) {
     mondate(callGeneric(as.numeric(e1, convert = TRUE), e2), 
-            timeunits = e1@timeunits, displayFormat = e1@displayFormat)
+            timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
     })
 
 setMethod("Summary","mondate", function(x, ..., na.rm = FALSE) 
     mondate(callGeneric(x@.Data, ..., na.rm = na.rm),  
-            timeunits = x@timeunits, displayFormat = x@displayFormat)
+            timeunits = x@timeunits, displayFormat = x@displayFormat, 
+            formatFUN = x@formatFUN)
     )
 
 # OTHER ARITHMETIC FUNCTIONS
 
-mean.mondate<-function(x, trim = 0, na.rm = FALSE,...) 
-    mondate(mean(unclass(x), trim = trim, na.rm = na.rm,...))
+mean.mondate <- function(x, trim = 0, na.rm = FALSE, ...) 
+    mondate(mean(unclass(x), trim = trim, na.rm = na.rm, ...), 
+      displayFormat = displayFormat(x),
+      timeunits = timeunits(x),
+      formatFUN = x@formatFUN
+      )
 
 # New "parallel mean", analogous to pmin and pmax
 setGeneric("pmean", function(...) standardGeneric("pmean"))
 setMethod("pmean", signature="mondate", function(...) {
-    mondate(apply(cbind(...), 1, mean), displayFormat = displayFormat(..1), timeunits = timeunits(..1)) 
+    mondate(apply(cbind(...), 1, mean), displayFormat = displayFormat(..1), timeunits = timeunits(..1), formatFUN = ..1@formatFUN) 
     })
 
 ## COMBINING, EXTRACTING, SHAPING, ETC.
@@ -417,11 +450,11 @@ setMethod("c", "mondate", function(x, ..., recursive = FALSE) {
     if (length(L) > 0L) 
         new("mondate", sapply(unlist(list(x, L)), getDataPart), 
                        displayFormat = x@displayFormat, 
-                       timeunits = x@timeunits)
+                       timeunits = x@timeunits, formatFUN = x@formatFUN)
     else
         new("mondate", c(getDataPart(x)), 
                        displayFormat = x@displayFormat, 
-                       timeunits = x@timeunits)
+                       timeunits = x@timeunits, formatFUN = x@formatFUN)
     })
 
 # Per help("["): "These operators are also implicit S4 generics, but as primitives, 
@@ -431,7 +464,7 @@ setMethod("[", "mondate", function(x, i, j, ..., drop) {
     structure(
         new("mondate", y,
             displayFormat = x@displayFormat, 
-            timeunits = x@timeunits
+            timeunits = x@timeunits, formatFUN = x@formatFUN
             ),
         dim = dim(y),
         dimnames = dimnames(y)
@@ -477,11 +510,11 @@ setMethod("show", "mondate", function(object) {
 
 setGeneric("array")
 setMethod("array", "mondate", function(data = NA, dim = length(data), dimnames = NULL) 
-    mondate(callNextMethod(), displayFormat = displayFormat(data), timeunits = timeunits(data)))
+    mondate(callNextMethod(), displayFormat = displayFormat(data), timeunits = timeunits(data), formatFUN = data@formatFUN))
 
 setGeneric("matrix")
 setMethod("matrix", "mondate", function(data = NA, nrow = 1, ncol = 1, byrow = FALSE, dimnames = NULL) 
-    mondate(callNextMethod(), displayFormat = displayFormat(data), timeunits = timeunits(data)))
+    mondate(callNextMethod(), displayFormat = displayFormat(data), timeunits = timeunits(data), formatFUN = data@formatFUN))
 
 ##
 ## S3 METHODS
@@ -518,7 +551,11 @@ as.data.frame.mondate <- function(x, row.names = NULL, optional = FALSE, ...) {
 
 format.mondate<- function(x, ...) as.character(x, ...)
 
-unique.mondate<-function(x, ...) mondate(unique(unclass(x), ...))
+unique.mondate<-function(x, ...) mondate(unique(unclass(x), ...),
+        displayFormat = displayFormat(x),
+        timeunits = timeunits(x),
+        formatFUN = x@formatFUN
+        )
 
 cbindmondate <- function(..., deparse.level = 1) {
   y <- list(...)
@@ -529,7 +566,7 @@ cbindmondate <- function(..., deparse.level = 1) {
 #  if (is.null(tu)) tu <- .default.timeunits
   if (is.null(tu)) tu <- getOption("mondate.timeunits", default = .get.default.timeunits())
   cls <- sapply(y, function(x) class(x)[1L])
-  if (all(cls == cls[1L])) mondate(cbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu)
+  if (all(cls == cls[1L])) mondate(cbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu, formatFUN = y[[1L]]@formatFUN)
   else cbind.data.frame(...)
   }
 
@@ -542,24 +579,24 @@ rbindmondate <- function(..., deparse.level = 1) {
 #  if (is.null(tu)) tu <- .default.timeunits
   if (is.null(tu)) tu <- getOption("mondate.timeunits", default = .get.default.timeunits())
   cls <- sapply(y, function(x) class(x)[1L])
-  if (all(cls == cls[1L])) mondate(rbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu)
+  if (all(cls == cls[1L])) mondate(rbind(..., deparse.level = deparse.level), displayFormat = dspFmt, timeunits = tu, formatFUN = y[[1L]]@formatFUN)
   else rbind.data.frame(...)
   }
 
 rep.mondate<-function(x, ...) mondate(rep(unclass(x), ...), 
-    displayFormat = x@displayFormat, timeunits = x@timeunits)
+    displayFormat = x@displayFormat, timeunits = x@timeunits, formatFUN = x@formatFUN)
 
 seq.mondate<-function(from = NULL, to, ...) {
     if (missing(from)) mondate(seq(to = as.numeric(to, convert = TRUE), ...),
             timeunits=to@timeunits,
-            displayFormat=to@displayFormat)
+            displayFormat=to@displayFormat, formatFUN = to@formatFUN)
     else 
     if (missing(to)) mondate(seq(from = as.numeric(from, convert = TRUE), ...),
                 timeunits = from@timeunits,
-                displayFormat = from@displayFormat)
+                displayFormat = from@displayFormat, formatFUN = from@formatFUN)
     else mondate(seq(from = as.numeric(from, convert = TRUE), to = as.numeric(to, convert = TRUE), ...),
                 timeunits = from@timeunits,
-                displayFormat = from@displayFormat)
+                displayFormat = from@displayFormat, formatFUN = from@formatFUN)
     }
 
 head.mondate <- function(x, ...) {
@@ -627,7 +664,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
           paste(
             mondate(
               as.numeric(strsplit(substr(z, 2L, nc - 1L), ",", fixed = TRUE)[[1L]])
-              , displayFormat = displayFormat(x)
+              , displayFormat = displayFormat(x), formatFUN = x@formatFUN
               )
             , collapse = ","
             ),
@@ -655,7 +692,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
       if (is.null(labels)) {
         lvls <- as.Date(levels(res))
         if (step > 1L) lvls <- lvls + step - 1L
-        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x)))
+        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x), formatFUN = x@formatFUN))
         }
       else lvls <- labels
       }
@@ -669,7 +706,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
       if (is.null(labels)) {
         lvls <- as.Date(levels(res))
         if (right) lvls <- lvls + (step - 1L) * 7L + 6L
-        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x)))
+        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x), formatFUN = x@formatFUN))
         }
       else lvls <- labels
       }
@@ -683,7 +720,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
       #   we'll cut it from scratch
       rng <- range(x)
       # peg endpoints to last day of the month
-      rng <- mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months")
+      rng <- mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
       # generate the sequence of months a-la cut.Date
       brks <- seq(rng[1], rng[2], by = step) + step - 1L
       # append a month ahead a-la cut.numeric
@@ -696,7 +733,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                 if (right) brks
                 else { 
                   if (step > 1L) brks <- brks - step + 1L
-                  mondate.ymd(year(brks), month(brks), 1, displayFormat = displayFormat(x))
+                  mondate.ymd(year(brks), month(brks), 1, displayFormat = displayFormat(x), formatFUN = x@formatFUN)
                   }
                 )
       }
@@ -705,7 +742,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
     #    if (breaks %in% c("quarter", "quarters")) {
       rng <- range(x)
       # peg endpoints to last day of the last month of the quarter
-      rng <- mondate.ymd(year(rng), .qtr[month(rng)] * 3) + (step - 1L) * 3L
+      rng <- mondate.ymd(year(rng), .qtr[month(rng)] * 3, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
       # generate the sequence of quarters
       brks <- seq(rng[1], rng[2], by = step * 3L)
       # append a quarter ahead a-la cut.numeric
@@ -719,7 +756,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                 if (right) brks
                 else {
                   brks <- brks - ((step - 1L) * 3L + 2L)
-                  mondate.ymd(year(brks), month(brks), 1L, displayFormat = displayFormat(x))
+                  mondate.ymd(year(brks), month(brks), 1L, displayFormat = displayFormat(x), formatFUN = x@formatFUN)
                   }
                 )
       }
@@ -728,7 +765,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
       #    if (breaks %in% c("year", "years")) {
       rng <- range(x)
       # peg endpoints to last day of the year
-      rng <- mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years")
+      rng <- mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
       # generate the sequence of years a-la cut.Date
       brks <- seq(rng[1], rng[2], by = step) + step - 1L
       # append a year ahead a-la cut.numeric
@@ -741,7 +778,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                 if (right) brks
                 else { 
                   if (step > 1L) brks <- brks - step + 1L
-                  mondate.ymd(year(brks), 1L, 1, displayFormat = displayFormat(x))
+                  mondate.ymd(year(brks), 1L, 1, displayFormat = displayFormat(x), formatFUN = x@formatFUN)
                   }
                 )
       }
@@ -1056,3 +1093,5 @@ mondate.ymd <- function(y, m, d, ...) {
         }
     }
 
+# Helpful formatting functions
+YearQuartersFormat <- function(x) paste(year(x), quarters(x), sep = "")

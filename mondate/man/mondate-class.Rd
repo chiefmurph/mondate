@@ -140,6 +140,10 @@ Objects can be created by calls of the form \code{mondate(x, ...)}.
         using the \code{options(mondate.timeunits = myUnits)} command.
         See Examples.
         }
+    \item{\code{formatFUN}:}{Object of class \code{"funcNULL"}
+        Use this slot to store a function to format a \code{mondate}.
+        See Examples.
+        }
     \item{\code{.S3Class}:}{Object of class \code{"logical"}}
     Currently \code{TRUE} so that S3 method-based functionality that 
     could not be duplicated in an S4 method would still be available.

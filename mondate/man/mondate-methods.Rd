@@ -21,7 +21,7 @@ All purpose \bold{mondate} constructor / coercer.
         displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
         timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()),
         ...)
-    \S4method{mondate}{mondate}(x, displayFormat, timeunits, ...)
+    \S4method{mondate}{mondate}(x, displayFormat, timeunits, formatFUN, ...)
     \S4method{mondate}{numeric}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{Date}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{POSIXt}(x, displayFormat, timeunits, ...)
@@ -54,6 +54,11 @@ All purpose \bold{mondate} constructor / coercer.
     \item{timeunits}{
         character string "months" (default), "years", or "days" indicating the units
         in which date arithmetic will be carried out.
+        }
+    \item{formatFUN}{
+        format function for converting a mondate to character. 
+        In case of conversion from \code{mondate}, default is to inherit
+        the value.
         }
     \item{format}{
         format string for converting a character to a Date 
@@ -212,8 +217,8 @@ mondate(x)
 # The yearmon class will identify any day in June 2010 with that month.
 as.yearmon("2010-6-15") 
 mondate(as.yearmon("2010-6-15"))         # end of first day of June 2010
-mondate(as.yearmon("2010-6-15"), frac=1) # end of  last day of June 2010
-mondate(as.yearqtr("2010-2"), frac=1)    # same
+mondate(as.yearmon("2010-6-15", frac=1)) # end of  last day of June 2010
+mondate(as.yearqtr("2010-2", frac=1))    # same
 
 # The if missing, displayFormat will be determined from the character input
 x <- mondate("2010-12-31")
