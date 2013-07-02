@@ -16,6 +16,10 @@ Changes
             This is probably an issue only when breaks is a scalar.
         -   A-la cut.Date, allows the capability of an integer step when 
             breaks is "days", "weeks", "months", "quarters", or "years".
+    o   Net + and - methods for mondate,difftime signatures to simplify
+        adding and subtracting non-"months": "secs", "mins", "hours",
+        "days", abd "weeks"
+        -   Example mondate("2013-01-01") + difftime(1, units = "days")
     o   A new "formatFUN" slot
         -   The purpose of this slot is to allow for the user to define
             a special formatting function for converting mondate's to
