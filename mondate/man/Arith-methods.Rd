@@ -13,10 +13,14 @@
 \alias{DaysBetween}
 \alias{DaysBetween-methods}
 \alias{DaysBetween,mondate,mondate-method}
-\title{Methods for Function Group Arith}
+\alias{+-methods}
+\alias{+,mondate,difftime-method}
+\alias{--methods}
+\alias{-,mondate,difftime-method}
+\title{Methods for Function Group Arith on mondate Objects}
 \description{
 Arithmetic methods for class \code{mondate}.
-Includes three special "subtraction" methods.
+Includes three special "units between" methods.
 }
 \section{Methods}{
 \describe{
@@ -64,6 +68,13 @@ and the result converted to a \code{mondate}.
 (See the \code{convert} option of the \code{as.numeric("mondate")} function.)
 }
 
+\item{\code{+signature(e1 = "mondate", e2 = "difftime")}}{
+  See examples.
+  }
+\item{\code{-signature(e1 = "mondate", e2 = "difftime")}}{
+  See examples.
+  }
+
 \item{\code{MonthsBetween(from = "mondate", to = "mondate")}}{
 Same as \code{abs(from - to)} in months.
 }
@@ -96,6 +107,18 @@ y - x                      # 2x2 matrix of 12s, with an attribute ("months")
 MonthsBetween(x, y)        # same, without the attribute
 YearsBetween(x, y)
 DaysBetween(x, y)
+
+## Use difftime object to add, subtract days, weeks, etc.
+x <- mondate(1)            # January 31, 2000
+y <- as.difftime(1, units = "days")
+x + y
+x - y
+yw <- as.difftime(1, units = "weeks")
+x + yw
+x - yw
+x + as.difftime(1, , "days")
+x + as.difftime(86400, , "secs")
+
 }
 \keyword{methods}
 \keyword{arith}

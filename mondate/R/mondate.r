@@ -422,6 +422,28 @@ setMethod("Arith", c("mondate", "numeric"), function(e1, e2) {
             timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
     })
 
+# Simplify adding days to mondates -- use a difftime object
+setMethod("+", c("mondate", "difftime"), function(e1, e2) {
+  units <- attr(e2, "units")
+  if (units == "days") mondate(as.Date(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else
+  if (units == "weeks") mondate(as.Date(e1) + 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else 
+  if (units == "auto") stop("'auto' units not supported")
+  else
+  mondate(as.POSIXct(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  })
+setMethod("-", c("mondate", "difftime"), function(e1, e2) {
+  units <- attr(e2, "units")
+  if (units == "days") mondate(as.Date(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else
+  if (units == "weeks") mondate(as.Date(e1) - 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else 
+  if (units == "auto") stop("'auto' units not supported")
+  else
+  mondate(as.POSIXct(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  })
+
 setMethod("Summary","mondate", function(x, ..., na.rm = FALSE) 
     mondate(callGeneric(x@.Data, ..., na.rm = na.rm),  
             timeunits = x@timeunits, displayFormat = x@displayFormat, 
