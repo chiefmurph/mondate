@@ -8,8 +8,8 @@ Method for \code{cut} applied to mondate objects.
 }
 \usage{
  \S3method{cut}{mondate}(x, breaks, labels = NULL, 
-                         include.lowest = TRUE, right = TRUE, 
-                         start.on.monday = TRUE, \dots)
+      include.lowest = TRUE, right = TRUE, 
+      start.on.monday = TRUE, attr.breaks = FALSE, \dots)
 }
 \arguments{
 \item{x}{
@@ -39,6 +39,12 @@ logical, indicating if the intervals should be closed on the right
 \item{start.on.monday}{
 logical. If \code{breaks = "weeks"}, should the week start on Mondays or Sundays?
 }
+\item{attr.breaks}{
+logical. If \code{TRUE} the result has a "breaks" attribute which is
+a \code{mondate} whose pairwise values determine a covering of \code{x}.
+Most helpful when \code{breaks} = 
+"days", "weeks", "months", "quarters", or "years".
+}
 \item{\dots}{
 optional arguments passed to or from other methods.
 }
@@ -66,6 +72,10 @@ then the period of the first level is determined by \code{min(x)}
 and subsequent "day", "week", "month", "quarter", and "year" periods
 are determined sequentially per
 seq(min(x), max(x), by = step).
+
+When \code{attr.breaks = TRUE}, the result will have a "breaks" attribute
+(attr(., "breaks")) which pairwise "cover" \code{x}.
+Such "breaks" are suitable be use by 'hist', for example.
 
 In all cases, the formats of the dates representing the levels are 
 inherited from \code{displayFormat(x)}.

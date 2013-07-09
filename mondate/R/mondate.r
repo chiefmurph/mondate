@@ -4,7 +4,9 @@
 
 ### - Dan Murphy, June 1, 2010
 
-##    Copyright (C) <2010>  <Daniel Murphy>
+##    Copyright (C) <2010 - 2013>  <Daniel Murphy>
+
+##    License: GPL (>= 2)
 
 ##    This program is distributed in the hope that it will be useful,
 ##    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -415,15 +417,15 @@ setMethod("Arith", c("numeric", "mondate"), function(e1, e2) {
             timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
     })
 setMethod("Arith", c("mondate", "numeric"), function(e1, e2) {
-    mondate(callGeneric(as.numeric(e1, convert = TRUE), e2), 
-            timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
-    })
+  mondate(callGeneric(as.numeric(e1, convert = TRUE), e2), 
+          timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
+  })
 setMethod("Arith", c("mondate", "array"), function(e1, e2) {
-    mondate(callGeneric(as.numeric(e1, convert = TRUE), c(e2)), 
-            timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
-    })
+  mondate(callGeneric(as.numeric(e1, convert = TRUE), e2), 
+          timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
+  })
 setMethod("Arith", c("array", "mondate"), function(e1, e2) {
-    mondate(callGeneric(as.numeric(e2, convert = TRUE), c(e1)), 
+    mondate(callGeneric(as.numeric(e2, convert = TRUE), e1), 
             timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
     })
 
@@ -473,47 +475,62 @@ add <- function(e1, e2, units, forcelastday = FALSE) {
   if (!is.numeric(e2)) stop ("e2 must be numeric")
   if (missing(units)) units <- timeunits(e1)
   if (!(units %in% c("secs", "mins", "hours", "days", "weeks", "months", "years"))) stop("invalid units specified")
-#  z <- x + as.difftime(y, , units = units)
+  dm <- dim(e1)
+  dmnms <- dimnames(e1)
+  nms <- names(e1)
   z <- 
-  if (units == "days") mondate(as.Date(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
-  else
-  if (units == "weeks") mondate(as.Date(e1) + 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
-  else
-  if (units == "months") {
-    if (.is.wholenumber(e2)) {  
-      ymdmat <- ymd(e1)
-      ymdmat[ ,"month"] <- ymdmat[ , "month"] + as.numeric(e2)
-      nextyear <- ymdmat[ , "month"] > 12
-      if (any(nextyear)) {
-        ymdmat[ , "year" ][nextyear] <- ymdmat[ , "year"][nextyear] + (ymdmat[ , "month"][nextyear] - 1) %/% 12
-        ymdmat[ , "month"][nextyear] <- (ymdmat[ , "month"][nextyear] - 1) %% 12 + 1
+    if (units == "days") mondate(as.Date(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    else
+    if (units == "weeks") mondate(as.Date(e1) + 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    else
+    if (units == "months") {
+      if (all(.is.wholenumber(e2))) {
+        len <- max(length(e1), length(e2))  
+        ymdmat <- ymd(e1)
+        yr <- rep(ymdmat[ , "year" ], len %/% length(e1)) 
+        mnth <- rep(ymdmat[ , "month"], len %/% length(e1))
+        dy <- rep(ymdmat[ , "day" ], len %/% length(e1))
+        mnth <- mnth + as.numeric(e2)
+        nextyear <- mnth > 12
+        if (any(nextyear)) {
+          yr[nextyear] <- yr[nextyear] + (mnth[nextyear] - 1) %/% 12
+          mnth[nextyear] <- (mnth[nextyear] - 1) %% 12 + 1
+          }
+        daysinm <- .daysinmonth(yr, mnth)
+        ndx <- dy > daysinm
+        dy[ndx] <- daysinm[ndx]
+        mondate.ymd(yr, mnth, dy, displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
         }
-      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
-      ndx <- ymdmat[ , "day"] > daysinm
-      ymdmat[ndx, "day"] <- daysinm[ndx]
-      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+      else e1 + e2
       }
-    else e1 + e2
-    }
-  else
-  if (units == "years") {
-    if (.is.wholenumber(e2)) {  
-      ymdmat <- ymd(e1)
-      ymdmat[ , "year"] <- ymdmat[ , "year"] + as.numeric(e2)
-      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
-      ndx <- ymdmat[ , "day"] > daysinm
-      ymdmat[ndx, "day"] <- daysinm[ndx]
-      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    else
+    if (units == "years") {
+      if (all(.is.wholenumber(e2))) {  
+        len <- max(length(e1), length(e2))  
+        ymdmat <- ymd(e1)
+        yr <- rep(ymdmat[ , "year" ], len %/% length(e1)) 
+        mnth <- rep(ymdmat[ , "month"], len %/% length(e1))
+        dy <- rep(ymdmat[ , "day" ], len %/% length(e1))
+        yr <- yr + as.numeric(e2)
+        daysinm <- .daysinmonth(yr, mnth)
+        ndx <- dy > daysinm   # leap year
+        dy[ndx] <- daysinm[ndx]
+        mondate.ymd(yr, mnth, dy, displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+        }
+      else e1 + 12 * e2
       }
-    else e1 + 12 * e2
+    else
+    if (units == "auto") stop("'auto' units not supported")
+    else mondate(as.POSIXct(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    if (forcelastday) {
+      is.last.day <- day(e1) == .daysinmonth(year(e1), month(e1))
+      if (any(is.last.day)) z[is.last.day] <- mondate.ymd(year(z[is.last.day]), month(z[is.last.day]))
+      }
+  if (!is.null(dm)) {
+    dim(z) <- dm
+    dimnames(z) <- dmnms
     }
-  else
-  if (units == "auto") stop("'auto' units not supported")
-  else mondate(as.POSIXct(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
-  if (forcelastday) {
-    is.last.day <- day(e1) == .daysinmonth(year(e1), month(e1))
-    if (any(is.last.day)) z[is.last.day] <- mondate.ymd(year(z[is.last.day]), month(z[is.last.day]))
-    }
+  else names(z) <- nms
   z
   }
 subtract <- function(e1, e2, units, forcelastday = FALSE) {
@@ -521,46 +538,62 @@ subtract <- function(e1, e2, units, forcelastday = FALSE) {
   if (!is.numeric(e2)) stop ("e2 must be numeric")
   if (missing(units)) units <- timeunits(e1)
   if (!(units %in% c("secs", "mins", "hours", "days", "weeks", "months", "years"))) stop("invalid units specified")
-  z <- #x - as.difftime(y, , units = units)
-  if (units == "days") mondate(as.Date(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
-  else
-  if (units == "weeks") mondate(as.Date(e1) - 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
-  else 
-  if (units == "months") {
-    if (.is.wholenumber(e2)) {  
-      ymdmat <- ymd(e1)
-      ymdmat[ ,"month"] <- ymdmat[ , "month"] - as.numeric(e2)
-      nextyear <- ymdmat[ , "month"] <= 0
-      if (any(nextyear)) {
-        ymdmat[ , "year"][nextyear] <- ymdmat[ , "year"][nextyear] + (ymdmat[ , "month"][nextyear] - 1) %/% 12
-        ymdmat[ , "month"][nextyear] <- (ymdmat[ , "month"][nextyear] - 1) %% 12 + 1
+  dm <- dim(e1)
+  dmnms <- dimnames(e1)
+  nms <- names(e1)
+  z <- 
+    if (units == "days") mondate(as.Date(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    else
+    if (units == "weeks") mondate(as.Date(e1) - 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    else 
+    if (units == "months") {
+      if (all(.is.wholenumber(e2))) {  
+        len <- max(length(e1), length(e2))  
+        ymdmat <- ymd(e1)
+        yr <- rep(ymdmat[ , "year" ], len %/% length(e1)) 
+        mnth <- rep(ymdmat[ , "month"], len %/% length(e1))
+        dy <- rep(ymdmat[ , "day" ], len %/% length(e1))
+        mnth <- mnth - as.numeric(e2)
+        nextyear <- mnth <= 0
+        if (any(nextyear)) {
+          yr[nextyear] <- yr[nextyear] + (mnth[nextyear] - 1) %/% 12
+          mnth[nextyear] <- (mnth[nextyear] - 1) %% 12 + 1
+          }
+        daysinm <- .daysinmonth(yr, mnth)
+        ndx <- dy > daysinm
+        dy[ndx] <- daysinm[ndx]
+        mondate.ymd(yr, mnth, dy, displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
         }
-      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
-      ndx <- ymdmat[ , "day"] > daysinm
-      ymdmat[ndx, "day"] <- daysinm[ndx]
-      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+      else e1 - e2
       }
-    else e1 - e2
-    }
-  else
-  if (units == "years") {
-    if (.is.wholenumber(e2)) {  
-      ymdmat <- ymd(e1)
-      ymdmat[ , "year"] <- ymdmat[ , "year"] - as.numeric(e2)
-      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
-      ndx <- ymdmat[ , "day"] > daysinm
-      ymdmat[ndx, "day"] <- daysinm[ndx]
-      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    else
+    if (units == "years") {
+      if (all(.is.wholenumber(e2))) {  
+        len <- max(length(e1), length(e2))  
+        ymdmat <- ymd(e1)
+        yr <- rep(ymdmat[ , "year" ], len %/% length(e1)) 
+        mnth <- rep(ymdmat[ , "month"], len %/% length(e1))
+        dy <- rep(ymdmat[ , "day" ], len %/% length(e1))
+        yr <- yr - as.numeric(e2)
+        daysinm <- .daysinmonth(yr, mnth)
+        ndx <- dy > daysinm   # leap year
+        dy[ndx] <- daysinm[ndx]
+        mondate.ymd(yr, mnth, dy, displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+        }
+      else e1 - 12 * e2
       }
-    else e1 - 12 * e2
+    else 
+    if (units == "auto") stop("'auto' units not supported")
+    else mondate(as.POSIXct(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+    if (forcelastday) {
+      is.last.day <- day(e1) == .daysinmonth(year(e1), month(e1))
+      if (any(is.last.day)) z[is.last.day] <- mondate.ymd(year(z[is.last.day]), month(z[is.last.day]))
+      }
+  if (!is.null(dm)) {
+    dim(z) <- dm
+    dimnames(z) <- dmnms
     }
-  else 
-  if (units == "auto") stop("'auto' units not supported")
-  else mondate(as.POSIXct(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
-  if (forcelastday) {
-    is.last.day <- day(e1) == .daysinmonth(year(e1), month(e1))
-    if (any(is.last.day)) z[is.last.day] <- mondate.ymd(year(z[is.last.day]), month(z[is.last.day]))
-    }
+  else names(z) <- nms
   z
   }
 
@@ -791,7 +824,9 @@ as.list.mondate <- function(x, ...) lapply(X = NextMethod(), FUN = mondate)
 #  }
 cut.mondate <- function (x, breaks, labels = NULL, 
                          include.lowest = TRUE, right = TRUE, 
-                         start.on.monday = TRUE, ...) {
+                         start.on.monday = TRUE, 
+                         attr.breaks = FALSE
+                         , ...) {
   if (!"mondate" %in% class(x)) stop("'x' must be a mondate")
   if (missing(breaks)) stop("argument 'breaks' is missing, with no default")
   if (is.numeric(breaks)) {
@@ -852,19 +887,20 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 2L) {
-      # if weeks, add 6 days to the levels to get to the end of the week, 
-      #   format appropriately
+      # take advantage of Date's logic
+      # if right, add 6 days (and (step-1)*7 weeks) to the levels to get to the end of the week, 
+      # format appropriately
       res <- cut(as.Date(x), breaks = breaks, labels = labels, right = FALSE, start.on.monday = start.on.monday, ...)
       if (!is.factor(res)) return(res)
       breaks <- mondate(levels(res), displayFormat = displayFormat(x), timeunits(x), formatFUN = x@formatFUN)
       if (right) {
+        breaks <- add(breaks, (step - 1L) * 7L + 6L, units = "days")
         lvls <- as.character(breaks)
-        breaks <- c(subtract(breaks[1L], (step - 1L) * 7L + 6L, units = "days"), breaks) 
+        breaks <- c(subtract(breaks[1L], step * 7L, units = "days"), breaks)
         }
       else {
-        breaks <- subtract(breaks, (step - 1L) * 7L + 6L, units = "days")
         lvls <- as.character(breaks)
-        breaks <- c(breaks, add(breaks[1L], (step - 1L) * 7L + 6L, units = "days"))
+        breaks <- c(breaks, add(tail(breaks, 1L), step * 7L, units = "days")) 
         }
       if (!is.null(labels)) lvls <- labels
       }
@@ -902,7 +938,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
     lvls <- paste("Range", seq_along(lvls), sep = "_")
     }
   levels(res) <- lvls
-  attr(res, "breaks") <- breaks
+  if (attr.breaks) attr(res, "breaks") <- breaks
   res
   } # end cut.mondate
 

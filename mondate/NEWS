@@ -14,11 +14,13 @@ Changes
                 This is probably an issue only when breaks is a scalar.
         -   A-la cut.Date, allows the capability of an integer step when 
             breaks is "days", "weeks", "months", "quarters", or "years".
-        -   Result has a "breaks" attribute. This is a mondate whose
+        -   Result has an optional "breaks" attribute = a mondate whose
             pairwise values determine a covering of the vector
             being cut. Most helpful when breaks = 
             "days", "weeks", "months", "quarters", or "years".
             Such "breaks" are suitable be use by 'hist'.
+            Attribute is attached to the result by setting argument
+            attr.breaks = TRUE (FALSE by default).
     o   New 'as.difftime' function to enable units 'months' and 'years'
         -   Now the difference between two mondate objects will be a 
             difftime object with units = timeunits of the first 
