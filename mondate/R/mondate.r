@@ -848,112 +848,67 @@ cut.mondate <- function (x, breaks, labels = NULL,
     if (is.na(valid)) stop("invalid specification of 'breaks'")
     step <- ifelse(length(by2) == 2L, as.integer(by2[1L]), 1L)
     # if days
-#    if (breaks %in% c("day", "days")) {
     if (valid == 1L) {
       # right = TRUE yields NA in first element, but not pertinent in this case
       res <- cut(as.Date(x), breaks = breaks, labels = labels, ...)
       if (!is.factor(res)) return(res)
-      if (is.null(labels)) {
-        lvls <- as.Date(levels(res))
-        if (step > 1L) lvls <- lvls + step - 1L
-        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x), formatFUN = x@formatFUN))
+      breaks <- mondate(levels(res), displayFormat = displayFormat(x), timeunits(x), formatFUN = x@formatFUN)
+      if (right) {
+        lvls <- as.character(breaks)
+        breaks <- c(subtract(breaks[1L], step - 1L, units = "days"), breaks) 
         }
-      else lvls <- labels
+      else {
+        breaks <- subtract(breaks, step - 1L, units = "days")
+        lvls <- as.character(breaks)
+        breaks <- c(breaks, add(breaks[1L], step - 1L, units = "days"))
+        }
+      if (!is.null(labels)) lvls <- labels
       }
     else
     if (valid == 2L) {
-#    if (breaks %in% c("week", "weeks")) {    
       # if weeks, add 6 days to the levels to get to the end of the week, 
       #   format appropriately
       res <- cut(as.Date(x), breaks = breaks, labels = labels, right = FALSE, start.on.monday = start.on.monday, ...)
       if (!is.factor(res)) return(res)
-      if (is.null(labels)) {
-        lvls <- as.Date(levels(res))
-        if (right) lvls <- lvls + (step - 1L) * 7L + 6L
-        lvls <- as.character(mondate(lvls, displayFormat = displayFormat(x), formatFUN = x@formatFUN))
+      breaks <- mondate(levels(res), displayFormat = displayFormat(x), timeunits(x), formatFUN = x@formatFUN)
+      if (right) {
+        lvls <- as.character(breaks)
+        breaks <- c(subtract(breaks[1L], (step - 1L) * 7L + 6L, units = "days"), breaks) 
         }
-      else lvls <- labels
+      else {
+        breaks <- subtract(breaks, (step - 1L) * 7L + 6L, units = "days")
+        lvls <- as.character(breaks)
+        breaks <- c(breaks, add(breaks[1L], (step - 1L) * 7L + 6L, units = "days"))
+        }
+      if (!is.null(labels)) lvls <- labels
       }
-    else
-    if (valid == 3L) {
-#    if (breaks %in% c("month", "months")) {
-      # cut.Date with breaks = "months" is only approximate per the following
-      #   post to R-devel by Mark Schwartz:
-      #   http://tolstoy.newcastle.edu.au/R/e4/devel/08/01/0101.html
-      # Therefore, rather than falling back on the cut.Date method,
-      #   we'll cut it from scratch
+    else { # 3: month, 4: year, 5: quarter
       rng <- range(x)
-      # peg interval endpoints to last/first day of the month
-      rng <- if (right) mondate.ymd(year(rng), month(rng), displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
-             else mondate.ymd(year(rng), month(rng), 1L, displayFormat = displayFormat(x), timeunits = "months", formatFUN = x@formatFUN)
-      # generate the sequence of months a-la cut.Date
-      brks <- seq(rng[1], rng[2], by = step) + step - 1L
-      # append 'step' month(s) ahead or subsequent a-la cut.numeric
-      brks1 <- if (right) c(brks[1L] - step, brks)
-               else c(brks, tail(brks, 1) + step)
+      # num of months in interval
+      valid <- valid - 2
+      int <- switch(valid, 1, 12, 3)
+      rng <- switch(valid,
+        mondate.ymd(year(rng), month(rng),           displayFormat = displayFormat(x), formatFUN = x@formatFUN),
+        mondate.ymd(year(rng),                       displayFormat = displayFormat(x), formatFUN = x@formatFUN),
+        mondate.ymd(year(rng), .qtr[month(rng)] * 3, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
+        )
+      # generate the sequence of intervals
+      brks <- seq(rng[1], rng[2], by = step * int)
+      # append 'step' intervals ahead
+      brks1 <- c(brks[1L] - int * step, brks)
       # run the default method
-      res <- cut.default(x, breaks = brks1, labels = labels,
-                      include.lowest = include.lowest, right = right, ...)
+      res <- cut.default(x, breaks = brks1, labels = labels, right = TRUE, ...)
       # label appropriately
-      lvls <- as.character(
-                if (right) brks
-                else { 
-                  if (step > 1L) brks <- brks - step + 1L
-                  mondate.ymd(year(brks), month(brks), 1, displayFormat = displayFormat(x), formatFUN = x@formatFUN)
-                  }
-                )
-      }
-    else
-    if (valid == 5L) {
-    #    if (breaks %in% c("quarter", "quarters")) {
-      rng <- range(x)
-      # peg interval endpoints to last/first day of the last/first month of the quarter
-      rng <- if (right) mondate.ymd(year(rng), .qtr[month(rng)] * 3, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
-             else mondate.ymd(year(rng), .qtr[month(rng)] * 3 - 2L, 1L, displayFormat = displayFormat(x), formatFUN = x@formatFUN) + (step - 1L) * 3L
-      # generate the sequence of quarters
-      brks <- seq(rng[1], rng[2], by = step * 3L)
-      # append a quarter ahead a-la cut.numeric
-      # append 'step' quarter(s) ahead or subsequent a-la cut.numeric
-#      brks1 <- c(brks[1L] - 3L * step, brks)
-      brks1 <- if (right) c(brks[1L] - step, brks)
-               else c(brks, tail(brks, 1) + 3L * step)
-      # run the default method
-      res <- cut.default(x, breaks = brks1, labels = labels,
-                      include.lowest = include.lowest, right = right, ...)
-      # label appropriately
-      # If "left", label with first day quarter begins rather than last day quarter ends
-      lvls <- as.character(
-                if (right) brks
-                else {
-                  brks <- brks - ((step - 1L) * 3L + 2L)
-                  mondate.ymd(year(brks), month(brks), 1L, displayFormat = displayFormat(x), formatFUN = x@formatFUN)
-                  }
-                )
-      }
-    else {
-      #    if (valid == 4L) {
-      #    if (breaks %in% c("year", "years")) {
-      rng <- range(x)
-      # peg interval endpoints to last/first day of the year
-      rng <- if (right) mondate.ymd(year(rng), displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
-             else mondate.ymd(year(rng), 1L, 1L, displayFormat = displayFormat(x), timeunits = "years", formatFUN = x@formatFUN)
-      # generate the sequence of years a-la cut.Date
-      brks <- seq(rng[1], rng[2], by = step) + step - 1L
-      # append a year ahead a-la cut.numeric
-      # append 'step' year(s) ahead or subsequent a-la cut.numeric
-      brks1 <- if (right) c(brks[1L] - step, brks)
-               else c(brks, tail(brks, 1) + step)
-      # run the default method
-      res <- cut.default(x, breaks = brks1, labels = labels,
-                      include.lowest = include.lowest, right = right, ...)
-      # label appropriately
-      lvls <- as.character(
-                if (right) brks
-                else { 
-                  if (step > 1L) brks <- brks - step + 1L
-                  mondate.ymd(year(brks), 1L, 1, displayFormat = displayFormat(x), formatFUN = x@formatFUN)
-                  }
-                )
+      if (right) {
+        breaks <- mondate(brks1, timeunits = timeunits(x))
+        lvls <- as.character(brks)
+        }
+      else {
+        # label the endpoints as the beginning of the the next day
+        breaks <- add(mondate(brks1, timeunits = timeunits(x)), 1, "days")
+        lvls <- as.character(head(breaks, -1L))
+        }
+      if (!is.null(labels)) lvls <- labels
       }
     }
   if (any(duplicated(lvls))) {
@@ -961,29 +916,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
     lvls <- paste("Range", seq_along(lvls), sep = "_")
     }
   levels(res) <- lvls
+  attr(res, "breaks") <- breaks
   res
   } # end cut.mondate
-
-sieve <- function(x, breaks, ...) UseMethod("sieve")
-sieve.mondate <- function(x, breaks, ...) {
-  b <- mondate(levels(cut(x, breaks, ...)), displayFormat = displayFormat(x), timeunits = timeunits(x), formatFUN = x@formatFUN)
-  if (length(b) == 1L) return(b)
-  if (is.numeric(breaks)) b <- c(min(x, na.rm = TRUE), b)
-  else {
-    by2 <- strsplit(breaks, " ", fixed = TRUE)[[1L]]
-    valid <- pmatch(by2[length(by2)], c("days", "weeks", "months", "years", "quarters"))
-    b <- if (valid %in% 1:2) {
-      d1 <- as.Date(b[1L])
-      d2 <- as.Date(b[2L])
-      b <- c(
-        mondate(d1 - (d2 - d1),
-          displayFormat = displayFormat(x), timeunits = timeunits(x), formatFUN = x@formatFUN),
-        b)
-      } else c(b[1] - (b[2] - b[1]), b)
-    }
-  b
-  }
-sieve.Date <- function(x, breaks, ...) as.Date(add(sieve(mondate(x), breaks, ...), 1, "days"))
 
 ## HELPFUL USER FUNCTIONS
 

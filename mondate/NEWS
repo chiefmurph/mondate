@@ -3,26 +3,22 @@ Version 0.10.01.01
 Changes
 
 	o	A new cut.mondate method
-        - Fashioned after a combination of cut.default and cut.Date
-        - Adheres to the "end-of-business-day" spirit of "mondate"
-            *   When dates are used in the identification of the intervals
-                within the levels, the last day of the interval is the
-                default. Can be over-ridden with "right = FALSE".
-            *   Intervals are represented by default as left-open /
-                right-closed. This is in agreement with cut.default.
-        -   include-lowest = TRUE by default. This ensures that the
-            minimum value of the mondate is included in the first
-            level. The first interval, therefore, is also left-closed.
-            This is probably an issue only when breaks is a scalar.
+        -   Fashioned after a combination of cut.default and cut.Date
+        -   Adheres to the "end-of-business-day" spirit of "mondate", but
+            can be overridden with "right = FALSE"
+        -   A-la cut.default, cut intervals are represented by 
+            as left-open / right-closed
+            *   include-lowest = TRUE by default. This ensures that the
+                minimum value of the mondate is included in the first
+                level. The first interval, therefore, is also left-closed.
+                This is probably an issue only when breaks is a scalar.
         -   A-la cut.Date, allows the capability of an integer step when 
             breaks is "days", "weeks", "months", "quarters", or "years".
-    o   A new 'sieve' S3 generic with methods for mondate and Date.
-        Given a vector of dates, 'sieve' will find the break points
-        which pairwise determine a covering of the vector. This would 
-        seem to be the most helpful when breaks = 
-        "days", "weeks", "months", "quarters", or "years".
-        Breaks resulting from 'sieve' are suitable be use by 
-        'hist' and 'cut'.
+        -   Result has a "breaks" attribute. This is a mondate whose
+            pairwise values determine a covering of the vector
+            being cut. Most helpful when breaks = 
+            "days", "weeks", "months", "quarters", or "years".
+            Such "breaks" are suitable be use by 'hist'.
     o   New 'as.difftime' function to enable units 'months' and 'years'
         -   Now the difference between two mondate objects will be a 
             difftime object with units = timeunits of the first 
@@ -33,11 +29,11 @@ Changes
         -   Example: mondate("2013-01-01")+difftime(1, units = "days")
     o   New 'add' and 'subtract' functions to return a date on the 
         same day of the month (subject to restrictions on the number 
-        of days in a month), thus violating the mondate paradigm of
-        measuring time in fractions of a month.
-        In addition, the argument 'forcelastday' will guarantee that 
-        the result will be on the last day of the month
-        if the input 'mondate' value is.
+        of days in a month), purposely violating the mondate 
+        paradigm of measuring time in fractions of a month.
+        Furthermore, the argument 'forcelastday' (default = FALSE)
+        will guarantee that the result will be on the last day 
+        of the month if the input 'mondate' value is.
         -   Examples: 
             *   add(mondate.ymd(2013, 1:12, 15), 1) will always
                 result in a date on the 15th of the month.
