@@ -85,30 +85,21 @@
 
 setClassUnion("funcNULL", c("function", "NULL"))
 setClass("mondate",
-    representation(
-        displayFormat = "character",
-        timeunits = "character",
-        formatFUN = "funcNULL"
-        ),
-    contains = "numeric",
-    prototype = prototype(
-        numeric(0),
-        displayFormat = character(0),
-        timeunits = character(0),
-        formatFUN = NULL
-        )
-#    , S3methods = TRUE
+#    representation(
+  slots = c(
+    displayFormat = "character",
+    timeunits = "character",
+    formatFUN = "funcNULL"
+    ),
+  contains = "numeric",
+  prototype = prototype(
+    numeric(0),
+    displayFormat = character(0),
+    timeunits = character(0),
+    formatFUN = NULL
     )
-
-#setMethod("initialize", "mondate",
-#           function(.Object, x, displayFormat, timeunits, formatFUN, ...){
-#  .Object@.Data <- x
-#               .Object@displayFormat <- displayFormat
-#               .Object@timeunits <- timeunits
-#               if (missing(formatFUN)) .Object@formatFUN <- function(x) format.Date(x, .Object@displayFormat, ...)
-#               else .Object@formatFUN <- formatFUN
-#               .Object
-#           })
+#    , S3methods = TRUE
+  )
 
 ## S4 METHODS
 
@@ -149,13 +140,8 @@ setReplaceMethod("timeunits", "mondate", function(x, value) {
 
 # CONVERSION TO MONDATE
 
-#setGeneric("mondate", function(x, displayFormat=.default.displayFormat, 
-#                               timeunits=.default.timeunits, ...) 
-#                      standardGeneric("mondate"))
 setGeneric("mondate", function(x, 
-#    displayFormat = getOption("mondate.displayFormat", default = .default.displayFormat), 
     displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
-#    timeunits = getOption("mondate.timeunits", default = .default.timeunits), 
     timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()), 
     ...) standardGeneric("mondate"))
 
