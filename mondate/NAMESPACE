@@ -16,7 +16,6 @@ exportMethods(
 )
 exportClasses(
     	mondate
-
 )
 S3method(as.data.frame, mondate)
 S3method(as.list, mondate)

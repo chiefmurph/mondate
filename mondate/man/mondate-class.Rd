@@ -110,7 +110,7 @@ Objects can be created by calls of the form \code{mondate(x, ...)}.
         mm/dd/YYYY ("%m/%d/%Y"), 
         in all other locales YYYY-mm-dd ("%Y-%m-%d").
         The default can be changed to another format
-        using the \code{options(mondate.displayFormat = myFormat)} command.
+        using \code{options(mondate.displayFormat = myFormat)}.
         See Examples.
         }
     \item{\code{timeunits}:}{Object of class \code{"character"}
@@ -144,9 +144,9 @@ Objects can be created by calls of the form \code{mondate(x, ...)}.
         Use this slot to store a function to format a \code{mondate}.
         See Examples.
         }
-    \item{\code{.S3Class}:}{Object of class \code{"logical"}}
-    Currently \code{TRUE} so that S3 method-based functionality that 
-    could not be duplicated in an S4 method would still be available.
+%%    \item{\code{.S3Class}:}{Object of class \code{"logical"}}
+%%    Currently \code{TRUE} so that S3 method-based functionality that 
+%%    could not be duplicated in an S4 method would still be available.
   }
 }
 \section{Extends}{

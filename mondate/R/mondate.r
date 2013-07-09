@@ -79,7 +79,8 @@
         }
     else days
     }
-
+.is.wholenumber <- function(x, tolerance = .Machine$double.eps^0.5)
+    return(abs(x - round(x)) < tolerance)
 ##  THE CLASS
 
 setClassUnion("funcNULL", c("function", "NULL"))
@@ -95,8 +96,8 @@ setClass("mondate",
         displayFormat = character(0),
         timeunits = character(0),
         formatFUN = NULL
-        ),
-    S3methods = TRUE
+        )
+#    , S3methods = TRUE
     )
 
 #setMethod("initialize", "mondate",
@@ -395,7 +396,7 @@ setMethod("Arith", c("mondate", "mondate"), function(e1, e2) {
     else {
         timeunits <- e1@timeunits
         if (timeunits != e2@timeunits) 
-            warning("Unequal timeunits, using first mondate's= ", timeunits)
+            warning("Unequal timeunits, using first mondate's -- '", timeunits, "'", sep = "")
         if (timeunits == "months"){ 
 #            x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = NULL, .S3Class = NULL, timeunits = timeunits)
             x <- structure(callGeneric(unclass(e1), unclass(e2)), displayFormat = NULL, timeunits = timeunits, formatFUN = NULL, .S3Class = NULL)
@@ -413,6 +414,16 @@ setMethod("Arith", c("mondate", "mondate"), function(e1, e2) {
         }
     x
     })
+setMethod("-", c("mondate", "mondate"), function(e1, e2) {
+  timeunits <- timeunits(e1)
+  if (timeunits == timeunits(e2)) as.difftime(as.numeric(e1) - as.numeric(e2), , units = timeunits)
+  else { 
+    warning("Unequal timeunits, using first mondate's -- '", timeunits, "'", sep = "")
+    if (timeunits == "months") as.difftime(as.numeric(e1) - as.numeric(e2) / 12, , units = timeunits)
+    else as.difftime(as.numeric(e1) - as.numeric(e2) * 12, , units = timeunits)
+    }
+  })
+
 setMethod("Arith", c("numeric", "mondate"), function(e1, e2) {
     mondate(callGeneric(e1, as.numeric(e2, convert= TRUE)), 
             timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
@@ -421,17 +432,35 @@ setMethod("Arith", c("mondate", "numeric"), function(e1, e2) {
     mondate(callGeneric(as.numeric(e1, convert = TRUE), e2), 
             timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
     })
+setMethod("Arith", c("mondate", "array"), function(e1, e2) {
+    mondate(callGeneric(as.numeric(e1, convert = TRUE), c(e2)), 
+            timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
+    })
+setMethod("Arith", c("array", "mondate"), function(e1, e2) {
+    mondate(callGeneric(as.numeric(e2, convert = TRUE), c(e1)), 
+            timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
+    })
 
 # Simplify adding days to mondates -- use a difftime object
+setOldClass("difftime")
 setMethod("+", c("mondate", "difftime"), function(e1, e2) {
   units <- attr(e2, "units")
   if (units == "days") mondate(as.Date(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
   else
   if (units == "weeks") mondate(as.Date(e1) + 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
   else 
-  if (units == "auto") stop("'auto' units not supported")
+  if (units == "months") {
+    if (timeunits(e1) == units) e1 + unclass(e2)
+    else e1 + unclass(e2) / 12
+    }
   else
-  mondate(as.POSIXct(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  if (units == "years") {
+    if (timeunits(e1) == units) e1 + unclass(e2)
+    else e1 + unclass(e2) * 12
+    }
+  else
+  if (units == "auto") stop("'auto' units not supported")
+  else mondate(as.POSIXct(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
   })
 setMethod("-", c("mondate", "difftime"), function(e1, e2) {
   units <- attr(e2, "units")
@@ -439,16 +468,129 @@ setMethod("-", c("mondate", "difftime"), function(e1, e2) {
   else
   if (units == "weeks") mondate(as.Date(e1) - 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
   else 
-  if (units == "auto") stop("'auto' units not supported")
+  if (units == "months") {
+    if (timeunits(e1) == units) e1 - unclass(e2)
+    else e1 - unclass(e2) / 12
+    }
   else
-  mondate(as.POSIXct(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  if (units == "years") {
+    if (timeunits(e1) == units) e1 - unclass(e2)
+    else e1 - unclass(e2) * 12
+    }
+  else 
+  if (units == "auto") stop("'auto' units not supported")
+  else mondate(as.POSIXct(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
   })
+
+add <- function(e1, e2, units, forcelastday = FALSE) {
+  if (!inherits(e1, "mondate")) stop("add not defined for e1's class")
+  if (!is.numeric(e2)) stop ("e2 must be numeric")
+  if (missing(units)) units <- timeunits(e1)
+  if (!(units %in% c("secs", "mins", "hours", "days", "weeks", "months", "years"))) stop("invalid units specified")
+#  z <- x + as.difftime(y, , units = units)
+  z <- 
+  if (units == "days") mondate(as.Date(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else
+  if (units == "weeks") mondate(as.Date(e1) + 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else
+  if (units == "months") {
+    if (.is.wholenumber(e2)) {  
+      ymdmat <- ymd(e1)
+      ymdmat[ ,"month"] <- ymdmat[ , "month"] + as.numeric(e2)
+      nextyear <- ymdmat[ , "month"] > 12
+      if (any(nextyear)) {
+        ymdmat[ , "year" ][nextyear] <- ymdmat[ , "year"][nextyear] + (ymdmat[ , "month"][nextyear] - 1) %/% 12
+        ymdmat[ , "month"][nextyear] <- (ymdmat[ , "month"][nextyear] - 1) %% 12 + 1
+        }
+      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
+      ndx <- ymdmat[ , "day"] > daysinm
+      ymdmat[ndx, "day"] <- daysinm[ndx]
+      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+      }
+    else e1 + e2
+    }
+  else
+  if (units == "years") {
+    if (.is.wholenumber(e2)) {  
+      ymdmat <- ymd(e1)
+      ymdmat[ , "year"] <- ymdmat[ , "year"] + as.numeric(e2)
+      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
+      ndx <- ymdmat[ , "day"] > daysinm
+      ymdmat[ndx, "day"] <- daysinm[ndx]
+      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+      }
+    else e1 + 12 * e2
+    }
+  else
+  if (units == "auto") stop("'auto' units not supported")
+  else mondate(as.POSIXct(e1) + as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  if (forcelastday) {
+    is.last.day <- day(e1) == .daysinmonth(year(e1), month(e1))
+    if (any(is.last.day)) z[is.last.day] <- mondate.ymd(year(z[is.last.day]), month(z[is.last.day]))
+    }
+  z
+  }
+subtract <- function(e1, e2, units, forcelastday = FALSE) {
+  if (!inherits(e1, "mondate")) stop("add not defined for e1's class")
+  if (!is.numeric(e2)) stop ("e2 must be numeric")
+  if (missing(units)) units <- timeunits(e1)
+  if (!(units %in% c("secs", "mins", "hours", "days", "weeks", "months", "years"))) stop("invalid units specified")
+  z <- #x - as.difftime(y, , units = units)
+  if (units == "days") mondate(as.Date(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else
+  if (units == "weeks") mondate(as.Date(e1) - 7 * as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  else 
+  if (units == "months") {
+    if (.is.wholenumber(e2)) {  
+      ymdmat <- ymd(e1)
+      ymdmat[ ,"month"] <- ymdmat[ , "month"] - as.numeric(e2)
+      nextyear <- ymdmat[ , "month"] <= 0
+      if (any(nextyear)) {
+        ymdmat[ , "year"][nextyear] <- ymdmat[ , "year"][nextyear] + (ymdmat[ , "month"][nextyear] - 1) %/% 12
+        ymdmat[ , "month"][nextyear] <- (ymdmat[ , "month"][nextyear] - 1) %% 12 + 1
+        }
+      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
+      ndx <- ymdmat[ , "day"] > daysinm
+      ymdmat[ndx, "day"] <- daysinm[ndx]
+      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+      }
+    else e1 - e2
+    }
+  else
+  if (units == "years") {
+    if (.is.wholenumber(e2)) {  
+      ymdmat <- ymd(e1)
+      ymdmat[ , "year"] <- ymdmat[ , "year"] - as.numeric(e2)
+      daysinm <- .daysinmonth(ymdmat[ , 1], ymdmat[ , 2])
+      ndx <- ymdmat[ , "day"] > daysinm
+      ymdmat[ndx, "day"] <- daysinm[ndx]
+      mondate.ymd(ymdmat[ , 1], ymdmat[ , 2], ymdmat[ , 3], displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+      }
+    else e1 - 12 * e2
+    }
+  else 
+  if (units == "auto") stop("'auto' units not supported")
+  else mondate(as.POSIXct(e1) - as.numeric(e2), displayFormat = displayFormat(e1), timeunits = timeunits(e1), formatFUN = e1@formatFUN)
+  if (forcelastday) {
+    is.last.day <- day(e1) == .daysinmonth(year(e1), month(e1))
+    if (any(is.last.day)) z[is.last.day] <- mondate.ymd(year(z[is.last.day]), month(z[is.last.day]))
+    }
+  z
+  }
 
 setMethod("Summary","mondate", function(x, ..., na.rm = FALSE) 
     mondate(callGeneric(x@.Data, ..., na.rm = na.rm),  
             timeunits = x@timeunits, displayFormat = x@displayFormat, 
             formatFUN = x@formatFUN)
     )
+
+# Expand difftime units to include months and years
+as.difftime <- function (tim, format = "%X", units = "auto") {
+  if (units %in% c("months", "years"))
+    if (!is.numeric(tim)) stop("'tim' must be numeric for units = '", units, "'", sep = "")
+    else structure(tim, units = units, class = "difftime")
+  else base::as.difftime(tim, format, units)
+  }
 
 # OTHER ARITHMETIC FUNCTIONS
 
@@ -822,6 +964,26 @@ cut.mondate <- function (x, breaks, labels = NULL,
   res
   } # end cut.mondate
 
+sieve <- function(x, breaks, ...) UseMethod("sieve")
+sieve.mondate <- function(x, breaks, ...) {
+  b <- mondate(levels(cut(x, breaks, ...)), displayFormat = displayFormat(x), timeunits = timeunits(x), formatFUN = x@formatFUN)
+  if (length(b) == 1L) return(b)
+  if (is.numeric(breaks)) b <- c(min(x, na.rm = TRUE), b)
+  else {
+    by2 <- strsplit(breaks, " ", fixed = TRUE)[[1L]]
+    valid <- pmatch(by2[length(by2)], c("days", "weeks", "months", "years", "quarters"))
+    b <- if (valid %in% 1:2) {
+      d1 <- as.Date(b[1L])
+      d2 <- as.Date(b[2L])
+      b <- c(
+        mondate(d1 - (d2 - d1),
+          displayFormat = displayFormat(x), timeunits = timeunits(x), formatFUN = x@formatFUN),
+        b)
+      } else c(b[1] - (b[2] - b[1]), b)
+    }
+  b
+  }
+sieve.Date <- function(x, breaks, ...) as.Date(add(sieve(mondate(x), breaks, ...), 1, "days"))
 
 ## HELPFUL USER FUNCTIONS
 
