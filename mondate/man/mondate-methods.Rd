@@ -18,9 +18,11 @@ All purpose \bold{mondate} constructor / coercer.
 }
 \usage{
     mondate(x, 
-        displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
-        timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()),
-        ...)
+      displayFormat = getOption("mondate.displayFormat", 
+                                default = .get.default.displayFormat()), 
+      timeunits = getOption("mondate.timeunits",
+                            default = .get.default.timeunits()),
+      ...)
     \S4method{mondate}{mondate}(x, displayFormat, timeunits, formatFUN, ...)
     \S4method{mondate}{numeric}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{Date}(x, displayFormat, timeunits, ...)
