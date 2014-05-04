@@ -13,4 +13,5 @@ License: GPL (>= 2)
 URL: http://www.r-project.org, http://code.google.com/p/mondate/
 LazyLoad: yes
 Depends: utils, methods, R (>= 3.0.0)
-Suggests: zoo
+Suggests:
+    RUnit, zoo
