@@ -3,12 +3,13 @@
 \title{Subtract numerics from mondates using day-of-month logic}
 \description{
   Subtract numerics from mondates. 
-  When units = "months" and the \code{numeric} is a whole number
+  When units = "months", "years", or "quarters" 
+  and the \code{numeric} is a whole number
   the result has the same 
   day of the month subject to the number of days in the month,
   thus abandoning \code{mondate}'s
   approach of representing days as fractional months.
-  See examples.
+  See also argument 'forcelastday'.
 }
 \usage{
 subtract(e1, e2, units, forcelastday = FALSE)

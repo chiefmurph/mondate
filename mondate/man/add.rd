@@ -3,12 +3,13 @@
 \title{Add numerics to mondates using day-of-month logic}
 \description{
   Add numerics to mondates. 
-  When units = "months" or "years" and the \code{numeric} is a whole number
+  When units = "months", "years", or "quarters" 
+  and the \code{numeric} is a whole number
   the result has the same 
   day of the month subject to the number of days in the month,
   thus abandoning \code{mondate}'s
   approach of representing days as fractional months.
-  See examples.
+  See also argument 'forcelastday'.
 }
 \usage{
 add(e1, e2, units, forcelastday = FALSE)
@@ -43,5 +44,8 @@ x <- mondate.ymd(2013, 1:11, 15)
 add(x, 1)             # Always the 15th of the month. Compare to ...
 x + 1
 stopifnot(add(x, 13, units = "months") == mondate.ymd(2014, 2:12, 15))
-
+# Last day of February, not a leap year
+x <- mondate("2-28-2014")
+day(add(x, 1:4, units = "years")) # always the 28th of the month, vs. ...
+day(add(x, 1:4, units = "years"), forcelastday = TRUE) # Feb. 29th in 2016
 }
