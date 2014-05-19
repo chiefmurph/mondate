@@ -1,3 +1,26 @@
+Version: 0.11.01.01
+==================
+New features
+    o   A seqmondate generic. It works as seq.mondate for mondates. 
+        It operates directly on Date and POSIXt objects for by
+        given in units based on "months".
+    o   A cutmondate generic. It works as cut.mondate for mondates. 
+        It operates directly on Date and POSIXt objects for breaks
+        given in units based on "months".
+    
+Changes
+    o   cut.mondate 
+        include.lowest defaults to FALSE
+        
+Bug Fixes
+    o   Conversions from POSIXt to Date and mondate 
+        should be equivalent, but were not when mondate ignored the fact
+        that the time in the POSIXt timezone could be on a different
+        date than the time in the user's timezone. R's internal
+        conversion from POSIXt to Date objects adjusted for such
+        differences. mondate now does as well, by coercing POSIXt
+        to Date, and then to mondate.
+
 Version 0.10.01.02
 ==================
 Changes
