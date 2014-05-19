@@ -23,7 +23,8 @@ All purpose \bold{mondate} constructor / coercer.
       timeunits = getOption("mondate.timeunits",
                             default = .get.default.timeunits()),
       ...)
-    \S4method{mondate}{mondate}(x, displayFormat, timeunits, formatFUN, ...)
+    \S4method{mondate}{mondate}(x, displayFormat = x@displayFormat, 
+                  timeunits = x@timeunits, formatFUN = x@formatFUN, ...)
     \S4method{mondate}{numeric}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{Date}(x, displayFormat, timeunits, ...)
     \S4method{mondate}{POSIXt}(x, displayFormat, timeunits, ...)
