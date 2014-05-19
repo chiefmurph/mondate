@@ -47,5 +47,5 @@ stopifnot(add(x, 13, units = "months") == mondate.ymd(2014, 2:12, 15))
 # Last day of February, not a leap year
 x <- mondate("2-28-2014")
 day(add(x, 1:4, units = "years")) # always the 28th of the month, vs. ...
-day(add(x, 1:4, units = "years"), forcelastday = TRUE) # Feb. 29th in 2016
+day(add(x, 1:4, units = "years", forcelastday = TRUE)) # Feb. 29th in 2016
 }
