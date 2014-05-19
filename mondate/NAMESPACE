@@ -6,11 +6,13 @@ exportMethods(
     "array",
     "as.numeric",
     "c",
+	cutmondate,
     "day",
 	displayFormat,
     "matrix",
     "mondate",
     "month",
+	seqmondate,
     "show",
 	timeunits,
     "year"
