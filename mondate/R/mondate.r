@@ -154,16 +154,25 @@ setReplaceMethod("timeunits", "mondate", function(x, value) {
 
 setGeneric("mondate", function(x, 
     displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
-    timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()), 
+    timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()),
     ...) standardGeneric("mondate"))
 
-setMethod("mondate", "mondate", function(x, displayFormat, timeunits, formatFUN, ...) {
-  if (missing(formatFUN))
-    new("mondate",
-        x@.Data,
-        displayFormat = if (missing(displayFormat)) x@displayFormat else displayFormat,
-        timeunits = if(missing(timeunits)) x@timeunits else timeunits,
-        formatFUN = if(missing(formatFUN)) x@formatFUN else formatFUN,
+#setMethod("mondate", "mondate", function(x, displayFormat, timeunits, formatFUN, ...) {
+#  if (missing(formatFUN))
+#    new("mondate",
+#        x@.Data,
+#        displayFormat = if (missing(displayFormat)) x@displayFormat else displayFormat,
+#        timeunits = if(missing(timeunits)) x@timeunits else timeunits,
+#        formatFUN = if(missing(formatFUN)) x@formatFUN else formatFUN,
+#        ...)
+#    })
+
+setMethod("mondate", "mondate", function(x, displayFormat = x@displayFormat, timeunits = x@timeunits, formatFUN = x@formatFUN, ...) {
+  new("mondate",
+      x@.Data,
+      displayFormat = displayFormat,
+        timeunits = timeunits,
+        formatFUN = formatFUN,
         ...)
     })
 
@@ -189,7 +198,7 @@ setMethod("mondate", "numeric", function(x, displayFormat, timeunits, ...) {
 #   mondates "could" represent time to minutes and seconds, but that is
 #   not currently the intended use of the mondate class.
 .date.to.mondate <- function(x, displayFormat, timeunits, ...) {
-    x <- as.POSIXlt(x, ...)
+    x <- as.POSIXlt(as.Date(x), ...)
     # Note that per ISO standard, x is time since 1900; i.e.,
     #   close of business 12/31/1899.
     new("mondate", (x$year - .origin.diff.years) * 12 + x$mon + x$mday /
@@ -319,6 +328,10 @@ as.Date.mondate <- function(x, ...) {
 as.POSIXlt.mondate <- function(x, ...) as.POSIXlt(as.Date(x), ...)
 as.POSIXct.mondate <- function(x, ...) as.POSIXct(as.POSIXlt(x), ...)  
 
+setAs("mondate", "Date", function(from) as.Date(from))
+setAs("mondate", "POSIXlt", function(from) as.POSIXlt(from))
+setAs("mondate", "POSIXct", function(from) as.POSIXct(from))
+
 # Per ?as.numeric: "as.numeric and is.numeric are internally S4 generic and 
 #   so methods can be set for them via setMethod."
 setMethod("as.numeric", "mondate", function(x, 
@@ -423,9 +436,9 @@ setMethod("-", c("mondate", "mondate"), function(e1, e2) {
   })
 
 setMethod("Arith", c("numeric", "mondate"), function(e1, e2) {
-    mondate(callGeneric(e1, as.numeric(e2, convert= TRUE)), 
-            timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
-    })
+  mondate(callGeneric(e1, as.numeric(e2, convert= TRUE)), 
+          timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
+  })
 setMethod("Arith", c("mondate", "numeric"), function(e1, e2) {
   mondate(callGeneric(as.numeric(e1, convert = TRUE), e2), 
           timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
@@ -435,9 +448,9 @@ setMethod("Arith", c("mondate", "array"), function(e1, e2) {
           timeunits = e1@timeunits, displayFormat = e1@displayFormat, formatFUN = e1@formatFUN)
   })
 setMethod("Arith", c("array", "mondate"), function(e1, e2) {
-    mondate(callGeneric(as.numeric(e2, convert = TRUE), e1), 
-            timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
-    })
+  mondate(callGeneric(as.numeric(e2, convert = TRUE), e1), 
+          timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
+  })
 
 # Simplify adding days to mondates -- use a difftime object
 setOldClass("difftime")
@@ -821,18 +834,22 @@ rbindmondate <- function(..., deparse.level = 1) {
 rep.mondate<-function(x, ...) mondate(rep(unclass(x), ...), 
     displayFormat = x@displayFormat, timeunits = x@timeunits, formatFUN = x@formatFUN)
 
-seq.mondate<-function(from = NULL, to, ...) {
-    if (missing(from)) mondate(seq(to = as.numeric(to, convert = TRUE), ...),
-            timeunits=to@timeunits,
-            displayFormat=to@displayFormat, formatFUN = to@formatFUN)
-    else 
-    if (missing(to)) mondate(seq(from = as.numeric(from, convert = TRUE), ...),
-                timeunits = from@timeunits,
-                displayFormat = from@displayFormat, formatFUN = from@formatFUN)
-    else mondate(seq(from = as.numeric(from, convert = TRUE), to = as.numeric(to, convert = TRUE), ...),
-                timeunits = from@timeunits,
-                displayFormat = from@displayFormat, formatFUN = from@formatFUN)
-    }
+#seq.mondate<-function(from = NULL, to, by, ...) {
+#    if (missing(from))
+#        stop("'from' must be specified")
+#    if (!inherits(from, c("mondate", "Date")))
+#        stop("'from' must be a \"mondate\" object")
+#    if (missing(from)) mondate(seq(to = as.numeric(to, convert = TRUE), by = by, ...),
+#            timeunits=to@timeunits,
+#            displayFormat=to@displayFormat, formatFUN = to@formatFUN)
+#    else 
+#    if (missing(to)) mondate(seq(from = as.numeric(from, convert = TRUE), by = by, ...),
+#                timeunits = from@timeunits,
+#                displayFormat = from@displayFormat, formatFUN = from@formatFUN)
+#    else mondate(seq(from = as.numeric(from, convert = TRUE), to = as.numeric(to, convert = TRUE), by = by, ...),
+#                timeunits = from@timeunits,
+#                displayFormat = from@displayFormat, formatFUN = from@formatFUN)
+#    }
 
 head.mondate <- function(x, ...) {
     if (is.matrix(x)) head.matrix(x, ...) 
@@ -874,7 +891,7 @@ as.list.mondate <- function(x, ...) lapply(X = NextMethod(), FUN = mondate)
 #  if (format != "%Y-%m-%d") levels(y) <- format(as.POSIXlt(levels(y)), format = format, ...)
 #  y
 #  }
-cut.mondate <- function (x, breaks, labels = NULL, 
+.cut.mondate <- function (x, breaks, labels = NULL, 
                          include.lowest = TRUE, right = TRUE, 
                          start.on.monday = TRUE, 
                          attr.breaks = FALSE
