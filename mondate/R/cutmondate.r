@@ -21,13 +21,16 @@ setMethod("cutmondate", "Date", function(x, breaks, labels = NULL,
            breaks = breaks, labels = labels, 
            include.lowest = include.lowest, right = right, 
            attr.breaks = TRUE, ...)
-    b <- attr(res, "breaks")
-    le <- attr(b, "lechar")
-    re <- attr(b, "rechar")
-    b <- as.Date(attr(res, "breaks")) + 1
-    inside <- sapply(1:(length(b) - 1), function(i)
-                     paste(as.character(c(b[i], b[i+1L])), collapse = ","))
-    levels(res) <- paste(le, inside, re, sep = "")
+    # 7/7/2014: label appropriately if not provided
+    if (is.null(labels)) {
+      b <- attr(res, "breaks")
+      le <- attr(b, "lechar")
+      re <- attr(b, "rechar")
+      b <- as.Date(attr(res, "breaks")) + 1
+      inside <- sapply(1:(length(b) - 1), function(i)
+                       paste(as.character(c(b[i], b[i+1L])), collapse = ","))
+      levels(res) <- paste(le, inside, re, sep = "")
+      }
     if (attr.breaks) attr(res, "breaks") <- brksDate
     else attr(res, "breaks") <- NULL
     }
