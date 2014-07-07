@@ -1049,6 +1049,7 @@ ymd <- function(x) {
     }
 
 # 3/8/12 Modified so results inherit names, dim, dimnames.
+# 6/1/2014 Added character and array methods for year, day, month, quarter
 setGeneric("year", function(x, ...) standardGeneric("year"))
 setMethod("year", "mondate", function(x) {
     dm <- dim(x)
@@ -1086,6 +1087,20 @@ setMethod("year", "POSIXt", function(x) {
     else names(y) <- nms
     y
     })
+setMethod("year", "character", function(x) as.character(year(mondate(x))))
+setMethod("year", "array", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.character(year(mondate(x)))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+
 setGeneric("month", function(x, ...) standardGeneric("month"))
 setMethod("month", "mondate", function(x) {
     dm <- dim(x)
@@ -1123,6 +1138,20 @@ setMethod("month", "POSIXt", function(x) {
     else names(y) <- nms
     y
     })
+setMethod("month", "character", function(x) as.character(month(mondate(x))))
+setMethod("month", "array", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.character(month(mondate(x)))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+
 setGeneric("day", function(x, ...) standardGeneric("day"))
 setMethod("day", "mondate", function(x) {
     dm <- dim(x)
@@ -1153,6 +1182,19 @@ setMethod("day", "POSIXt", function(x) {
     dmnms <- dimnames(x)
     nms <- names(x)
     y <- as.numeric(format(x, "%d"))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+setMethod("day", "character", function(x) as.character(day(mondate(x))))
+setMethod("day", "array", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.character(day(mondate(x)))
     if (!is.null(dm)) {
         dim(y) <- dm
         dimnames(y) <- dmnms
@@ -1198,6 +1240,44 @@ setMethod("quarter", "POSIXt", function(x) {
     else names(y) <- nms
     y
     })
+setMethod("quarter", "character", function(x) as.character(quarter(mondate(x))))
+setMethod("quarter", "array", function(x) {
+    dm <- dim(x)
+    dmnms <- dimnames(x)
+    nms <- names(x)
+    y <- as.character(quarter(mondate(x)))
+    if (!is.null(dm)) {
+        dim(y) <- dm
+        dimnames(y) <- dmnms
+        }
+    else names(y) <- nms
+    y
+    })
+
+yearqtr <- function(x, sep = "Q")  {
+  dm <- dim(x)
+  dmnms <- dimnames(x)
+  nms <- names(x)
+  y <- paste(year(x), quarter(x), sep = sep)
+  if (!is.null(dm)) {
+    dim(y) <- dm
+    dimnames(y) <- dmnms
+    }
+  else names(y) <- nms
+  y
+  }
+yearmon <- function(x, sep = ":")  {
+  dm <- dim(x)
+  dmnms <- dimnames(x)
+  nms <- names(x)
+  y <- paste(year(x), formatC(month(x), width = 2, flag = "0"), sep = sep)
+  if (!is.null(dm)) {
+    dim(y) <- dm
+    dimnames(y) <- dmnms
+    }
+  else names(y) <- nms
+  y
+  }
 
 setGeneric("MonthsBetween", function(from, to) standardGeneric("MonthsBetween"))
 setMethod("MonthsBetween", c("mondate", "mondate"), function(from, to) {
