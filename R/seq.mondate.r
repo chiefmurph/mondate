@@ -1,4 +1,6 @@
 seq.mondate <- function(from = NULL, to, by, ..., right = TRUE) {
+  if (!(missing(right))) 
+    warning("As of October 2015, use of 'right' is deprecated. Value ignored.")
   if (missing(from)) {
     if (missing(to)) stop("either 'from' or 'to' must be specified")
     mto <- mondate(to)
@@ -37,15 +39,8 @@ seq.mondate <- function(from = NULL, to, by, ..., right = TRUE) {
     return(mondate(seq(from = as.Date(mfrom), to = as.Date(mto), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
     }
   else by <- if (length(by2) == 2L) as.integer(by2[1L]) else 1 # base unit of "1 month"
-  by <- by * c(NA, NA, 1, 12, 3)[valid]
-#  if (right) {
-    if (missing(from)) return(mondate(seq(to = as.numeric(mto, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
-    if (missing(to)) return(mondate(seq(from = as.numeric(mfrom, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
-    return(mondate(seq(from = as.numeric(mfrom, convert = TRUE), to = as.numeric(mto, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
-#    }
-  # Left end closed, like Dates. Subtract a day, calc the result, add a day
-#  if (missing(from)) return(add(mondate(seq(to   = as.numeric(subtract(mto,   1, units = "days"), convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF), 1, units = "days"))
-#  if (missing(to))   return(add(mondate(seq(from = as.numeric(subtract(mfrom, 1, units = "days"), convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF), 1, units = "days"))
-#  return(mondate(seq(from = as.numeric(mfrom, convert = TRUE), to = as.numeric(mto, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
-  stop("should not reach here")
+  by <- by * c(NA, NA, 1, 12, 3)[valid]    
+  if (missing(from)) return(mondate(seq(to = as.numeric(mto, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
+  if (missing(to)) return(mondate(seq(from = as.numeric(mfrom, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
+  return(mondate(seq(from = as.numeric(mfrom, convert = TRUE), to = as.numeric(mto, convert = TRUE), by = by, ...), timeunits = tu, displayFormat = dF, formatFUN = fF))
   }

@@ -1,7 +1,14 @@
-setGeneric("seqmondate", function(from, ..., right) standardGeneric("seqmondate"))
-setMethod("seqmondate", "mondate", function(from, ..., right = TRUE) seq(from, ..., right = right))
-setMethod("seqmondate", "Date", function(from, ..., right = FALSE) as.Date(seq(mondate(from - 1), ..., right = right)) + 1)
-setMethod("seqmondate", "Date", function(from, ..., right = FALSE) as.Date(seq(mondate(from - 1), ..., right = right)) + 1)
-setMethod("seqmondate", "POSIXlt", function(from, ..., right = FALSE) structure(as.POSIXlt(seqmondate(as.Date(from), ..., right = right)), tzone = attr(from, "tzone")))
-setMethod("seqmondate", "POSIXct", function(from, ..., right = FALSE) as.POSIXct(seqmondate(as.POSIXlt(from), ..., right = right)))
-
+setGeneric("seqmondate", function(from, to, ...) standardGeneric("seqmondate"))
+setMethod("seqmondate", c("mondate", "mondate"), function(from, to, ...) seq.mondate(from, to, ...))
+setMethod("seqmondate", c("Date", "Date"), function(from, to, ...)
+  as.Date(seq(mondate(as.numeric(mondate(from)) - .02), 
+              mondate(as.numeric(mondate(to  )) - .02),
+              ...)
+          )
+  )
+setMethod("seqmondate", c("POSIXlt", "POSIXlt"), function(from, to, ...) 
+  structure(as.POSIXlt(seqmondate(as.Date(from), as.Date(to), ...)), tzone = attr(from, "tzone"))
+  )
+setMethod("seqmondate", c("POSIXct", "POSIXct"), function(from, to, ...) 
+  as.POSIXct(seqmondate(as.POSIXlt(from), as.POSIXlt(to), ...))
+  )
