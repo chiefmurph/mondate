@@ -12,10 +12,21 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #   are considered closed on right;
   #   when breaks is character, level represented by date of right endpoint
   # if !right, same as above, but with left replacing right
-  # include.lowest = FALSE: min(x) is considered the leftmost open endpoint;
-  #   this data point does not correspond to any interval determined by the cut.
-  # include.lowest = TRUE: the leftmost interval is considered closed and
-  #   the minimum value of x is considered a member of that interval
+  # include.lowest works as with cut's default method:
+  # include.lowest = TRUE: 
+  #   When 'right', the leftmost interval is considered closed and
+  #     the minimum value of x is considered a member of that interval
+  #   When !right, the rightmost interval is considered closed and
+  #     the maximum value of x is considered a member of that interval
+  # include.lowest = FALSE: 
+  #   When right: min(x) is considered the leftmost *open* endpoint, so
+  #     this data point does not correspond to any interval determined by 
+  #     the cut. Therefore, the factor value for min(x) is NA.
+  #   When !right, just as above but applicable to the maximum value of x.
+  # This behavior inherits from the default method; consider 
+  #   cut(1:5, breaks = 1:5, include.lowest = TRUE)
+  #    vs
+  #   cut(1:5, breaks = 1:5, include.lowest = FALSE)
   #   
   # breaks:
   #   vector of length > 1: sequential pairs determine the intervals
@@ -57,7 +68,6 @@ cut.mondate <- function (x, breaks, labels = NULL,
       rngx <- range(x)
       breaks <- seq(from = rngx[1], length.out = breaks + 1, by = diff(rngx) / breaks)
       res <- cut(x, breaks = breaks, include.lowest = include.lowest, right = right, labels = labels, ...)
-      attr(res, "breaks") <- breaks
       n <- length(breaks) - 1
       lechar <- rep(ifelse(right, "(", "["), n)
       rechar <- rep(ifelse(right, "]", ")"), n)
