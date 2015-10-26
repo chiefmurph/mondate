@@ -268,22 +268,18 @@ test.cut.mondate <- function() {
   # Cut x again with those Date interval endpoints
   (z5 <- cutmondate(x, breaks = attr(z4, "breaks")))
   checkEquals(z5, y5)
-
-  # email to Gabor 5/7/14: revised
-
+}
+  
+# email to Gabor 5/7/14: revised
+test.cutmondate.Date <- function() {
   from <- as.POSIXlt("2014-01-01")
   to <- as.POSIXlt("2015-01-01")
   xdata <- seq(from, to, by = "months")
-  cutmondate(xdata, breaks = xdata)
+  res1 <- cutmondate(xdata, breaks = xdata)
   # versus
-  cutmondate(xdata, breaks = "months")
-  
-  from <- as.Date("2014-01-01")
-  to <- as.Date("2015-01-01")
-  mf <- mondate(from-1)
-  mt <- mondate(to-1)
-  cutmondate(seq(from, to, by = "months"), breaks = seq(mf, mt), right = FALSE)
-
-  ## end of email
+  res2 <- cutmondate(xdata, breaks = "months")
+  checkTrue(is.na(tail(res1, 1)))
+  checkTrue(is.na(tail(res2, 1)))
+  checkTrue(identical(as.numeric(res1), as.numeric(res2)))
 
 }

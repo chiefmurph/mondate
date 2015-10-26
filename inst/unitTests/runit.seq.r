@@ -71,6 +71,13 @@ test.seq.mondate <- function() {
 
   }
 
+# 10/26/15
+# Going to restrict the seqmondate methods (without the dot)
+#   to only work with from and to being specified and of the same class
+test.seqmondate.missing <- function() {
+  checkException(seqmondate(from = mondate(1:12), by = "months"))
+}
+
 # 10/10/2015
 #seqmondate(as.Date("2015-01-31"), length = 6, by = "months") # used to not work
 # used to give
@@ -79,15 +86,15 @@ test.seq.mondate <- function() {
 test.seqmondate <- function() {
   # from, length
   # last day of the month
-  checkTrue(all(
-    seqmondate(from = mondate("1/31/2014"), length.out = 6) == 
-      mondate.ymd(2014, 1:6)
-    ))
+#  checkTrue(all(
+#    seqmondate(from = mondate("1/31/2014"), length.out = 6) == 
+#      mondate.ymd(2014, 1:6)
+#    ))
   # first day of the month -- not as accurate as last day of month, an integer
-  checkTrue(all(
-    as.character(seqmondate(from = mondate("1/1/2014"), length.out = 6)) ==
-      as.character(mondate.ymd(2014, 1:6, 1))
-    ))
+#  checkTrue(all(
+#    as.character(seqmondate(from = mondate("1/1/2014"), length.out = 6)) ==
+#      as.character(mondate.ymd(2014, 1:6, 1))
+#    ))
 
   # from, to
   # last day of the month
@@ -115,10 +122,10 @@ test.seqmondate <- function() {
   ))
   
   # 'to' alone works for mondate's as seq works for integers
-  checkTrue(all(
-    as.character(seqmondate(to = mondate("04/30/2000"), by = 2)) ==
-      c("01/31/2000", "03/31/2000")
-    ))
+#  checkTrue(all(
+#    as.character(seqmondate(to = mondate("04/30/2000"), by = 2)) ==
+#      c("01/31/2000", "03/31/2000")
+#    ))
 
   # by character
   # when by = "days" uses seq.Date, so both from and to must be specifiec
@@ -169,15 +176,15 @@ test.seqmondate <- function() {
 
   # from, length
   # last day of the month
-  checkTrue(all(
-    seqmondate(from = as.Date("2014-01-31"), length.out = 6) == 
-      as.Date(mondate.ymd(2014, 1:6))
-  ))
+#  checkTrue(all(
+#    seqmondate(from = as.Date("2014-01-31"), length.out = 6) == 
+#      as.Date(mondate.ymd(2014, 1:6))
+#  ))
   # first day of the month -- not as accurate as last day of month, an integer
-  checkTrue(all(
-    seqmondate(from = as.Date("2014-01-01"), length.out = 6) ==
-      as.Date(mondate.ymd(2014, 1:6, 1))
-  ))
+#  checkTrue(all(
+#    seqmondate(from = as.Date("2014-01-01"), length.out = 6) ==
+#      as.Date(mondate.ymd(2014, 1:6, 1))
+#  ))
   
   # from, to -- defaults to by = "months"
   # last day of the month
@@ -206,9 +213,6 @@ test.seqmondate <- function() {
   
   # 'to' alone does not work for Date's
   checkException(as.character(seqmondate(to = as.Date("2000-04-30"), by = 2)))
-  
-  seqmondate(from = mondate("2014-04-30"), to = mondate("2014-08-31"), by = 2)
-  mondate.ymd(2014, c(4, 6, 8))  
   
   # by character
   # when by = "days" uses seq.Date, so both from and to must be specifiec
@@ -262,42 +266,42 @@ test.seqmondate <- function() {
   ))
   
   # POSIXlt
-  from <- as.POSIXlt("2014-01-01")
-  checkTrue(all(
-    as.character(
-      seqmondate(from, by = "months", length = 13)) == 
-      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
-        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
-        "2014-11-01", "2014-12-01", "2015-01-01")
-  ))
-  to <- as.POSIXlt("2015-01-01")
-  checkException(seqmondate(to = to, by = "months", length = 6))
-  checkTrue(all(
-    as.character(
-      seqmondate(from = from, to = to, by = "months")) ==
-      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
-        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
-        "2014-11-01", "2014-12-01", "2015-01-01")
-  ))
+#  from <- as.POSIXlt("2014-01-01")
+#  checkTrue(all(
+#    as.character(
+#      seqmondate(from, by = "months", length = 13)) == 
+#      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
+#        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
+#        "2014-11-01", "2014-12-01", "2015-01-01")
+#  ))
+#  to <- as.POSIXlt("2015-01-01")
+#  checkException(seqmondate(to = to, by = "months", length = 6))
+#  checkTrue(all(
+#    as.character(
+#      seqmondate(from = from, to = to, by = "months")) ==
+#      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
+#        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
+#        "2014-11-01", "2014-12-01", "2015-01-01")
+#  ))
   
   # POSIXct
-  from <- as.POSIXct("2014-01-01")
-  checkTrue(all(
-    as.character(
-      seqmondate(from, by = "months", length = 13)) == 
-      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
-        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
-        "2014-11-01", "2014-12-01", "2015-01-01")
-  ))
-  to <- as.POSIXct("2015-01-01")
-  checkException(seqmondate(to = to, by = "months", length = 6))
-  checkTrue(all(
-    as.character(
-      seqmondate(from = from, to = to, by = "months")) ==
-      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
-        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
-        "2014-11-01", "2014-12-01", "2015-01-01")
-  ))
+#  from <- as.POSIXct("2014-01-01")
+#  checkTrue(all(
+#    as.character(
+#      seqmondate(from, by = "months", length = 13)) == 
+#      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
+#        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
+#        "2014-11-01", "2014-12-01", "2015-01-01")
+#  ))
+#  to <- as.POSIXct("2015-01-01")
+#  checkException(seqmondate(to = to, by = "months", length = 6))
+#  checkTrue(all(
+#    as.character(
+#      seqmondate(from = from, to = to, by = "months")) ==
+#      c("2014-01-01", "2014-02-01", "2014-03-01", "2014-04-01", "2014-05-01", 
+#        "2014-06-01", "2014-07-01", "2014-08-01", "2014-09-01", "2014-10-01", 
+#        "2014-11-01", "2014-12-01", "2015-01-01")
+#  ))
   
   }
 
