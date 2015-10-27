@@ -18,6 +18,7 @@ This is essentially a wrapper for \code{seq.mondate} that requires
 \code{from} and \code{to} to be of the same class,
 and returns a sequence of that class.
 }
+
 \arguments{
 \item{from}{
 coercible to a \code{mondate}. May be "missing".
@@ -29,6 +30,11 @@ coercible to a \code{mondate}. May be "missing".
 optional arguments passed to \code{\link{seq.mondate}}
 }
 }
+
+\value{
+  A sequence of the same class as argument \code{from}.
+}
+
 \section{Methods}{
 \describe{
 
@@ -49,10 +55,6 @@ optional arguments passed to \code{\link{seq.mondate}}
 }
 
 }}
-\value{
-  A sequence of the same class as argument \code{from}.
-}
-
 \examples{
 d1 <- as.Date("2015-01-31") # last days of the month
 d2 <- as.Date("2015-12-31")
