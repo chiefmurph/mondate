@@ -3,6 +3,8 @@
 \alias{seqmondate}
 \alias{seqmondate-methods}
 \alias{seqmondate,mondate,mondate-method}
+\alias{seqmondate,mondate,missing-method}
+\alias{seqmondate,missing,mondate-method}
 \alias{seqmondate,Date,Date-method}
 \alias{seqmondate,POSIXlt,POSIXlt-method}
 \alias{seqmondate,POSIXct,POSIXct-method}
@@ -16,22 +18,33 @@ This is essentially a wrapper for \code{seq.mondate} that requires
 \code{from} and \code{to} to be of the same class,
 and returns a sequence of that class.
 }
+\arguments{
+\item{from}{
+coercible to a \code{mondate}. May be "missing".
+}
+\item{to}{
+coercible to a \code{mondate}. May be "missing".
+}
+\item{\dots}{
+optional arguments passed to \code{\link{seq.mondate}}
+}
+}
 \section{Methods}{
 \describe{
 
-\item{\code{signature(from = "mondate", to = "mondate")}}{
+\item{\code{signature(from = "mondate", to = "mondate", ...)}}{
 %%  ~~describe this method here~~
 }
 
-\item{\code{signature(from = "Date", to = "Date")}}{
+\item{\code{signature(from = "Date", to = "Date", ...)}}{
 %%  ~~describe this method here~~
 }
 
-\item{\code{signature(from = "POSIXlt", to = "POSIXlt")}}{
+\item{\code{signature(from = "POSIXlt", to = "POSIXlt", ...)}}{
 %%  ~~describe this method here~~
 }
 
-\item{\code{signature(from = "POSIXct", to = "POSIXct")}}{
+\item{\code{signature(from = "POSIXct", to = "POSIXct", ...)}}{
 %%  ~~describe this method here~~
 }
 
