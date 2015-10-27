@@ -1,8 +1,8 @@
 setGeneric("seqmondate", function(from, to, ...) standardGeneric("seqmondate"))
 setMethod("seqmondate", c("mondate", "mondate"), function(from, to, ...) seq.mondate(from, to, ...))
 setMethod("seqmondate", c("Date", "Date"), function(from, to, ...)
-  as.Date(seq(mondate(as.numeric(mondate(from)) - .02), 
-              mondate(as.numeric(mondate(to  )) - .02),
+  as.Date(seq(mondate(as.numeric(mondate(from))),# - .02), 
+              mondate(as.numeric(mondate(to  ))),# - .02),
               ...)
           )
   )
