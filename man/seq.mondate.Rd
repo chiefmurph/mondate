@@ -32,7 +32,9 @@ coercible to a \code{mondate}. May be "missing".
   and the singular form may also be used.
   }
 \item{\dots}{
-optional arguments passed to \code{\link{seq}} or \code{\link{seq.Date}}
+optional arguments passed to \code{\link{seq}} or,
+if by "day" or "week",
+\code{\link{seq.Date}}
 }
 \item{right}{
   in the case when \code{by} specifies units of multiples of months 
