@@ -50,15 +50,15 @@ optional arguments passed to or from other methods.
 }
 \details{
 This method converts a \code{mondate} to a factor 
-corresponding to a time interval as determined by 
-the argument \code{breaks}
+corresponding to time intervals as determined by 
+the argument \code{breaks}.
 In the "end-of-business-day" spirit of the mondate package,
 the intervals (levels) are labeled by the last day in the interval.
 If \code{right = FALSE} the levels are labeled by the 
 left endpoint of the interval, 
 which is \bold{the day immediately preceding the beginning of the period}.
 For methods that work in the spirit of Date and POSIXt --
-i.e., a time interval is labeled by the first day of the period --
+i.e., a time interval is better labeled by the first day of the period --
 see \code{\link{cutmondate}}.
 
 For \code{numeric} breaks -- which case also includes \code{mondate}s -- 
