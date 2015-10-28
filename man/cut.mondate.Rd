@@ -49,17 +49,10 @@ optional arguments passed to or from other methods.
 }
 }
 \details{
-This method converts a \code{mondate} to a factor 
-corresponding to a time interval as determined by 
-the argument \code{breaks}
-In the "end-of-business-day" spirit of the mondate package,
-the intervals (levels) are labeled by the last day in the interval.
-If \code{right = FALSE} the levels are labeled by the 
-left endpoint of the interval, 
-which is \bold{the day immediately preceding the beginning of the period}.
-For methods that work in the spirit of Date and POSIXt --
-i.e., a time interval is labeled by the first day of the period --
-see \code{\link{cutmondate}}.
+Convert a \code{mondate} to a factor where,
+in the "end-of-business-day" spirit of \code{mondate},
+the levels are labeled by the last day in the period.
+If \code{right = FALSE} the levels are labeled by the first day in the period.
 
 For \code{numeric} breaks -- which case also includes \code{mondate}s -- 
 the method calls \code{cut.default} and the intervals encoded in the levels 
@@ -96,10 +89,13 @@ A factor is returned, unless \code{labels = FALSE} which returns the integer lev
 Dan Murphy. Many thanks to the R-development team for cut and cut.Date.
 }
 \seealso{
-\code{\link{cut}}, \code{\link{cut.Date}}, and
-\code{\link{cutmondate}} for methods that work better with Dates.
+\code{\link{cut}} and \code{\link{cut.Date}}
 }
 \examples{
+x <- mondate(0:12)
+cut(x, breaks = 4)
+cut(x, mondate.ymd(1999) + c(0, 3, 6, 9, 12)) # same as above
+
 # days
 x <- mondate.ymd(2013, 1, 1:7)
 cut(x, breaks = "days")
@@ -129,21 +125,6 @@ cut(m, "years")           # labeled by last day of the year
 cut(m, "years", right = FALSE) # labeled by last day of the year
 displayFormat(m) <- "\%Y"
 cut(m, "years")           # labeled by just the year
-
-# numeric scalar breaks
-
-# Four intervals starting with 2015-01-15 (exclusive) and ending with
-# 2015-12-15 (inclusive)
-# First factor value is NA because include.lowest is FALSE (default)
-x <- mondate.ymd(2015, 1:12, 15)
-cut(x, breaks = 4)
-# Now 2015-01-15 will be included in the first left-closed interval.
-cut(x, breaks = 4, include.lowest = TRUE)
-
-# specific break boundaries -- month-ends
-cut(x, breaks = mondate("2014-12-31") + 0:12) # levels show interval boundaries
-# compare with ..
-cut(x, breaks = "month") # levels labeled by interval month-end endpoints
 
 }
 \keyword{methods}
