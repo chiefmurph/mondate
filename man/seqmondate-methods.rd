@@ -6,25 +6,34 @@
 \alias{seqmondate,mondate,missing-method}
 \alias{seqmondate,missing,mondate-method}
 \alias{seqmondate,Date,Date-method}
+\alias{seqmondate,Date,missing-method}
+\alias{seqmondate,missing,Date-method}
 \alias{seqmondate,POSIXlt,POSIXlt-method}
+\alias{seqmondate,POSIXlt,missing-method}
+\alias{seqmondate,missing,POSIXlt-method}
 \alias{seqmondate,POSIXct,POSIXct-method}
+\alias{seqmondate,POSIXct,missing-method}
+\alias{seqmondate,missing,POSIXct-method}
 \title{Methods to Generate Date Sequences}
 \description{
-Methods to generate sequences for objects of class
-\code{mondate}, \code{Date}, \code{POSIXlt}, and \code{POSIXct}
-in units of "months" in the sense of the 'mondate' package
-when so specified by (unnamed) argument \code{by}.
+Methods to generate date sequences.
 This is essentially a wrapper for \code{seq.mondate} that requires
-\code{from} and \code{to} to be of the same class,
+\code{from} and \code{to} to be of the same class --
+when both are specified --
 and returns a sequence of that class.
+The primary purpose is to generate sequences
+in units of "months" 
+(the default value of the unnamed argument \code{by}).
 }
 
 \arguments{
 \item{from}{
-coercible to a \code{mondate}. May be "missing".
 }
 \item{to}{
-coercible to a \code{mondate}. May be "missing".
+objects of class
+\code{mondate}, \code{Date}, \code{POSIXlt}, or \code{POSIXct}.
+May be "missing".
+If both present, must be of the same class.
 }
 \item{\dots}{
 optional arguments passed to \code{\link{seq.mondate}}
@@ -32,7 +41,7 @@ optional arguments passed to \code{\link{seq.mondate}}
 }
 
 \value{
-  A sequence of the same class as argument \code{from}.
+  A sequence of the same class as \code{from\\to}.
 }
 
 \section{Methods}{
@@ -56,10 +65,20 @@ optional arguments passed to \code{\link{seq.mondate}}
 
 }}
 \examples{
-d1 <- as.Date("2015-01-31") # last days of the month
-d2 <- as.Date("2015-12-31")
-seqmondate(d1, d2, by = "months") # always the last day of the month
-# Contrast with the base method
-seq(d1, d2, by = "months") # No date in any month with less than 31 days
+# 13 month-end dates starting with the end of 2014 and 
+#   ending with the end of 2015
+seqmondate(mondate.ymd(2014), mondate.ymd(2015))
+
+# In most situations, seq.Date and seqmondate return identical sequences,
+# as when 'from' is at the beginning of the month.
+s1 <- seq(as.Date("2015-01-01"), as.Date("2015-12-01"), by = "month")
+s2 <- seqmondate(as.Date("2015-01-01"), as.Date("2015-12-01"))
+stopifnot(identical(s1, s2))
+
+# But when 'from' is near the end of a long month, seq.Date, seq.POSIXct, etc
+# can step into subsequent months (as documented in ?seq.POSIXt).
+seq(as.POSIXct("2015-01-31"), by = "month", length.out = 12)
+# ... contrasted with ...
+seqmondate(as.POSIXct("2015-01-31"), by = "month", length.out = 12)
 }
 \keyword{methods}
