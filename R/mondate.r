@@ -228,27 +228,27 @@ setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits,
     format <- format[1L]
     warning("length(format) > 1, only first element used.")
     }
-    if (mf) {
-        # Find best format for converting this character to date
-        for (i in 1:length(.displayFormat)) {
-            d <- as.Date(x[m], format = .displayFormat[i], ...)
-            if (!is.na(d)) break
-            }
-        if (is.na(d)) {
-            msg <- paste("mondate character: first non-NA element '", x[m], "' is not a date.", sep = "")
-            msg <- c(msg, "\nConverting to numeric, then to mondate. Try specifying 'format'.")
-            if (displayFormat == "keep") {
-                displayFormat <- getOption("mondate.displayFormat", default = .default.displayFormat)
-                msg <- c(msg, '\ndisplayFormat = "keep" not applicable, using default.')
-                }
-            warning(msg) 
-            return(mondate(as.numeric(x), displayFormat = displayFormat, timeunits = timeunits, ...))
-            }
-        format <- .displayFormat[i]
-        if (displayFormat == "keep") displayFormat <- format # else goes to default
+  if (mf) {
+    # Find best format for converting this character to date
+    for (i in 1:length(.displayFormat)) {
+      d <- as.Date(x[m], format = .displayFormat[i], ...)
+      if (!is.na(d)) break
+      }
+    if (is.na(d)) {
+      msg <- paste("mondate character: first non-NA element '", x[m], "' is not a date.", sep = "")
+      msg <- c(msg, "\nConverting to numeric, then to mondate. Try specifying 'format'.")
+      if (displayFormat == "keep") {
+        displayFormat <- getOption("mondate.displayFormat", default = .default.displayFormat)
+        msg <- c(msg, '\ndisplayFormat = "keep" not applicable, using default.')
         }
-    # Use format to convert the character
-    y <- as.Date(x, format = format, ...)
+      warning(msg) 
+      return(mondate(as.numeric(x), displayFormat = displayFormat, timeunits = timeunits, ...))
+      }
+    format <- .displayFormat[i]
+    if (displayFormat == "keep") displayFormat <- format # else goes to default
+    }
+  # Use format to convert the character
+  y <- as.Date(x, format = format, ...)
   isnay <- is.na(y)
   wisnayx <- which(isnay & !isnax)
   if (length(wisnayx)) {
@@ -261,7 +261,6 @@ setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits,
   z <- .date.to.mondate(y, displayFormat = displayFormat, timeunits = timeunits, ...)
   if (length(wisnayx)) {
     if (length(winfty)) z[wisnayx[winfty]]@.Data <- as.numeric(ty[infty])
-    
     }
   if (any(is.na(z) & !isnax)) warning("format '", format, "' did not convert some characters into dates")
   z
