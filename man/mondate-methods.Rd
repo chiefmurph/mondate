@@ -65,7 +65,7 @@ All purpose \bold{mondate} constructor / coercer.
         }
     \item{format}{
         format string for converting a character to a Date 
-        (using \code{as.Date, x, format, ...})
+        (using \code{as.Date(x, format, ...)})
         from which the mondate value is determined.
         }
     \item{\dots}{
