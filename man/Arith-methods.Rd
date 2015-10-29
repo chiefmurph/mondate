@@ -20,6 +20,8 @@
 \alias{--methods}
 \alias{-,mondate,difftime-method}
 \alias{-,mondate,mondate-method}
+\alias{-,mondate,Date-method}
+\alias{-,mondate,ANY-method}
 \title{Methods for Function Group Arith on mondate Objects}
 \description{
 Arithmetic methods for class \code{mondate}.
@@ -89,6 +91,18 @@ and the result converted to a \code{mondate}.
   if \code{e1} and \code{e2} have differing \code{timeunits}.
   }
 
+\item{\code{-signature(e1 = "mondate", e2 = "Date")}}{
+  Returns a difftime object equal to the signed number of units between
+  \code{e1} and \code{e2} \bold{- 1 day}, 
+  where "units" = \code{timeunits(e1)}.
+  }
+
+\item{\code{-signature(e1 = "mondate", e2 = "ANY")}}{
+  Returns a difftime object equal to the signed number of units between
+  \code{e1} and \code{as.Date(e2)} \bold{- 1 day}, 
+  where "units" = \code{timeunits(e1)}.
+  }
+
 \item{\code{MonthsBetween(from = "mondate", to = "mondate")}}{
 Same as \code{abs(from - to)} in months.
 }
@@ -136,6 +150,13 @@ x + as.difftime(86400, , "secs")
 x <- mondate.ymd(2012, 2, 29)  # leap day
 x + as.difftime(1, , "years")  # last day of February 2013, not a leap day
 x - as.difftime(1, , "months") # not the last day of January
+
+# Using a mondate as an "as of" date, measure elapsed time in months
+# from the beginning of Date's
+asof <- mondate("2015-12-31")
+eventDate <- as.Date("2015-01-01")
+asof - eventDate     # 12 months
+asof - "2015-01-01"  # ditto
 
 }
 \keyword{methods}

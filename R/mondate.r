@@ -434,6 +434,15 @@ setMethod("-", c("mondate", "mondate"), function(e1, e2) {
     }
   })
 
+setMethod("-", c("mondate", "Date"), function(e1, e2) {
+  timeunits <- timeunits(e1)
+  as.difftime(as.numeric(e1) - as.numeric(mondate(e2 - 1)), , units = timeunits)
+})
+setMethod("-", c("mondate", "ANY"), function(e1, e2) {
+  timeunits <- timeunits(e1)
+  as.difftime(as.numeric(e1) - as.numeric(mondate(as.Date(e2) - 1)), , units = timeunits)
+})
+
 setMethod("Arith", c("numeric", "mondate"), function(e1, e2) {
   mondate(callGeneric(e1, as.numeric(e2, convert= TRUE)), 
           timeunits = e2@timeunits, displayFormat = e2@displayFormat, formatFUN = e2@formatFUN)
@@ -577,7 +586,7 @@ add <- function(e1, e2, units, forcelastday = FALSE) {
   z
   }
 subtract <- function(e1, e2, units, forcelastday = FALSE) {
-  if (!inherits(e1, "mondate")) stop("add not defined for e1's class")
+  if (!inherits(e1, "mondate")) stop("subtract not defined for e1's class")
   if (!is.numeric(e2)) stop ("e2 must be numeric")
   if (missing(units)) units <- timeunits(e1)
   if (!(units %in% c("secs", "mins", "hours", "days", "weeks", "months", "years", "quarters"))) stop("invalid units specified")
