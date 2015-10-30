@@ -10,7 +10,12 @@ test.cut.mondate <- function() {
   cut(x, breaks = x, include.lowest = T)
   cut(x, breaks = 2)
   cut(x, breaks = 2, include.lowest = T)
-  # 4 levels, but not of unit width. Weird.
+  # 4 levels, but not of unit width. Explanation from ?cut
+  #   When breaks is specified as a single number, 
+  #   the range of the data is divided into breaks pieces 
+  #   of equal length, and then the outer limits are moved 
+  #   away by 0.1% of the range to ensure that the extreme 
+  #   values both fall within the break intervals. 
   cut(x, breaks = 4)
 
   seq(min(x), max(x), length = 3)
