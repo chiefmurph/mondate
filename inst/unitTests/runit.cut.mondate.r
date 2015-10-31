@@ -4,25 +4,6 @@ test.cut.mondate <- function() {
   y <- cut(mondate(12:24), breaks = 12:24)
   checkEquals(length(levels(y)), 12)
 
-  # numeric, cut default. For comparison, not testing.
-  x <- 0:4
-  cut(x, breaks = x)
-  cut(x, breaks = x, include.lowest = T)
-  cut(x, breaks = 2)
-  cut(x, breaks = 2, include.lowest = T)
-  # 4 levels, but not of unit width. Explanation from ?cut
-  #   When breaks is specified as a single number, 
-  #   the range of the data is divided into breaks pieces 
-  #   of equal length, and then the outer limits are moved 
-  #   away by 0.1% of the range to ensure that the extreme 
-  #   values both fall within the break intervals. 
-  cut(x, breaks = 4)
-
-  seq(min(x), max(x), length = 3)
-  cut(x, breaks = seq(min(x), max(x), length = 3))
-  cut(x, breaks = seq(min(x), max(x), length = 3), include.lowest = T)
-
-  
   # mondate
 
   x <- mondate(0:4)
@@ -38,9 +19,6 @@ test.cut.mondate <- function() {
   (y <- cut.mondate(x, breaks = 4, include.lowest = TRUE))
   checkTrue(!is.na(y[1]))
   checkEquals(levels(y), c("[12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
-
-
-
 
   (y <- cut(x, "months"))
   checkTrue(is.na(y[1]))
