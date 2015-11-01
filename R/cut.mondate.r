@@ -142,9 +142,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 2) { # weeks
-#      wdayadj <- as.POSIXlt(min(x))$wday %/% 7
       x <- as.numeric(as.Date(x))
-#      wdateadj <- min(x) %% 7
       int <- step * 7
       rngx <- range(x)
       # 3 is the magic number for adjusting to mondays
@@ -172,32 +170,6 @@ cut.mondate <- function (x, breaks, labels = NULL,
         attr(res, "breaks") <- breaks
         }
       }
-#    else
-#    if (valid == -2) { # weeks
-#      int <- 7 * step
-#      # include.lowest = TRUE to avoid NA's 
-#      #   (right = TRUE with include.lowest = FALSE can result in NA's 
-#      #   for cut.Date) which is inconsistent behavior
-#      res <- cut.Date(as.Date(x) + 1, breaks = breaks, right = right, labels = labels,
-#        include.lowest = TRUE, start.on.monday = start.on.monday, ...)
-#      if (!is.factor(res)) return(res)
-#      breaks <- as.Date(levels(res)) - 1
-#      breaks <- mondate(c(breaks, tail(breaks, 1) + int), 
-#                        displayFormat = dF, timeunits = tu, formatFUN = fF)
-#      if (is.null(labels)) levels(res) <- if (right) breaks[-1]
-#                                          else head(breaks, -1)
-#      if (attr.breaks) {
-#        n <- length(breaks) - 1
-#        lechar <- rep(ifelse(right, "(", "["), n)
-#        rechar <- rep(ifelse(right, "]", ")"), n)
-#        if (include.lowest) 
-#          if (right) lechar[1] <- "["
-#          else rechar[n] <- "]"
-#        attr(breaks, "lechar") <- lechar
-#        attr(breaks, "rechar") <- rechar
-#        attr(res, "breaks") <- breaks
-#        }
-#      }
     else { # 3: month, 4: year, 5: quarter
       valid <- valid - 2
       int <- c(1, 12, 3)[valid] * step
