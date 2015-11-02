@@ -169,19 +169,25 @@ cut.mondate <- function (x, breaks, labels = NULL,
       x <- as.numeric(as.Date(x))
       int <- step
       rngx <- range(x)
-      breaks <- seq(from = ceiling(rngx[1] / int) * int - ifelse(include.lowest, int, 0),
-                    to =   ceiling(rngx[2] / int) * int, 
-                    by = int)
+      breaks <- if (right) rev(seq(rngx[2L], 
+                                   rngx[1L] - ifelse(include.lowest, int, 0), 
+                                   by = -int))
+                else seq(rngx[1L], 
+                         rngx[2L] + ifelse(include.lowest, int, 0), 
+                         by = int)
+      
       res <- cut.default(x, breaks = breaks, 
-                         labels = labels, right = TRUE, 
-                         include.lowest = FALSE, ...)
-      breaks <- mondate(as.Date(breaks, "1970-01-01"), 
-                      displayFormat = dF, formatFUN = fF)
-      # label appropriately
-      if (is.null(labels)) levels(res) <- if (right) breaks[-1]
-                                          else head(breaks, -1)
+                         labels = labels, right = right, 
+                         include.lowest = include.lowest, ...)
+      # label appropriately 
+      if (is.null(labels)) levels(res) <- mondate(
+          as.Date(.intervalsplit(res)[, ifelse(right, "upper", "lower")],
+                  "1970-01-01"),
+          displayFormat = dF, formatFUN = fF)
       if (attr.breaks) {
         attr(res, "breaks") <- breaks
+        breaks <- mondate(as.Date(breaks, "1970-01-01"), 
+                          displayFormat = dF, formatFUN = fF)
         n <- length(breaks) - 1
         lechar <- rep(ifelse(right, "(", "["), n)
         rechar <- rep(ifelse(right, "]", ")"), n)

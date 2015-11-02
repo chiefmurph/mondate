@@ -77,15 +77,19 @@ test.cut.mondate <- function() {
   (y <- cut.mondate(x, "2 weeks", start.on.monday = FALSE, attr.breaks = TRUE))
   checkTrue(!is.na(y[1]))
   checkEquals(levels(y), c("04/12/2014", "04/26/2014", "05/10/2014"))
-  
+}
+test.cut.mondate.days <- function() {
   # "days"
   x <- mondate.ymd(2014, 4, c(1, 7))
   (y <- cut.mondate(x, "days", attr.breaks = TRUE))
   checkEquals(as.character(y), c(NA, "04/07/2014"))
-  checkEquals(levels(y), c("04/02/2014", "04/03/2014", "04/04/2014", "04/05/2014", "04/06/2014", "04/07/2014"))
+  checkEquals(levels(y), c("04/02/2014", "04/03/2014", "04/04/2014", 
+                           "04/05/2014", "04/06/2014", "04/07/2014"))
   (y <- cut.mondate(x, "days", include.lowest = TRUE, attr.breaks = TRUE))
   checkEquals(as.character(y), c("04/01/2014", "04/07/2014"))
-  checkEquals(levels(y), c("04/01/2014", "04/02/2014", "04/03/2014", "04/04/2014", "04/05/2014", "04/06/2014", "04/07/2014"))
+  checkEquals(levels(y), c("04/01/2014", "04/02/2014", "04/03/2014", 
+                           "04/04/2014", "04/05/2014", "04/06/2014", 
+                           "04/07/2014"))
 
   x <- mondate.ymd(2014, 4, c(1, 8))
   (y <- cut.mondate(x, "days", attr.breaks = TRUE))
@@ -98,12 +102,16 @@ test.cut.mondate <- function() {
 
   x <- mondate.ymd(2014, 4, c(1, 7))
   (y <- cut.mondate(x, "2 days", attr.breaks = TRUE))
-  checkEquals(as.character(y), c(NA, "04/08/2014"))
-  checkEquals(levels(y), c("04/04/2014", "04/06/2014", "04/08/2014"))
+  # old behavior was that the starting value was always min(x) even
+  #   when right. Now when right, ending value always max(x)
+  # checkEquals(as.character(y), c(NA, "04/08/2014"))
+  checkEquals(as.character(y), c(NA, "04/07/2014"))
+  # checkEquals(levels(y), c("04/04/2014", "04/06/2014", "04/08/2014"))
+  checkEquals(levels(y), c("04/03/2014", "04/05/2014", "04/07/2014"))
 
   (y <- cut.mondate(x, "2 days", include.lowest = TRUE, attr.breaks = TRUE))
-  checkEquals(as.character(y), c("04/02/2014", "04/08/2014"))
-  checkEquals(levels(y), c("04/02/2014", "04/04/2014", "04/06/2014", "04/08/2014"))
+  checkEquals(as.character(y), c("04/01/2014", "04/07/2014"))
+  checkEquals(levels(y), c("04/01/2014", "04/03/2014", "04/05/2014", "04/07/2014"))
 
   x <- mondate.ymd(2014, 4, c(1, 8))
   (y <- cut.mondate(x, "2 days", attr.breaks = TRUE))
@@ -113,15 +121,18 @@ test.cut.mondate <- function() {
   (y <- cut.mondate(x, "2 days", include.lowest = TRUE, attr.breaks = TRUE))
   checkEquals(as.character(y), c("04/02/2014", "04/08/2014"))
   checkEquals(levels(y), c("04/02/2014", "04/04/2014", "04/06/2014", "04/08/2014"))
-  checkEqualsNumeric(attr(y, "breaks"), mondate(c("03/31/2014", "04/02/2014", "04/04/2014", "04/06/2014", "04/08/2014")))
+  checkEqualsNumeric(attr(y, "breaks"), mondate(c("03/31/2014", "04/02/2014", 
+                                                  "04/04/2014", "04/06/2014", 
+                                                  "04/08/2014")))
 
   x <- mondate.ymd(2014, 4, c(1, 7))
-  (y <- cut.mondate(x, "days", attr.breaks = TRUE, right = FALSE))
-  checkEquals(as.character(y), c(NA, "04/06/2014"))
+  (y <- cut.mondate(x, "days", right = FALSE, attr.breaks = TRUE))
+  checkEquals(as.character(y), c("04/01/2014", NA))
   (z <- cut.mondate(x, attr(y, "breaks"), right = FALSE))
   checkTrue(is.na(tail(z, 1)))
   (z <- cut.mondate(x, attr(y, "breaks"), right = FALSE, include.lowest = TRUE))
-  checkEquals(as.character(z), c("[04/01/2014,04/02/2014)", "[04/06/2014,04/07/2014]"))
-  (y <- cut.mondate(x, "days", include.lowest = TRUE, attr.breaks = TRUE, right = FALSE))
-  checkEquals(as.character(y), c("03/31/2014", "04/06/2014"))
+  checkEquals(as.character(z), c("[04/01/2014,04/02/2014)", 
+                                 "[04/06/2014,04/07/2014]"))
+  (y <- cut.mondate(x, "days", right = FALSE, include.lowest = TRUE))
+  checkEquals(as.character(y), c("04/01/2014", "04/07/2014"))
 }

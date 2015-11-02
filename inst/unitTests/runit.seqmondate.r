@@ -7,7 +7,7 @@ test.seqmondate.missing <- function() {
   checkException(seqmondate(to = mondate(1:12),   by = "months"))
   checkException(seqmondate(from = as.Date(mondate(1:12)), by = "months"))
   checkException(seqmondate(to = as.Date(mondate(1:12)),   by = "months"))
-}}
+}
 
 # 10/10/2015
 #seqmondate(as.Date("2015-01-31"), length = 6, by = "months") # used to not work
