@@ -8,6 +8,49 @@ cut.mondate <- function (x, breaks, labels = NULL,
                          start.on.monday = TRUE,
                          attr.breaks = FALSE
                          , ...) {
+  # factor x with a sequence of contiguous, non-overlapping intervals 
+  #   that "cover" x
+  #   (see, e.g., www.wikipedia.org/wiki/Cover_(topology))
+  # In conformance with cut.default, the value of x that will not be
+  #   covered by default (include.lowest is FALSE) will be the 
+  #   the leftmost, minimum value or rightmost, maximum value depending
+  #   on right or !right, respectively. If include.lowest is TRUE, all
+  #   values of x will be included in one (and only one) of the invervals.
+  # All intervals will be (open, closed] or [closed, open) when 
+  #   right or !right, respectively, with the exception that when
+  #   include.lowest is TRUE the leftmost (when right) or rightmost 
+  #   interval will be a closed on both ends.
+  # The factor labels will show the endpoints of the intervals:
+  #   When breaks is numeric, both endpoints will be shown.
+  #   When breaks is character, only the right or !right endpoint 
+  #     will be shown.
+  # When breaks is numeric, the method inherits from cut.default;
+  #   see ?base::cut for information on its behavior.
+  # When breaks is character, the intervals will be days, weeks, months,
+  #   etc. defined by a sequence of days that determine the breakpoints.
+  #   For example, suppose that x holds the first 5 days of November 2015,  
+  #     and that breaks = "days" and right and include.lowest are their 
+  #     default values (TRUE and FALSE, respectively).
+  #     Then the breakpoints will be the sequence
+  #       (2015-11-01, 2015-11-02, 2015-11-03, 2015-11-04, 2015-11-05), 
+  #     the four intervals so determined will be 
+  #       (2015-11-01, 2015-11-02], (2015-11-02, 2015-11-03], 
+  #       (2015-11-03, 2015-11-04], (2015-11-04, 2015-11-05],
+  #     and the labels of the factor will be
+  #       mondate(c("2015-11-02", "2015-11-03", "2015-11-04", "2015-11-05"))
+  #   Note that in the example, the minimum value of x, 2015-11-01, 
+  # `   is not included in an interval so its factor value will be <NA>.
+  #     This conforms with cut.default's behavior, 
+  #     but perhaps not necessarily with "intuitive" behavior 
+  #     for a cover of "days", "months", etc., when one might expect all
+  #     values of x to be included in some "day", "month", etc.
+  #     For S4 methods with more intuitive defaults for character breaks,
+  #     see the generic cutmondate with methods for "mondate", "Date", etc.
+  #     
+  #   
+  # The closed endpoint will be the right or left endpoint depending on
+  #   the argument right.
+  #   
   # right = TRUE: non-intersecting, half-open/half-closed intervals 
   #   are considered closed on right;
   #   when breaks is character, level represented by date of right endpoint
