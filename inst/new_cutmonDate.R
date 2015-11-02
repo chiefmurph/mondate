@@ -28,7 +28,10 @@ res2b # not NA last ???
 (mxdata <- mondate(xdata))
 
 cut(mxdata, "month")
-# bug! 01/01/2015 should be NA
+
+# BUGS! 
+# 01/01/2015 should be NA
+# periods s/b labeled with left endpoint
 cut(mxdata, "month", right = FALSE, include.lowest = FALSE)
 # cutmondate.Date like cutmondate.mondate?
 #test

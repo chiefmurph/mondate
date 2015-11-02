@@ -12,6 +12,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #   are considered closed on right;
   #   when breaks is character, level represented by date of right endpoint
   # if !right, same as above, but with left replacing right
+  #
+  # include.lowest
+  # Case A: breaks is numeric
   # include.lowest works as with cut's default method:
   # include.lowest = TRUE: 
   #   When 'right', the leftmost interval is considered closed and
@@ -28,6 +31,13 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #    vs
   #   cut(1:5, breaks = 1:5, include.lowest = FALSE)
   #   
+  # Case B: breaks is character
+  #   Case B.1: include.lowest is FALSE
+  #     The minimum value of x (when right, max when !right) is excluded
+  #     when considering the periods covering x
+  #   Case B.2: include.lowest is TRUE
+  #     All values of x are considered
+  #     
   # breaks:
   #   vector of length > 1: sequential pairs determine the intervals
   #     into which objects of class x is to be cut.
@@ -146,7 +156,10 @@ cut.mondate <- function (x, breaks, labels = NULL,
       int <- step * 7
       rngx <- range(x)
       # 3 is the magic number for adjusting to mondays
-      breaks <- seq(from = ((rngx[1] - 3) %/% int) * int + 3 - ifelse(include.lowest, int, 0) - ifelse(start.on.monday, 0, 1),
+      # 1970-01-01 begins Thu, Fri, Sat, Sun, which mod 7 is
+      #                    0    1    2    3
+      breaks <- seq(from = ((rngx[1] - 3) %/% int) * int + 3 - ifelse(include.lowest, int, 0) - 
+                      ifelse(start.on.monday, 0, 1),
                     to =   ceiling((rngx[2] - 3) / int) * int + 3   , 
                     by = int)
       res <- cut.default(x, breaks = breaks, 
