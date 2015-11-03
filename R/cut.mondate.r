@@ -255,7 +255,8 @@ cut.mondate <- function (x, breaks, labels = NULL,
       #int <- step
       #rngx <- range(x)
       z <- if (include.lowest) ymd(range(x)) else {
-        x2 <- mondate(setdiff(x, ifelse(right, min(x), max(x))),
+        x2 <- as.numeric(x)
+        x2 <- mondate(setdiff(x2, ifelse(right, min(x2), max(x2))),
                      displayFormat = dF, formatFUN = fF)
         if (!length(x2)) 
           stop("include.lowest cannot be FALSE when x consists of only one value")
@@ -276,7 +277,8 @@ cut.mondate <- function (x, breaks, labels = NULL,
         lvls <- levels(res)
         n <- length(lvls)
         z <- unlist(strsplit(lvls, ","))[seq(2, 2 * n, by = 2)]
-        lbls <- mondate(substr(z, 1, nc-1), displayFormat = dF, formatFUN = fF)
+        nc <- nchar(z)
+        lbls <- mondate(substr(z, 1, nc - 1), displayFormat = dF, formatFUN = fF)
         if (!right) lbls <- add(lbls - 1, 1, units = "days")
         levels(res) <- lbls
       }

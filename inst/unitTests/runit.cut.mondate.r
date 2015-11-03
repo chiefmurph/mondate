@@ -8,11 +8,13 @@ test.cut.mondate <- function() {
 
   x <- mondate(0:4)
   (y <- cut(x, x))
-  checkEquals(levels(y), c("(12/31/1999,01/31/2000]","(01/31/2000,02/29/2000]","(02/29/2000,03/31/2000]","(03/31/2000,04/30/2000]"))
+  checkEquals(levels(y), c("(12/31/1999,01/31/2000]","(01/31/2000,02/29/2000]",
+                           "(02/29/2000,03/31/2000]","(03/31/2000,04/30/2000]"))
   (y <- cut(x, x, right = FALSE))
-  checkEquals(levels(y), c("[12/31/1999,01/31/2000)","[01/31/2000,02/29/2000)","[02/29/2000,03/31/2000)","[03/31/2000,04/30/2000)"))
+  checkEquals(levels(y), c("[12/31/1999,01/31/2000)","[01/31/2000,02/29/2000)",
+                           "[02/29/2000,03/31/2000)","[03/31/2000,04/30/2000)"))
 
-  # 4 levels of unit width. Differs from cut.default.
+  # 4 levels of unit width.
   (y <- cut.mondate(x, breaks = 4, attr.breaks = TRUE))
   checkTrue(is.na(y[1]))
   checkEquals(levels(y), c("(12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
@@ -20,29 +22,8 @@ test.cut.mondate <- function() {
   checkTrue(!is.na(y[1]))
   checkEquals(levels(y), c("[12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
 
-  (y <- cut(x, "months"))
-  checkTrue(is.na(y[1]))
-  checkEquals(levels(y), c("01/31/2000", "02/29/2000", "03/31/2000", "04/30/2000"))
-  (y <- cut(x, "months", right = FALSE))
-  checkTrue(is.na(y[1]))
-  checkEquals(levels(y), c("12/31/1999", "01/31/2000", "02/29/2000", "03/31/2000"))
-  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE))
-  checkTrue(!is.na(y[1]))
-  checkEquals(levels(y), c("12/31/1999", "01/31/2000", "02/29/2000", "03/31/2000", "04/30/2000"))
-  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
-  checkEqualsNumeric(attr(y, "breaks"), mondate(-1:4))
-  
   (y <- cut(x, attr(y, "breaks"), right = TRUE, include.lowest = TRUE))
   checkEquals(levels(y), c("[11/30/1999,12/31/1999]", "(12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
-
-  # Test for non-NA when scalar x on month boundary
-  x <- mondate.ymd(2008, 6)
-  y <- cut(x, "month", right = TRUE)
-  checkTrue(!is.na(y))
-  checkEquals(levels(y), "06/30/2008")
-  y <- cut(x, "month", right = FALSE)
-  checkTrue(!is.na(y))
-  checkEquals(levels(y), "05/31/2008")
 
   # "weeks"
   x <- c(mondate.ymd(2014, 3, 30:31), mondate.ymd(2014, 4, 1:30))
@@ -135,4 +116,43 @@ test.cut.mondate.days <- function() {
                                  "[04/06/2014,04/07/2014]"))
   (y <- cut.mondate(x, "days", right = FALSE, include.lowest = TRUE))
   checkEquals(as.character(y), c("04/01/2014", "04/07/2014"))
+}
+test.cut.mondate.months <- function() {
+  x <- mondate(0:4)
+  (y <- cut(x, "months", include.lowest = FALSE))
+  checkTrue(is.na(y[1]))
+  checkEquals(levels(y), c("01/31/2000", "02/29/2000", "03/31/2000", "04/30/2000"))
+  (y <- cut(x, "months", right = FALSE))
+  checkTrue(is.na(y[length(y)]))
+  checkEquals(levels(y), c("12/01/1999", "01/01/2000", "02/01/2000", "03/01/2000"))
+  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE))
+  checkTrue(!is.na(y[1]))
+  checkEquals(levels(y), c("12/31/1999", "01/31/2000", "02/29/2000", "03/31/2000", "04/30/2000"))
+  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
+  checkEqualsNumeric(attr(y, "breaks"), mondate(-1:4))
+  
+  # Test for non-NA when scalar x on month boundary
+  (x <- mondate.ymd(2008, 6))
+  (y <- cut(x, "month", right = TRUE))
+  checkTrue(!is.na(y))
+  checkEquals(levels(y), "06/30/2008")
+  (y <- cut(x, "month", right = FALSE))
+  checkTrue(!is.na(y))
+  checkEquals(levels(y), "06/01/2008")
+  
+  x <- mondate.ymd(2015, 1:12)
+  (y <- cut(x, "month", right = TRUE, include.lowest = TRUE))
+  (y <- cut(x, "month", right = FALSE, include.lowest = TRUE))
+  (y <- cut(x, "month", right = TRUE, include.lowest = FALSE))
+  (y <- cut(x, "month", right = FALSE, include.lowest = FALSE))
+  (y <- cut(x, "month", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
+  (y <- cut(x, "month", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE))
+  (y <- cut(x, "month", right = TRUE, include.lowest = FALSE, attr.breaks = TRUE))
+  (y <- cut(x, "month", right = FALSE, include.lowest = FALSE, attr.breaks = TRUE))
+  # demo recut with breaks as might occur with Date's
+  res <- cut(x, "month", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE)
+  b <- attr(res, "breaks")
+  (u <- cut(as.Date(x), as.Date(b)))
+  (v <- cut(as.Date(x), "month"))
+  checkTrue(identical(u, v))
 }

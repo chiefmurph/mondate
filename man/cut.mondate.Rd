@@ -103,6 +103,7 @@ Dan Murphy. Many thanks to the R-development team for cut and cut.Date.
 # days
 x <- mondate.ymd(2013, 1, 1:7)
 cut(x, breaks = "days")
+cut(x, breaks = "days", include.lowest = TRUE)
 
 # weeks
 x <- mondate.ymd(2013, 1, 1:31)  # days in January 2013
