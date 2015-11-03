@@ -187,3 +187,38 @@ test.cut.mondate.years <- function() {
   (v <- cut(as.Date(x), "year"))
   checkTrue(identical(u, v))
 }
+test.year_boundary_right <- function(){
+  checkTrue(identical(
+    year_boundary_right(mondate.ymd(2014))
+    , mondate.ymd(2014)))
+  checkTrue(identical(
+    year_boundary_right(mondate.ymd(2015, 1:12))
+    , rep(mondate.ymd(2015), 12)))
+  checkTrue(identical(
+    year_boundary_right(mondate.ymd(2014), 11)
+    , mondate.ymd(2015, 11)))
+  checkTrue(identical(
+    year_boundary_right(mondate.ymd(2015, 1:12), 11)
+    , c(rep(mondate.ymd(2015, 11), 11), mondate.ymd(2016, 11))))
+}
+test.quarter_boundary_right <- function(){
+  checkTrue(identical(
+    quarter_boundary_right(mondate.ymd(2014))
+    , mondate.ymd(2014)))
+  checkTrue(identical(
+    quarter_boundary_right(mondate.ymd(2015, 1:12))
+    , c(rep(mondate.ymd(2015, 3), 3),
+        rep(mondate.ymd(2015, 6), 3),
+        rep(mondate.ymd(2015, 9), 3),
+        rep(mondate.ymd(2015, 12), 3))))
+  checkTrue(identical(
+    quarter_boundary_right(mondate.ymd(2014), 11)
+    , mondate.ymd(2015, 2)))
+  checkTrue(identical(
+    quarter_boundary_right(mondate.ymd(2015, 1:12), 11)
+    , c(rep(mondate.ymd(2015, 2), 2),
+        rep(mondate.ymd(2015, 5), 3),
+        rep(mondate.ymd(2015, 8), 3),
+        rep(mondate.ymd(2015, 11), 3),
+        mondate.ymd(2016, 2))))
+}
