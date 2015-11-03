@@ -205,6 +205,55 @@ test.cut.mondate.years <- function() {
     , c("07/01/2009", "07/01/2011", "07/01/2013"))
   
 }
+test.cut.mondate.quarters <- function() {
+  (x <- mondate.ymd(2015, 1:12, 15))
+  (y <- cut(x, "quarters", include.lowest = FALSE))
+  checkTrue(!is.na(y[1])) # more than one date in first quarter, so
+                          # elimination of min(x) has no impact on the levels
+  checkEquals(levels(y), c("03/31/2015", "06/30/2015", "09/30/2015", "12/31/2015"))
+  (y <- cut(x, "quarters", right = FALSE))
+  checkTrue(!is.na(y[length(y)]))
+  checkEquals(levels(y), c("01/01/2015", "04/01/2015", "07/01/2015", "10/01/2015"))
+  (y <- cut(x, "quarters", right = TRUE, include.lowest = TRUE))
+  checkTrue(!is.na(y[1]))
+  checkEquals(levels(y), c("03/31/2015", "06/30/2015", "09/30/2015", "12/31/2015"))
+  (y <- cut(x, "quarters", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
+  checkEqualsNumeric(attr(y, "breaks"), mondate.ymd(2014) + 3*(0:4))
+  # Test for non-NA when scalar x on year boundary
+  (x <- mondate.ymd(2008))
+  (y <- cut(x, "quarters", right = TRUE))
+  checkTrue(!is.na(y))
+  checkEquals(levels(y), "12/31/2008")
+  (y <- cut(x, "quarters", right = FALSE))
+  checkTrue(!is.na(y))
+  checkEquals(levels(y), "10/01/2008")
+stop()  
+  # demo recut with breaks as might occur with Date's
+  (x <- mondate.ymd(2000:2015, 6, 15))
+  (res <- cut(x, "quarters", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE))
+  (b <- attr(res, "breaks"))
+  (u <- cut(as.Date(x), as.Date(b)))
+  (v <- cut(as.Date(x), "year"))
+  checkTrue(identical(u, v))
+  
+  # Check July - June fiscal year
+  (x <- mondate.ymd(2010:2015, 6, 15))
+  (res <- cut(x, "quarters", right = TRUE, include.lowest = TRUE, yearend.month = 6))
+  checkEquals(
+    levels(res)
+    , c("06/30/2010", "06/30/2011", "06/30/2012", 
+        "06/30/2013", "06/30/2014", "06/30/2015"))
+  (res <- cut(x, "quarters", right = FALSE, include.lowest = TRUE, yearend.month = 6))
+  checkEquals(
+    levels(res)
+    , c("07/01/2009", "07/01/2010", "07/01/2011", 
+        "07/01/2012", "07/01/2013", "07/01/2014"))
+  (res <- cut(x, "2 quarters", right = FALSE, include.lowest = TRUE, yearend.month = 6))
+  checkEquals(
+    levels(res)
+    , c("07/01/2009", "07/01/2011", "07/01/2013"))
+  
+}
 test.year_boundary_right <- function(){
   checkTrue(identical(
     year_boundary_right(mondate.ymd(2014))

@@ -131,6 +131,8 @@ cut.mondate <- function (x, breaks, labels = NULL,
   # attr.breaks = TRUE: a "breaks" attribute is returned whose value
   #   can be used to reproduce the same factors whose labels hold the interval
   #   representation of the cuts in date format.
+#print(1)
+#print(include.lowest)
   if (missing(breaks)) stop("argument 'breaks' is missing, with no default")
   tu <- timeunits(x)
   dF <- displayFormat(x)
@@ -167,6 +169,8 @@ cut.mondate <- function (x, breaks, labels = NULL,
   else 
   if (!is.character(breaks)) stop("'breaks' must be numeric or character")
   else { #character
+#print(2)
+#print(include.lowest)
     if (length(breaks) > 1) stop("invalid specification for 'breaks'")
     by2 <- strsplit(breaks, " ", fixed = TRUE)[[1L]]
     if (length(by2) > 2L || length(by2) < 1L) stop("invalid specification for 'breaks'")
@@ -181,7 +185,10 @@ cut.mondate <- function (x, breaks, labels = NULL,
           !include.lowest) 
         stop("include.lowest = FALSE and scalar x are incompatible when x is near a month boundary")
       include.lowest <- TRUE
+      warning("Forcing include.lowest for scalar x and character breaks")
       }
+#print(3)
+#print(include.lowest)
 
     # if days
     if (valid == 1) { # days
@@ -293,17 +300,11 @@ cut.mondate <- function (x, breaks, labels = NULL,
     else
     if (valid == 4) { # year
       step <- 12 * step
-      z <- if (include.lowest) ymd(range(x)) else {
-        x2 <- as.numeric(x)
-        x2 <- mondate(setdiff(x2, ifelse(right, min(x2), max(x2))),
-                      displayFormat = dF, formatFUN = fF)
-        if (!length(x2)) 
-          stop("include.lowest cannot be FALSE when x consists of only one value")
-        ymd(range(x2))
-      }
       nx <- as.numeric(x)
+#print("year")
+#print(include.lowest)
       if (!include.lowest) {
-        nx <- setdiff(nx, ifelse(right, min(nx), max(nx)))
+        nx <- nx[-which(nx == ifelse(right, min(nx), max(nx)))]
         if (!length(nx))
           stop("include.lowest cannot be FALSE when x consists of only one value")
       }
@@ -312,7 +313,54 @@ cut.mondate <- function (x, breaks, labels = NULL,
       breaks <- 
         if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
           mondate(seq(ft[1L] - 12, ft[2L] + step - 12, by = step))
+#print(breaks)
+      res <- cut.mondate(x, breaks = breaks, 
+                         labels = labels, right = TRUE, 
+                         include.lowest = FALSE)
+      # label appropriately 
+      if (is.null(labels)) {
+        lvls <- levels(res)
+        n <- length(lvls)
+        z <- unlist(strsplit(lvls, ","))[seq(ifelse(right, 2, 1), 2 * n, by = 2)]
+        nc <- nchar(z)
+        lbls <- mondate(
+          if (right) substr(z, 1, nc - 1) else substr(z, 2, nc),
+          displayFormat = dF, formatFUN = fF)
+        if (!right) lbls <- add(lbls, 1, units = "days")
+        levels(res) <- lbls
+      }
+      if (attr.breaks) {
+        if (!right) breaks <- add(breaks, 1, units = "days")
+        n <- length(breaks) - 1
+        lechar <- rep(ifelse(right, "(", "["), n)
+        rechar <- rep(ifelse(right, "]", ")"), n)
+        attr(breaks, "lechar") <- lechar
+        attr(breaks, "rechar") <- rechar
+        attr(res, "breaks") <- breaks
+      }
+    }
+    else
+    if (valid == 5){ # quarter
+#print("quarter")
+#print(include.lowest)
+      step <- 3 * step
+      nx <- as.numeric(x)
+      if (!include.lowest) {
+        nx <- nx[-which(nx == ifelse(right, min(nx), max(nx)))]
+        if (!length(nx))
+          stop("include.lowest cannot be FALSE when x consists of only one value")
+      }
+      rngnx <- range(nx)
+      ft <- quarter_boundary_right(rngnx, yearend.month)
+      breaks <- 
+        if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
+          mondate(seq(ft[1L] - 3, ft[2L] + step - 3, by = step))
 
+#if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
+#  mondate(seq(ft[1L] - 12, ft[2L] + step - 12, by = step))
+
+
+#print(breaks)      
       res <- cut.mondate(x, breaks = breaks, 
                          labels = labels, right = TRUE, 
                          include.lowest = FALSE)
@@ -389,6 +437,6 @@ year_boundary_right <- function(x, yearend.month = 12) {
   (x + shift - 1) %/% 12 * 12 + 12 - shift
 }
 quarter_boundary_right <- function(x, yearend.month = 12) {
-  shift <- 3 - yearend.month %% 3
-  (x + shift - 1) %/% 3 * 3 + 3 - shift
+  shift <- c(0, 2, 1)[yearend.month %% 3 + 1]
+  (ceiling(x) + shift - 1) %/% 3 * 3 + 3 - shift
 }
