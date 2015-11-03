@@ -186,6 +186,24 @@ test.cut.mondate.years <- function() {
   (u <- cut(as.Date(x), as.Date(b)))
   (v <- cut(as.Date(x), "year"))
   checkTrue(identical(u, v))
+  
+  # Check July - June fiscal year
+  (x <- mondate.ymd(2010:2015, 6, 15))
+  (res <- cut(x, "year", right = TRUE, include.lowest = TRUE, yearend.month = 6))
+  checkEquals(
+    levels(res)
+    , c("06/30/2010", "06/30/2011", "06/30/2012", 
+        "06/30/2013", "06/30/2014", "06/30/2015"))
+  (res <- cut(x, "year", right = FALSE, include.lowest = TRUE, yearend.month = 6))
+  checkEquals(
+    levels(res)
+    , c("07/01/2009", "07/01/2010", "07/01/2011", 
+        "07/01/2012", "07/01/2013", "07/01/2014"))
+  (res <- cut(x, "2 year", right = FALSE, include.lowest = TRUE, yearend.month = 6))
+  checkEquals(
+    levels(res)
+    , c("07/01/2009", "07/01/2011", "07/01/2013"))
+  
 }
 test.year_boundary_right <- function(){
   checkTrue(identical(

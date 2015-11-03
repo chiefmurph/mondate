@@ -6,6 +6,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                          include.lowest = FALSE, 
                          right = TRUE,
                          start.on.monday = TRUE,
+                         yearend.month = 12,
                          attr.breaks = FALSE
                          , ...) {
   # factor x with a sequence of contiguous, non-overlapping intervals 
@@ -126,6 +127,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #       if right = FALSE and max(x) lies on an interval boundary, 
   #         an extra interval is created to the left to include it
   # start.on.monday: only applicable for "weeks". See ?cut.Date.
+  # yearend.month = the month number of the last day of the year
   # attr.breaks = TRUE: a "breaks" attribute is returned whose value
   #   can be used to reproduce the same factors whose labels hold the interval
   #   representation of the cuts in date format.
@@ -299,13 +301,18 @@ cut.mondate <- function (x, breaks, labels = NULL,
           stop("include.lowest cannot be FALSE when x consists of only one value")
         ymd(range(x2))
       }
-      breaks <- if (right) rev(seq(mondate.ymd(z[2L, "year"]),
-                                   mondate.ymd(z[1L, "year"]) - step,
-                                   by = -step))
-      else seq(mondate.ymd(z[1L, "year"] - 1),
-               mondate.ymd(z[2L, "year"]) + step - 1,
-               by = step)
-      
+      nx <- as.numeric(x)
+      if (!include.lowest) {
+        nx <- setdiff(nx, ifelse(right, min(nx), max(nx)))
+        if (!length(nx))
+          stop("include.lowest cannot be FALSE when x consists of only one value")
+      }
+      rngnx <- range(nx)
+      ft <- year_boundary_right(rngnx, yearend.month)
+      breaks <- 
+        if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
+          mondate(seq(ft[1L] - 12, ft[2L] + step - 12, by = step))
+
       res <- cut.mondate(x, breaks = breaks, 
                          labels = labels, right = TRUE, 
                          include.lowest = FALSE)
@@ -331,7 +338,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
         attr(res, "breaks") <- breaks
       }
     }
-    else { # 3: month, 4: year, 5: quarter
+    else { # quarter
       valid <- valid - 2
       int <- c(1, 12, 3)[valid] * step
       rngx <- range(x)
