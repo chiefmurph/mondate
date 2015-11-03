@@ -15,17 +15,21 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #   covered by default (include.lowest is FALSE) will be the 
   #   the leftmost, minimum value or rightmost, maximum value depending
   #   on right or !right, respectively. If include.lowest is TRUE, all
-  #   values of x will be included in one (and only one) of the invervals.
+  #   values of x will be included in one of the invervals.
   # All intervals will be (open, closed] or [closed, open) when 
   #   right or !right, respectively, with the exception that when
-  #   include.lowest is TRUE the leftmost (when right) or rightmost 
-  #   interval will be a closed on both ends.
+  #   include.lowest is TRUE the leftmost interval will be closed on
+  #   both ends (rightmost interval when !right).
   # The factor labels will show the endpoints of the intervals:
-  #   When breaks is numeric, both endpoints will be shown.
+  #   When breaks is numeric, both endpoints will be shown, with
+  #   parens ('(' or ')') indicating the open endpoing and brackets ('[', ']')
+  #   indicating the closed endpoint.
   #   When breaks is character, only the right or !right endpoint 
   #     will be shown.
+  #
   # When breaks is numeric, the method inherits from cut.default;
-  #   see ?base::cut for information on its behavior.
+  #   see ?base::cut for information on its behavior to supplement the above
+  #
   # When breaks is character, the intervals will be days, weeks, months,
   #   etc. defined by a sequence of days that determine the breakpoints.
   #   For example, suppose that x holds the first 5 days of November 2015,  
@@ -46,10 +50,23 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #     values of x to be included in some "day", "month", etc.
   #     For S4 methods with more intuitive defaults for character breaks,
   #     see the generic cutmondate with methods for "mondate", "Date", etc.
-  #     
+  #   When character breaks spans multiple days (e.g., "week", "month")
+  #     and include.lowest is FALSE, the maximum (when right) or
+  #     minimum (when !right) value of x will be ignored when determining
+  #     the intervals covering x. Therefore, in this case, if x is
+  #     comprised of a single value, !include.lowest (which is NOT
+  #     the default) generates an error. 
+  #     Again, see cutmondate for better defaults.
+  #   Continuing the is.character(breaks) case ...
+  #     If right, the labels for the factor will the the last day
+  #       of the interval, and, if attr.breaks = TRUE, the breaks
+  #       returned can be used to re-factor x as
+  #         cut.mondate(x, breaks).
+  #     If !right, the labels for the factor will be the first day
+  #       of the interval, and, if attr.breaks = TRUE, the breaks
+  #       returned can be used to re-factor x as
+  #         cut(as.Date(x), as.Date(breaks))
   #   
-  # The closed endpoint will be the right or left endpoint depending on
-  #   the argument right.
   #   
   # right = TRUE: non-intersecting, half-open/half-closed intervals 
   #   are considered closed on right;
@@ -88,7 +105,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #   scalar: the range of x is divided into breaks intervals of equal length
   #     via seq(min(x), max(x), length = breaks + 1), then the vector case
   #     above takes over 
-  #     [Note: this differs from cut.default in that the outer limits are
+  #     [Note: This differs from cut.default in that the outer limits are
   #     not moved away to ensure the extreme values are included in some
   #     interval.]
   #   character: "days", "weeks", "months", "quarters", "years"
@@ -108,7 +125,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #         an extra interval is created to the right to include it
   #       if right = FALSE and max(x) lies on an interval boundary, 
   #         an extra interval is created to the left to include it
-  # start.on.monday: only applicable for "weeks". See cut.Date.
+  # start.on.monday: only applicable for "weeks". See ?cut.Date.
   # attr.breaks = TRUE: a "breaks" attribute is returned whose value
   #   can be used to reproduce the same factors whose labels hold the interval
   #   representation of the cuts in date format.
@@ -185,7 +202,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                   "1970-01-01"),
           displayFormat = dF, formatFUN = fF)
       if (attr.breaks) {
-        attr(res, "breaks") <- breaks
+# ??        attr(res, "breaks") <- breaks
         breaks <- mondate(as.Date(breaks, "1970-01-01"), 
                           displayFormat = dF, formatFUN = fF)
         n <- length(breaks) - 1
@@ -232,6 +249,52 @@ cut.mondate <- function (x, breaks, labels = NULL,
         attr(res, "breaks") <- breaks
         }
       }
+    else
+    if (valid == 3) { # month
+      #x <- as.numeric(x)
+      #int <- step
+      #rngx <- range(x)
+      z <- if (include.lowest) ymd(range(x)) else {
+        x2 <- mondate(setdiff(x, ifelse(right, min(x), max(x))),
+                     displayFormat = dF, formatFUN = fF)
+        if (!length(x2)) 
+          stop("include.lowest cannot be FALSE when x consists of only one value")
+        ymd(range(x2))
+      }
+      breaks <- if (right) rev(seq(mondate.ymd(z[2L, "year"], z[2L, "month"]),
+                                   mondate.ymd(z[1L, "year"], z[1L, "month"]) - step,
+                                   by = -step))
+      else seq(mondate.ymd(z[1L, "year"], z[1L, "month"]) - 1,
+               mondate.ymd(z[2L, "year"], z[2L, "month"]) + step - 1,
+               by = step)
+      
+      res <- cut.mondate(x, breaks = breaks, 
+                         labels = labels, right = TRUE, 
+                         include.lowest = FALSE)
+      # label appropriately 
+      if (is.null(labels)) {
+        lvls <- levels(res)
+        n <- length(lvls)
+        z <- unlist(strsplit(lvls, ","))[seq(2, 2 * n, by = 2)]
+        lbls <- mondate(substr(z, 1, nc-1), displayFormat = dF, formatFUN = fF)
+        if (!right) lbls <- add(lbls - 1, 1, units = "days")
+        levels(res) <- lbls
+      }
+      if (attr.breaks) {
+##        attr(res, "breaks") <- breaks
+#        breaks <- mondate(breaks, displayFormat = dF, formatFUN = fF)
+        if (!right) breaks <- add(breaks, 1, units = "days")
+        n <- length(breaks) - 1
+        lechar <- rep(ifelse(right, "(", "["), n)
+        rechar <- rep(ifelse(right, "]", ")"), n)
+#        if (include.lowest) 
+#          if (right) lechar[1] <- "["
+#        else rechar[n] <- "]"
+        attr(breaks, "lechar") <- lechar
+        attr(breaks, "rechar") <- rechar
+        attr(res, "breaks") <- breaks
+      }
+    }
     else { # 3: month, 4: year, 5: quarter
       valid <- valid - 2
       int <- c(1, 12, 3)[valid] * step
