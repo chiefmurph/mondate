@@ -202,7 +202,6 @@ cut.mondate <- function (x, breaks, labels = NULL,
                   "1970-01-01"),
           displayFormat = dF, formatFUN = fF)
       if (attr.breaks) {
-# ??        attr(res, "breaks") <- breaks
         breaks <- mondate(as.Date(breaks, "1970-01-01"), 
                           displayFormat = dF, formatFUN = fF)
         n <- length(breaks) - 1
@@ -251,9 +250,6 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 3) { # month
-      #x <- as.numeric(x)
-      #int <- step
-      #rngx <- range(x)
       z <- if (include.lowest) ymd(range(x)) else {
         x2 <- as.numeric(x)
         x2 <- mondate(setdiff(x2, ifelse(right, min(x2), max(x2))),
@@ -283,15 +279,53 @@ cut.mondate <- function (x, breaks, labels = NULL,
         levels(res) <- lbls
       }
       if (attr.breaks) {
-##        attr(res, "breaks") <- breaks
-#        breaks <- mondate(breaks, displayFormat = dF, formatFUN = fF)
         if (!right) breaks <- add(breaks, 1, units = "days")
         n <- length(breaks) - 1
         lechar <- rep(ifelse(right, "(", "["), n)
         rechar <- rep(ifelse(right, "]", ")"), n)
-#        if (include.lowest) 
-#          if (right) lechar[1] <- "["
-#        else rechar[n] <- "]"
+        attr(breaks, "lechar") <- lechar
+        attr(breaks, "rechar") <- rechar
+        attr(res, "breaks") <- breaks
+      }
+    }
+    else
+    if (valid == 4) { # year
+      step <- 12 * step
+      z <- if (include.lowest) ymd(range(x)) else {
+        x2 <- as.numeric(x)
+        x2 <- mondate(setdiff(x2, ifelse(right, min(x2), max(x2))),
+                      displayFormat = dF, formatFUN = fF)
+        if (!length(x2)) 
+          stop("include.lowest cannot be FALSE when x consists of only one value")
+        ymd(range(x2))
+      }
+      breaks <- if (right) rev(seq(mondate.ymd(z[2L, "year"]),
+                                   mondate.ymd(z[1L, "year"]) - step,
+                                   by = -step))
+      else seq(mondate.ymd(z[1L, "year"] - 1),
+               mondate.ymd(z[2L, "year"]) + step - 1,
+               by = step)
+      
+      res <- cut.mondate(x, breaks = breaks, 
+                         labels = labels, right = TRUE, 
+                         include.lowest = FALSE)
+      # label appropriately 
+      if (is.null(labels)) {
+        lvls <- levels(res)
+        n <- length(lvls)
+        z <- unlist(strsplit(lvls, ","))[seq(ifelse(right, 2, 1), 2 * n, by = 2)]
+        nc <- nchar(z)
+        lbls <- mondate(
+          if (right) substr(z, 1, nc - 1) else substr(z, 2, nc),
+          displayFormat = dF, formatFUN = fF)
+        if (!right) lbls <- add(lbls, 1, units = "days")
+        levels(res) <- lbls
+      }
+      if (attr.breaks) {
+        if (!right) breaks <- add(breaks, 1, units = "days")
+        n <- length(breaks) - 1
+        lechar <- rep(ifelse(right, "(", "["), n)
+        rechar <- rep(ifelse(right, "]", ")"), n)
         attr(breaks, "lechar") <- lechar
         attr(breaks, "rechar") <- rechar
         attr(res, "breaks") <- breaks

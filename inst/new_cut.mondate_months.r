@@ -41,3 +41,6 @@ checkEquals(levels(y), "06/30/2008")
 y <- cut(x, "month", right = FALSE)
 checkTrue(!is.na(y))
 checkEquals(levels(y), "05/31/2008")
+(x <- mondate.ymd(2004:2008, 6, 15))
+cut(x, "years", include.lowest = TRUE)
+right = FALSE

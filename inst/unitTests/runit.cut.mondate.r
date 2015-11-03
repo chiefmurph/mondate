@@ -156,3 +156,34 @@ test.cut.mondate.months <- function() {
   (v <- cut(as.Date(x), "month"))
   checkTrue(identical(u, v))
 }
+test.cut.mondate.years <- function() {
+  (x <- mondate.ymd(2004:2008, 6, 15))
+  (y <- cut(x, "years", include.lowest = FALSE))
+  checkTrue(is.na(y[1]))
+  checkEquals(levels(y), c("12/31/2005", "12/31/2006", "12/31/2007", "12/31/2008"))
+  (y <- cut(x, "years", right = FALSE))
+  checkTrue(is.na(y[length(y)]))
+  checkEquals(levels(y), c("01/01/2004", "01/01/2005", "01/01/2006", "01/01/2007"))
+  (y <- cut(x, "years", right = TRUE, include.lowest = TRUE))
+  checkTrue(!is.na(y[1]))
+  checkEquals(levels(y), c("12/31/2004", "12/31/2005", "12/31/2006", 
+                           "12/31/2007", "12/31/2008"))
+  (y <- cut(x, "years", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
+  checkEqualsNumeric(attr(y, "breaks"), mondate.ymd(2003:2008))
+  # Test for non-NA when scalar x on year boundary
+  (x <- mondate.ymd(2008))
+  (y <- cut(x, "years", right = TRUE))
+  checkTrue(!is.na(y))
+  checkEquals(levels(y), "12/31/2008")
+  (y <- cut(x, "years", right = FALSE))
+  checkTrue(!is.na(y))
+  checkEquals(levels(y), "01/01/2008")
+  
+  # demo recut with breaks as might occur with Date's
+  (x <- mondate.ymd(2000:2015, 6, 15))
+  (res <- cut(x, "year", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE))
+  (b <- attr(res, "breaks"))
+  (u <- cut(as.Date(x), as.Date(b)))
+  (v <- cut(as.Date(x), "year"))
+  checkTrue(identical(u, v))
+}
