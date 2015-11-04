@@ -314,11 +314,11 @@ cut.mondate <- function (x, breaks, labels = NULL,
 .intervalsplitToChar <- function(lval)
   paste(attr(lval, "lechar"), apply(as.character(mondate(lval)), 1, paste, collapse = ","), 
         attr(lval, "rechar"), sep = "")
-year_boundary_right <- function(x, yearend.month = 12) {
+.year_boundary_right <- function(x, yearend.month = 12) {
   shift <- 12 - yearend.month
   (x + shift - 1) %/% 12 * 12 + 12 - shift
 }
-quarter_boundary_right <- function(x, yearend.month = 12) {
+.quarter_boundary_right <- function(x, yearend.month = 12) {
   shift <- c(0, 2, 1)[yearend.month %% 3 + 1]
   (ceiling(x) + shift - 1) %/% 3 * 3 + 3 - shift
 }
