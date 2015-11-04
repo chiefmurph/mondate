@@ -8,7 +8,8 @@ Method for \code{cut} applied to mondate objects.
 \usage{
  \method{cut}{mondate}(x, breaks, labels = NULL, 
       include.lowest = FALSE, right = TRUE, 
-      start.on.monday = TRUE, attr.breaks = FALSE, \dots)
+      start.on.monday = TRUE, startmonth = NULL,
+      attr.breaks = FALSE, \dots)
 }
 \arguments{
 \item{x}{
@@ -30,6 +31,8 @@ If \code{labels = FALSE}, simple integer codes are returned instead of a factor.
 \item{include.lowest}{
 logical, indicating if an 'x[i]' equal to the lowest 
 (or highest, for \code{right = FALSE}) 'breaks' value should be included.
+(Note: Beginning with version 0.11 of mondate,
+\code{!include.lowest} is invalid when \code{breaks} is \code{character}.)
 }
 \item{right}{
 logical, indicating if the intervals should be closed on the right 
@@ -37,6 +40,17 @@ logical, indicating if the intervals should be closed on the right
 }
 \item{start.on.monday}{
 logical. If \code{breaks = "weeks"}, should the week start on Mondays or Sundays?
+}
+\item{startmonth}{
+If not \code{NULL}, the number of the month 
+(1 = January, ..., 12 = December)
+corresponding to the beginning of the year/fiscal-year.
+If \code{NULL}, the resulting intervals begin or end depending on
+the minimum
+(\code{!right}) or maximum
+(\code{right}) value, respectively, of \code{x}.
+This argument only has an impact when \code{character} \code{breaks}
+defines multi-month intervals.
 }
 \item{attr.breaks}{
 logical. If \code{TRUE} the result has a "breaks" attribute which is
@@ -102,34 +116,35 @@ Dan Murphy. Many thanks to the R-development team for cut and cut.Date.
 \examples{
 # days
 x <- mondate.ymd(2013, 1, 1:7)
-cut(x, breaks = "days")
+cut(x, breaks = "days", include.lowest = TRUE)
 cut(x, breaks = "days", include.lowest = TRUE)
 
 # weeks
 x <- mondate.ymd(2013, 1, 1:31)  # days in January 2013
-cut(x, breaks = "weeks") # labeled by the first 5 Sundays of 2013
-cut(x, breaks = "2 weeks") # labeled by 2nd, 4th, and 6th Sundays of 2013
+# labeled by the first 5 Sundays of 2013
+cut(x, breaks = "weeks", include.lowest = TRUE) 
+# labeled by 2nd, 4th, and 6th Sundays of 2013
+cut(x, breaks = "2 weeks", include.lowest = TRUE) 
 
 # months
 x <- mondate.ymd(2013, 1:12, 15) # 15th day of each month in 2013
-cut(x, breaks = "months") # labeled by the left endpoint of the interval =
-                          # last day of the month
-cut(x, breaks = "months", right = FALSE) # labeled by the right endpoint
-                                         # of the interval = last day of 
-                                         # the prior month
-cut(x, breaks = "2 months") 
+# labeled by the left endpoint of the interval = last day of the month
+cut(x, breaks = "months", include.lowest = TRUE)
+# labeled by the right endpoint of the interval = last day of the prior month
+cut(x, breaks = "months", right = FALSE, include.lowest = TRUE)
+cut(x, breaks = "2 months", include.lowest = TRUE) 
 
 # quarters
-x <- mondate.ymd(2013, 1:12, 15) # 15th day of each month in 2013
-cut(x, "quarters")       # labeled by last day of the quarter
-cut(x, "2 quarters")
+x <- mondate.ymd(2013, 1:12, 15)          # 15th day of each month in 2013
+cut(x, "quarters", include.lowest = TRUE) # labeled by last day of the quarter
+cut(x, "2 quarters", include.lowest = TRUE)
 
 # years
 m <- mondate(0:12)
-cut(m, "years")           # labeled by last day of the year
-cut(m, "years", right = FALSE) # labeled by last day of the year
+cut(m, "years", include.lowest = TRUE)  # labeled by last day of the year 2000
+cut(m, "years", right = FALSE, include.lowest = TRUE) # labeled by first day of 2000
 displayFormat(m) <- "\%Y"
-cut(m, "years")           # labeled by just the year
+cut(m, "years", include.lowest = TRUE)  # labeled by just the year of the date
 
 # numeric scalar breaks
 
@@ -143,8 +158,8 @@ cut(x, breaks = 4, include.lowest = TRUE)
 
 # specific break boundaries -- month-ends
 cut(x, breaks = mondate("2014-12-31") + 0:12) # levels show interval boundaries
-# compare with ..
-cut(x, breaks = "month") # levels labeled by interval month-end endpoints
+# Compare with next, where levels are labeled by interval endpoints
+cut(x, breaks = "month", include.lowest = TRUE) 
 
 }
 \keyword{methods}
