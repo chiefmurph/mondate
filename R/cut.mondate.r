@@ -262,78 +262,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
       res <- .gcut(x, step = step * 3, startmonth = startmonth, 
                   include.lowest = include.lowest, right = right, 
                   attr.breaks = attr.breaks, dF, fF)
-      return(res)
-      #print("quarter")
-#print(include.lowest)
-      step <- 3 * step
-      nx <- as.numeric(x)
-      if (!include.lowest) {
-        nx <- nx[-which(nx == ifelse(right, min(nx), max(nx)))]
-        if (!length(nx))
-          stop("include.lowest cannot be FALSE when x consists of only one value")
       }
-      rngnx <- range(nx)
-      ft <- quarter_boundary_right(rngnx, yearend.month)
-      breaks <- 
-        if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
-          mondate(seq(ft[1L] - 3, ft[2L] + step - 3, by = step))
-
-#if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
-#  mondate(seq(ft[1L] - 12, ft[2L] + step - 12, by = step))
-
-
-#print(breaks)      
-      res <- cut.mondate(x, breaks = breaks, 
-                         labels = labels, right = TRUE, 
-                         include.lowest = FALSE)
-      # label appropriately 
-      if (is.null(labels)) {
-        lvls <- levels(res)
-        n <- length(lvls)
-        z <- unlist(strsplit(lvls, ","))[seq(ifelse(right, 2, 1), 2 * n, by = 2)]
-        nc <- nchar(z)
-        lbls <- mondate(
-          if (right) substr(z, 1, nc - 1) else substr(z, 2, nc),
-          displayFormat = dF, formatFUN = fF)
-        if (!right) lbls <- add(lbls, 1, units = "days")
-        levels(res) <- lbls
-      }
-      if (attr.breaks) {
-        if (!right) breaks <- add(breaks, 1, units = "days")
-        n <- length(breaks) - 1
-        lechar <- rep(ifelse(right, "(", "["), n)
-        rechar <- rep(ifelse(right, "]", ")"), n)
-        attr(breaks, "lechar") <- lechar
-        attr(breaks, "rechar") <- rechar
-        attr(res, "breaks") <- breaks
-      }
-    }
-    else { # quarter
-      valid <- valid - 2
-      int <- c(1, 12, 3)[valid] * step
-      rngx <- range(x)
-      breaks <- seq(from = floor(rngx[1] / int) * int - ifelse(include.lowest, int, 0),
-                    to =   ceiling(rngx[2] / int) * int, 
-                    by = breaks)
-      res <- cut.default(as.numeric(x), breaks = as.numeric(breaks), 
-                         labels = labels, right = TRUE, 
-                         include.lowest = FALSE, ...)
-      # label appropriately
-      if (is.null(labels)) levels(res) <- if (right) as.character(breaks[-1])
-                                          else as.character(head(breaks, -1))
-      if (attr.breaks) {
-        attr(res, "breaks") <- breaks
-        n <- length(breaks) - 1
-        lechar <- rep(ifelse(right, "(", "["), n)
-        rechar <- rep(ifelse(right, "]", ")"), n)
-        if (include.lowest) 
-          if (right) lechar[1] <- "["
-          else rechar[n] <- "]"
-        attr(breaks, "lechar") <- lechar
-        attr(breaks, "rechar") <- rechar
-        attr(res, "breaks") <- breaks
-        }
-      } # end valid's
     } # end character
   res
 
