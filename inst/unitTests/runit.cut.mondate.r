@@ -144,6 +144,13 @@ test.cut.mondate.months <- function() {
   (y <- cut(x, "2 month", right = FALSE, include.lowest = TRUE))
   checkEquals(levels(y), c("01/01/2015", "03/01/2015", "05/01/2015", 
                            "07/01/2015", "09/01/2015", "11/01/2015"))
+  
+  # labels
+  x <- mondate.ymd(2015, 1:12)
+  (y <- cut(x, "2 month", labels = LETTERS[1:6],
+            right = FALSE, include.lowest = TRUE))
+  checkEquals(levels(y), c("A", "B", "C", "D", "E", "F"))
+  
 }
 test.cut.mondate.years <- function() {
   (x <- mondate.ymd(2004:2008, 6, 15))
