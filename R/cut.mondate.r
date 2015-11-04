@@ -131,8 +131,6 @@ cut.mondate <- function (x, breaks, labels = NULL,
   # attr.breaks = TRUE: a "breaks" attribute is returned whose value
   #   can be used to reproduce the same factors whose labels hold the interval
   #   representation of the cuts in date format.
-#print(1)
-#print(include.lowest)
   if (missing(breaks)) stop("argument 'breaks' is missing, with no default")
   tu <- timeunits(x)
   dF <- displayFormat(x)
@@ -169,8 +167,6 @@ cut.mondate <- function (x, breaks, labels = NULL,
   else 
   if (!is.character(breaks)) stop("'breaks' must be numeric or character")
   else { #character
-#print(2)
-#print(include.lowest)
     if (length(breaks) > 1) stop("invalid specification for 'breaks'")
     by2 <- strsplit(breaks, " ", fixed = TRUE)[[1L]]
     if (length(by2) > 2L || length(by2) < 1L) stop("invalid specification for 'breaks'")
@@ -178,20 +174,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
     if (is.na(valid)) stop("invalid specification for 'breaks'")
     step <- ifelse(length(by2) == 2L, as.integer(by2[1L]), 1L)
     
-# 11/3/15: !include.lowest is error when breaks is char
+  # 11/3/15: !include.lowest is error when breaks is char
     if (!include.lowest) stop(
-      "!include.lowest is ignored when breaks is character")
-#    if (length(x) == 1) { # must force include.lowest = TRUE for "integral" x
-#                          # = 1 second of the shortest day = 1/31/3600
-#      if (abs(x - round(x, 0)) < 8.960573e-06 &
-#          !missing(include.lowest) & 
-#          !include.lowest) 
-#        stop("include.lowest = FALSE and scalar x are incompatible when x is near a month boundary")
-#      include.lowest <- TRUE
-#      warning("Forcing include.lowest for scalar x and character breaks")
-#      }
-#print(3)
-#print(include.lowest)
+      "!include.lowest is invalid when breaks is character")
 
     # if days
     if (valid == 1) { # days
