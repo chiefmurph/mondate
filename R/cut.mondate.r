@@ -249,19 +249,19 @@ cut.mondate <- function (x, breaks, labels = NULL,
     if (valid == 3) { # month
       res <- .gcut(x, step = step, startmonth = startmonth, 
                   include.lowest = include.lowest, right = right, 
-                  attr.breaks = attr.breaks, dF, fF)
+                  labels = labels, attr.breaks = attr.breaks, dF, fF)
     }
     else
     if (valid == 4) { # year
       res <- .gcut(x, step = step * 12, startmonth = startmonth, 
                   include.lowest = include.lowest, right = right, 
-                  attr.breaks = attr.breaks, dF, fF)
+                  labels = labels, attr.breaks = attr.breaks, dF, fF)
     }
     else
     if (valid == 5){ # quarter
       res <- .gcut(x, step = step * 3, startmonth = startmonth, 
                   include.lowest = include.lowest, right = right, 
-                  attr.breaks = attr.breaks, dF, fF)
+                  labels = labels, attr.breaks = attr.breaks, dF, fF)
       }
     } # end character
   res
@@ -269,7 +269,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
 } # end cut.mondate
 
 .gcut <- function(x, step = 1, startmonth = NULL, include.lowest = TRUE,
-                  right = TRUE, attr.breaks = FALSE, dF, fF) {
+                  right = TRUE, labels = NULL, attr.breaks = FALSE, dF, fF) {
   if (!include.lowest) stop(
     "!include.lowest is ignored when breaks is character")
   
@@ -289,9 +289,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
     intv <- (rngnx - startmonth) %/% step * step + step + startmonth - 1 - c(step, 0)
     seq(intv[1L], intv[2L], by = step)
   }
-  res <- cut(x, breaks)
+  res <- cut(x, breaks, labels = labels)
   breaks <- mondate(breaks, displayFormat = dF, formatFUN = fF)
-  levels(res) <- if (right) breaks[-1L] else 
+  if (is.null(labels)) levels(res) <- if (right) breaks[-1L] else 
     add(breaks[-length(breaks)], 1, "days")
   #    add(breaks[-length(breaks)] - 1, 1, "days")
   if (attr.breaks) attr(res, "breaks") <- breaks
