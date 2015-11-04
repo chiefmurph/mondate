@@ -177,6 +177,9 @@ test.cut.mondate.years <- function() {
   checkEquals(levels(y), "12/31/2008")
   (y <- cut(x, "years", right = FALSE, include.lowest = TRUE))
   checkTrue(!is.na(y))
+  checkEquals(levels(y), "12/01/2008")
+  (y <- cut(x, "years", right = FALSE, include.lowest = TRUE, startmonth = 1))
+  checkTrue(!is.na(y))
   checkEquals(levels(y), "01/01/2008")
   
   # demo recut with breaks as might occur with Date's
