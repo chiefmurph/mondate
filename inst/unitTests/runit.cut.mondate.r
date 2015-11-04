@@ -118,18 +118,15 @@ test.cut.mondate.days <- function() {
   checkEquals(as.character(y), c("04/01/2014", "04/07/2014"))
 }
 test.cut.mondate.months <- function() {
-  x <- mondate(0:4)
-  (y <- cut(x, "months", include.lowest = FALSE))
-  checkTrue(is.na(y[1]))
-  checkEquals(levels(y), c("01/31/2000", "02/29/2000", "03/31/2000", "04/30/2000"))
+  (x <- mondate(0:4))
+  (y <- cut(x, "months", include.lowest = TRUE))
+  checkEquals(levels(y), c("12/31/1999", "01/31/2000", "02/29/2000", 
+                           "03/31/2000", "04/30/2000"))
   (y <- cut(x, "months", right = FALSE))
-  checkTrue(is.na(y[length(y)]))
-  checkEquals(levels(y), c("12/01/1999", "01/01/2000", "02/01/2000", "03/01/2000"))
-  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE))
-  checkTrue(!is.na(y[1]))
-  checkEquals(levels(y), c("12/31/1999", "01/31/2000", "02/29/2000", "03/31/2000", "04/30/2000"))
-  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
-  checkEqualsNumeric(attr(y, "breaks"), mondate(-1:4))
+  checkEquals(levels(y), c("12/01/1999", "01/01/2000", "02/01/2000", 
+                           "03/01/2000", "04/01/2000"))
+#  (y <- cut(x, "months", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
+#  checkEqualsNumeric(attr(y, "breaks"), mondate(-1:4))
   
   # Test for non-NA when scalar x on month boundary
   (x <- mondate.ymd(2008, 6))
@@ -143,18 +140,18 @@ test.cut.mondate.months <- function() {
   x <- mondate.ymd(2015, 1:12)
   (y <- cut(x, "month", right = TRUE, include.lowest = TRUE))
   (y <- cut(x, "month", right = FALSE, include.lowest = TRUE))
-  (y <- cut(x, "month", right = TRUE, include.lowest = FALSE))
-  (y <- cut(x, "month", right = FALSE, include.lowest = FALSE))
-  (y <- cut(x, "month", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
-  (y <- cut(x, "month", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE))
-  (y <- cut(x, "month", right = TRUE, include.lowest = FALSE, attr.breaks = TRUE))
-  (y <- cut(x, "month", right = FALSE, include.lowest = FALSE, attr.breaks = TRUE))
+#  (y <- cut(x, "month", right = TRUE, include.lowest = FALSE))
+#  (y <- cut(x, "month", right = FALSE, include.lowest = FALSE))
+#  (y <- cut(x, "month", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
+#  (y <- cut(x, "month", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE))
+#  (y <- cut(x, "month", right = TRUE, include.lowest = FALSE, attr.breaks = TRUE))
+#  (y <- cut(x, "month", right = FALSE, include.lowest = FALSE, attr.breaks = TRUE))
   # demo recut with breaks as might occur with Date's
-  res <- cut(x, "month", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE)
-  b <- attr(res, "breaks")
-  (u <- cut(as.Date(x), as.Date(b)))
-  (v <- cut(as.Date(x), "month"))
-  checkTrue(identical(u, v))
+#  res <- cut(x, "month", right = FALSE, include.lowest = TRUE, attr.breaks = TRUE)
+#  b <- attr(res, "breaks")
+#  (u <- cut(as.Date(x), as.Date(b)))
+#  (v <- cut(as.Date(x), "month"))
+#  checkTrue(identical(u, v))
 }
 test.cut.mondate.years <- function() {
   (x <- mondate.ymd(2004:2008, 6, 15))

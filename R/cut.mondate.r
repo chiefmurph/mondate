@@ -178,15 +178,18 @@ cut.mondate <- function (x, breaks, labels = NULL,
     if (is.na(valid)) stop("invalid specification for 'breaks'")
     step <- ifelse(length(by2) == 2L, as.integer(by2[1L]), 1L)
     
-    if (length(x) == 1) { # must force include.lowest = TRUE for "integral" x
-                          # = 1 second of the shortest day = 1/31/3600
-      if (abs(x - round(x, 0)) < 8.960573e-06 &
-          !missing(include.lowest) & 
-          !include.lowest) 
-        stop("include.lowest = FALSE and scalar x are incompatible when x is near a month boundary")
-      include.lowest <- TRUE
-      warning("Forcing include.lowest for scalar x and character breaks")
-      }
+# 11/3/15: !include.lowest is error when breaks is char
+    if (!include.lowest) stop(
+      "!include.lowest is ignored when breaks is character")
+#    if (length(x) == 1) { # must force include.lowest = TRUE for "integral" x
+#                          # = 1 second of the shortest day = 1/31/3600
+#      if (abs(x - round(x, 0)) < 8.960573e-06 &
+#          !missing(include.lowest) & 
+#          !include.lowest) 
+#        stop("include.lowest = FALSE and scalar x are incompatible when x is near a month boundary")
+#      include.lowest <- TRUE
+#      warning("Forcing include.lowest for scalar x and character breaks")
+#      }
 #print(3)
 #print(include.lowest)
 
@@ -259,6 +262,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 3) { # month
+      #gcut <- function(x, step = 1, startmonth = NULL, right = TRUE) {
+      res <- gcut(x, step = step, right = right)
+return(res)
       z <- if (include.lowest) ymd(range(x)) else {
         x2 <- as.numeric(x)
         x2 <- mondate(setdiff(x2, ifelse(right, min(x2), max(x2))),
@@ -439,4 +445,36 @@ year_boundary_right <- function(x, yearend.month = 12) {
 quarter_boundary_right <- function(x, yearend.month = 12) {
   shift <- c(0, 2, 1)[yearend.month %% 3 + 1]
   (ceiling(x) + shift - 1) %/% 3 * 3 + 3 - shift
+}
+gcut <- function(x, step = 1, startmonth = NULL, right = TRUE) {
+  x <- ceiling(as.numeric(x))
+  if (is.null(startmonth)) {
+    if (right) {
+      shift <- step - 1 - max(x)%%step
+      res <- factor((x + shift) %/% step)
+      levels(res) <- mondate(
+        as.numeric(levels(res)) * step + shift
+      )
+    }
+    else {
+      shift <- step - min(x)%%step
+      res <- factor((x - shift) %/% step)
+      levels(res) <- add(mondate(as.numeric(levels(res)) * step + shift - step), 
+                         1, "days")
+    }
+  }
+  else {
+    if (right) {
+      shift <- startmonth%%step
+      res <- factor((x - shift) %/% step)
+      levels(res) <- mondate((as.numeric(levels(res))) * step + step)
+    }
+    else {
+      shift <- startmonth%%step
+      res <- factor((x - shift) %/% step)
+      levels(res) <- add(mondate(as.numeric(levels(res)) * step + shift - 1), 
+                         1, "days")
+    }
+  }
+  res
 }
