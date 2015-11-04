@@ -6,7 +6,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                          include.lowest = FALSE, 
                          right = TRUE,
                          start.on.monday = TRUE,
-                         yearend.month = 12,
+                         startmonth = NULL,
                          attr.breaks = FALSE
                          , ...) {
   # factor x with a sequence of contiguous, non-overlapping intervals 
@@ -262,92 +262,23 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 3) { # month
-      #gcut <- function(x, step = 1, startmonth = NULL, right = TRUE) {
-      res <- gcut(x, step = step, right = right)
-return(res)
-      z <- if (include.lowest) ymd(range(x)) else {
-        x2 <- as.numeric(x)
-        x2 <- mondate(setdiff(x2, ifelse(right, min(x2), max(x2))),
-                     displayFormat = dF, formatFUN = fF)
-        if (!length(x2)) 
-          stop("include.lowest cannot be FALSE when x consists of only one value")
-        ymd(range(x2))
-      }
-      breaks <- if (right) rev(seq(mondate.ymd(z[2L, "year"], z[2L, "month"]),
-                                   mondate.ymd(z[1L, "year"], z[1L, "month"]) - step,
-                                   by = -step))
-      else seq(mondate.ymd(z[1L, "year"], z[1L, "month"]) - 1,
-               mondate.ymd(z[2L, "year"], z[2L, "month"]) + step - 1,
-               by = step)
-      
-      res <- cut.mondate(x, breaks = breaks, 
-                         labels = labels, right = TRUE, 
-                         include.lowest = FALSE)
-      # label appropriately 
-      if (is.null(labels)) {
-        lvls <- levels(res)
-        n <- length(lvls)
-        z <- unlist(strsplit(lvls, ","))[seq(2, 2 * n, by = 2)]
-        nc <- nchar(z)
-        lbls <- mondate(substr(z, 1, nc - 1), displayFormat = dF, formatFUN = fF)
-        if (!right) lbls <- add(lbls - 1, 1, units = "days")
-        levels(res) <- lbls
-      }
-      if (attr.breaks) {
-        if (!right) breaks <- add(breaks, 1, units = "days")
-        n <- length(breaks) - 1
-        lechar <- rep(ifelse(right, "(", "["), n)
-        rechar <- rep(ifelse(right, "]", ")"), n)
-        attr(breaks, "lechar") <- lechar
-        attr(breaks, "rechar") <- rechar
-        attr(res, "breaks") <- breaks
-      }
+      res <- .gcut(x, step = step, startmonth = startmonth, 
+                  include.lowest = include.lowest, right = right, 
+                  attr.breaks = attr.breaks, dF, fF)
     }
     else
     if (valid == 4) { # year
-      step <- 12 * step
-      nx <- as.numeric(x)
-#print("year")
-#print(include.lowest)
-      if (!include.lowest) {
-        nx <- nx[-which(nx == ifelse(right, min(nx), max(nx)))]
-        if (!length(nx))
-          stop("include.lowest cannot be FALSE when x consists of only one value")
-      }
-      rngnx <- range(nx)
-      ft <- year_boundary_right(rngnx, yearend.month)
-      breaks <- 
-        if (right) mondate(rev(seq(ft[2L], ft[1L] - step, -step))) else 
-          mondate(seq(ft[1L] - 12, ft[2L] + step - 12, by = step))
-#print(breaks)
-      res <- cut.mondate(x, breaks = breaks, 
-                         labels = labels, right = TRUE, 
-                         include.lowest = FALSE)
-      # label appropriately 
-      if (is.null(labels)) {
-        lvls <- levels(res)
-        n <- length(lvls)
-        z <- unlist(strsplit(lvls, ","))[seq(ifelse(right, 2, 1), 2 * n, by = 2)]
-        nc <- nchar(z)
-        lbls <- mondate(
-          if (right) substr(z, 1, nc - 1) else substr(z, 2, nc),
-          displayFormat = dF, formatFUN = fF)
-        if (!right) lbls <- add(lbls, 1, units = "days")
-        levels(res) <- lbls
-      }
-      if (attr.breaks) {
-        if (!right) breaks <- add(breaks, 1, units = "days")
-        n <- length(breaks) - 1
-        lechar <- rep(ifelse(right, "(", "["), n)
-        rechar <- rep(ifelse(right, "]", ")"), n)
-        attr(breaks, "lechar") <- lechar
-        attr(breaks, "rechar") <- rechar
-        attr(res, "breaks") <- breaks
-      }
+      res <- .gcut(x, step = step * 12, startmonth = startmonth, 
+                  include.lowest = include.lowest, right = right, 
+                  attr.breaks = attr.breaks, dF, fF)
     }
     else
     if (valid == 5){ # quarter
-#print("quarter")
+      res <- .gcut(x, step = step * 3, startmonth = startmonth, 
+                  include.lowest = include.lowest, right = right, 
+                  attr.breaks = attr.breaks, dF, fF)
+      return(res)
+      #print("quarter")
 #print(include.lowest)
       step <- 3 * step
       nx <- as.numeric(x)
@@ -420,7 +351,38 @@ return(res)
       } # end valid's
     } # end character
   res
-  } # end cut.mondate
+
+} # end cut.mondate
+
+.gcut <- function(x, step = 1, startmonth = NULL, include.lowest = TRUE,
+                  right = TRUE, attr.breaks = FALSE, dF, fF) {
+  if (!include.lowest) stop(
+    "!include.lowest is ignored when breaks is character")
+  
+  x <- as.numeric(x)
+  nx <- ceiling(x)
+  rngnx <- range(nx)
+  breaks <- 
+    if (is.null(startmonth)) {
+      if (right) {
+        rev(seq(rngnx[2L], rngnx[1L] - step, by = -step))
+      }
+      else {
+        seq(rngnx[1L] - 1, rngnx[2L] - 1 + step, by = step)
+      }
+    }
+  else {
+    intv <- (rngnx - startmonth) %/% step * step + step + startmonth - 1 - c(step, 0)
+    seq(intv[1L], intv[2L], by = step)
+  }
+  res <- cut(x, breaks)
+  breaks <- mondate(breaks, displayFormat = dF, formatFUN = fF)
+  levels(res) <- if (right) breaks[-1L] else 
+    add(breaks[-length(breaks)], 1, "days")
+  #    add(breaks[-length(breaks)] - 1, 1, "days")
+  if (attr.breaks) attr(res, "breaks") <- breaks
+  res
+}
 
 .intervalsplit <- function(res){
   lvls <- levels(res)
@@ -445,36 +407,4 @@ year_boundary_right <- function(x, yearend.month = 12) {
 quarter_boundary_right <- function(x, yearend.month = 12) {
   shift <- c(0, 2, 1)[yearend.month %% 3 + 1]
   (ceiling(x) + shift - 1) %/% 3 * 3 + 3 - shift
-}
-gcut <- function(x, step = 1, startmonth = NULL, right = TRUE) {
-  x <- ceiling(as.numeric(x))
-  if (is.null(startmonth)) {
-    if (right) {
-      shift <- step - 1 - max(x)%%step
-      res <- factor((x + shift) %/% step)
-      levels(res) <- mondate(
-        as.numeric(levels(res)) * step + shift
-      )
-    }
-    else {
-      shift <- step - min(x)%%step
-      res <- factor((x - shift) %/% step)
-      levels(res) <- add(mondate(as.numeric(levels(res)) * step + shift - step), 
-                         1, "days")
-    }
-  }
-  else {
-    if (right) {
-      shift <- startmonth%%step
-      res <- factor((x - shift) %/% step)
-      levels(res) <- mondate((as.numeric(levels(res))) * step + step)
-    }
-    else {
-      shift <- startmonth%%step
-      res <- factor((x - shift) %/% step)
-      levels(res) <- add(mondate(as.numeric(levels(res)) * step + shift - 1), 
-                         1, "days")
-    }
-  }
-  res
 }
