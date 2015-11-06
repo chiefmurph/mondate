@@ -14,4 +14,6 @@ URL: http://www.r-project.org, http://code.google.com/p/mondate/
 LazyLoad: yes
 Imports: methods, utils
 Depends: R (>= 3.0.0)
-Suggests: RUnit, zoo
+Suggests: RUnit, zoo,
+    knitr
+VignetteBuilder: knitr
