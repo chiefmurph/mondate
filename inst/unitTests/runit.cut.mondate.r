@@ -59,6 +59,9 @@ test.cut.mondate <- function() {
   checkTrue(!is.na(y[1]))
   checkEquals(levels(y), c("04/12/2014", "04/26/2014", "05/10/2014"))
 }
+test.cut.mondate.Date <- function() {
+  cutmondate(as.Date(c("2015-11-06", "2015-11-07", "2015-11-08")))
+}
 test.cut.mondate.days <- function() {
   # "days"
   x <- mondate.ymd(2014, 4, c(1, 7))
@@ -127,6 +130,9 @@ test.cut.mondate.months <- function() {
                            "03/01/2000", "04/01/2000"))
   (y <- cut(x, "months", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
   checkEqualsNumeric(attr(y, "breaks"), mondate(-1:4))
+  
+  (x <- mondate(as.Date(c("2015-11-06", "2015-11-07", "2015-11-08"))))
+  (y <- cut(x, "months", right = FALSE))
   
   # Test for non-NA when scalar x on month boundary
   (x <- mondate.ymd(2008, 6))
