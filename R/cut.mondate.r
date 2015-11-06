@@ -278,9 +278,11 @@ cut.mondate <- function (x, breaks, labels = NULL,
   if (!include.lowest) stop(
     "!include.lowest is ignored when breaks is character")
   
-  x <- as.numeric(x)
-  nx <- ceiling(x)
+#  x <- as.numeric(x)
+  nx <- ceiling(as.numeric(x))
   rngnx <- range(nx)
+  minnx <- rngnx[1L]
+  maxnx <- rngnx[2L]
   breaks <- 
     if (is.null(startyear)) {
       if (is.null(startmonth)) {
@@ -288,28 +290,50 @@ cut.mondate <- function (x, breaks, labels = NULL,
           rev(seq(rngnx[2L], rngnx[1L] - step, by = -step))
         }
         else {
-          seq(rngnx[1L] - 1, rngnx[2L] - 1 + step, by = step)
+          seq(minnx - 1, maxnx - 1 + step, by = step)
         }
       }
-      else {
-        intv <- (rngnx - startmonth) %/% step * step + step + startmonth - 1 - c(step, 0)
-        seq(intv[1L], intv[2L], by = step)
+      else { # null startyear, not null startmonth
+        if (right) {
+          # year-end boundary
+          yeb <- .yebgex(startmonth)
+          # quarter-end boundary if there's one in between yeb and maxnx
+          qtrb <- yeb - (yeb-maxnx)%/%step*step
+          rev(seq(qtrb, minnx - step, by = -step))
+        }
+        else { #left
+          yeb <- .yeblex(startmonth)
+          qtrb <- yeb + (minnx-1-yeb)%/%step*step
+          seq(qtrb, maxnx + step - 1, by = step)
+        }
+#        intv <- (rngnx - startmonth) %/% step * step + step + startmonth - 1 - c(step, 0)
+#        seq(intv[1L], intv[2L], by = step)
       }
     }
     else { # startyear given
-      startmonth <- 1
-      yearshift.in.months <- (startyear - .mondate.year.zero) * 12
-      intv <- (rngnx - startmonth - yearshift.in.months) %/% step * step + 
-        step + startmonth - 1 + yearshift.in.months - c(step, 0)
-      seq(intv[1L], intv[2L], by = step)
+      if (is.null(startmonth)) 
+        startmonth <- ifelse(right, (maxnx-1)%%12 + 1, maxnx%%12 + 1)
+      yeb <- as.numeric(mondate.ymd(startyear, startmonth)) - 1
+      # there's a max in case startyear after x
+      seq(yeb, max(c(maxnx - 1, yeb)) + step, by = step)
+#      if(is.null(startmonth)) startmonth <- minnx
+#      yearshift.in.months <- (startyear - .mondate.year.zero) * 12
+#      intv <- (rngnx - startmonth - yearshift.in.months) %/% step * step + 
+#        step + startmonth - 1 + yearshift.in.months - c(step, 0)
+#      seq(intv[1L], intv[2L], by = step)
     }
+#return(breaks)
   res <- cut(x, breaks, labels = labels)
   breaks <- mondate(breaks, displayFormat = dF, formatFUN = fF)
   if (is.null(labels)) levels(res) <- if (right) breaks[-1L] else 
     add(breaks[-length(breaks)], 1, "days")
   #    add(breaks[-length(breaks)] - 1, 1, "days")
   if (attr.breaks) attr(res, "breaks") <- breaks
-  res
+  return(res)
+.yebgex <- function(startmonth) ((maxnx-1)%/%12+ifelse(startmonth%%12<=maxnx%%12,1,0))*12 + 
+  startmonth - 1
+.yeblex <- function(startmonth) (minnx%/%12-ifelse(startmonth%%12>minnx%%12,1,0))*12 + 
+  startmonth - 1
 }
 
 .intervalsplit <- function(res){

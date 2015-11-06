@@ -218,13 +218,41 @@ test.cut.mondate.years <- function() {
     , c("07/01/2009", "07/01/2010", "07/01/2011", 
         "07/01/2012", "07/01/2013", "07/01/2014"))
   (res <- cut(x, "2 year", right = TRUE, include.lowest = TRUE, startmonth = 7))
-#  checkEquals(
-#    levels(res)
-#    , c("07/01/2009", "07/01/2011", "07/01/2013"))
-#  (res <- cut(x, "2 year", right = FALSE, include.lowest = TRUE, startmonth = 7))
-#  checkEquals(
-#    levels(res)
-#    , c("07/01/2009", "07/01/2011", "07/01/2013"))
+  checkEquals(
+    levels(res)
+    , c("06/30/2011", "06/30/2013", "06/30/2015"))
+  (res <- cut(x, "2 year", right = FALSE, include.lowest = TRUE, startmonth = 7))
+  checkEquals(
+    levels(res)
+    , c("07/01/2009", "07/01/2011", "07/01/2013"))
+
+  # test "decades"
+  x <- mondate.ymd(1995:2012, 6, 15)
+  (res <- cut(x, "10 years", right = FALSE, include.lowest = TRUE, 
+              startmonth = 7, startyear = 1990))
+  checkEquals(
+    levels(res)
+    , c("07/01/1990", "07/01/2000", "07/01/2010"))
+
+  # startyear in middle of data, so lots of NA's
+  (res <- cut(x, "10 years", right = FALSE, include.lowest = TRUE, 
+              startmonth = 7, startyear = 2000))
+  checkTrue(all(is.na(res[1:6])))
+  checkEquals(
+    levels(res)
+    , c("07/01/2000", "07/01/2010"))
+  # startyear not given, so left endpoint of first period when "left" (!right), 
+  #   right endpoint last year when right
+  (res <- cut(x, "10 years", right = FALSE, include.lowest = TRUE, 
+              startmonth = 7))
+  checkEquals(
+    levels(res)
+    , c("07/01/1994", "07/01/2004"))
+  (res <- cut(x, "10 years", right = TRUE, include.lowest = TRUE, 
+              startmonth = 7))
+  checkEquals(
+    levels(res)
+    , c("06/30/2002", "06/30/2012"))
   
 }
 test.cut.mondate.quarters <- function() {
@@ -276,6 +304,22 @@ test.cut.mondate.quarters <- function() {
     levels(res)[c(1:5, 11)]
     , c("01/01/2010", "07/01/2010", "01/01/2011", 
         "07/01/2011", "01/01/2012", "01/01/2015"))
+  
+  # Force the beginning to be in 2009
+  (res <- cut(x, "2 quarters", right = FALSE, include.lowest = TRUE, 
+              startmonth = 7, startyear = 2009))
+  checkEquals(
+    levels(res)
+    , c(
+      "07/01/2009", "01/01/2010", "07/01/2010", "01/01/2011", "07/01/2011", "01/01/2012",
+      "07/01/2012", "01/01/2013", "07/01/2013", "01/01/2014", "07/01/2014", "01/01/2015"))
+  (res <- cut(x, "2 quarters", right = TRUE, include.lowest = TRUE, 
+              startmonth = 7, startyear = 2009))
+  checkEquals(
+    levels(res)
+    , c(
+      "12/31/2009", "06/30/2010", "12/31/2010", "06/30/2011", "12/31/2011", "06/30/2012",
+      "12/31/2012", "06/30/2013", "12/31/2013", "06/30/2014", "12/31/2014", "06/30/2015"))
   
 }
 test.year_boundary_right <- function(){

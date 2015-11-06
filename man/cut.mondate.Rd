@@ -8,7 +8,7 @@ Method for \code{cut} applied to mondate objects.
 \usage{
  \method{cut}{mondate}(x, breaks, labels = NULL, 
       include.lowest = FALSE, right = TRUE, 
-      start.on.monday = TRUE, startmonth = NULL,
+      start.on.monday = TRUE, startmonth = NULL, startyear = NULL,
       attr.breaks = FALSE, \dots)
 }
 \arguments{
@@ -51,6 +51,16 @@ the minimum
 (\code{right}) value, respectively, of \code{x}.
 This argument only has an impact when \code{character} \code{breaks}
 defines multi-month intervals.
+}
+\item{startyear}{
+If not \code{NULL}, the year 
+corresponding to the left-most level.
+If \code{NULL}, the resulting intervals begin or end depending on
+the minimum
+(\code{!right}) or maximum
+(\code{right}) value, respectively, of \code{x}.
+This argument only has an impact when \code{character} \code{breaks}
+defines month or multi-month intervals.
 }
 \item{attr.breaks}{
 logical. If \code{TRUE} the result has a "breaks" attribute which is
