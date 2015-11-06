@@ -6,11 +6,11 @@ setGeneric("cutmondate", function(x, breaks, labels= NULL,
                                           ...) standardGeneric("cutmondate"))
 
 setMethod("cutmondate", "Date", function(x, breaks, labels = NULL,
-                                          include.lowest = FALSE, 
-                                          right,
-                                          start.on.monday = TRUE,
-                                          attr.breaks = FALSE,
-                                          ...) {
+                                         include.lowest = FALSE, 
+                                         right,
+                                         start.on.monday = TRUE,
+                                         attr.breaks = FALSE,
+                                         ...) {
   if (missing(right)) right <- FALSE
   if (inherits(breaks, "POSIXt")) breaks <- as.Date(breaks)
   breaksDate <- inherits(breaks, "Date")
