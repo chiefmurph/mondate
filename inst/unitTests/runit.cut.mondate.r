@@ -137,7 +137,7 @@ test.cut.mondate.months <- function() {
   checkTrue(!is.na(y))
   checkEquals(levels(y), "06/01/2008")
   
-  x <- mondate.ymd(2015, 1:12)
+  (x <- mondate.ymd(2015, 1:12))
   (y <- cut(x, "2 month", right = TRUE, include.lowest = TRUE))
   checkEquals(levels(y), c("02/28/2015", "04/30/2015", "06/30/2015", 
                            "08/31/2015", "10/31/2015", "12/31/2015"))

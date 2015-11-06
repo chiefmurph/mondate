@@ -7,6 +7,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                          right = TRUE,
                          start.on.monday = TRUE,
                          startmonth = NULL,
+                         startyear = NULL,
                          attr.breaks = FALSE
                          , ...) {
   # factor x with a sequence of contiguous, non-overlapping intervals 
@@ -247,20 +248,23 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 3) { # month
-      res <- .gcut(x, step = step, startmonth = startmonth, 
+      res <- .gcut(x, step = step, startmonth = startmonth,
+                   startyear = startyear,
                   include.lowest = include.lowest, right = right, 
                   labels = labels, attr.breaks = attr.breaks, dF, fF)
     }
     else
     if (valid == 4) { # year
       res <- .gcut(x, step = step * 12, startmonth = startmonth, 
-                  include.lowest = include.lowest, right = right, 
+                   startyear = startyear,
+                   include.lowest = include.lowest, right = right, 
                   labels = labels, attr.breaks = attr.breaks, dF, fF)
     }
     else
     if (valid == 5){ # quarter
       res <- .gcut(x, step = step * 3, startmonth = startmonth, 
-                  include.lowest = include.lowest, right = right, 
+                   startyear = startyear,
+                   include.lowest = include.lowest, right = right, 
                   labels = labels, attr.breaks = attr.breaks, dF, fF)
       }
     } # end character
@@ -268,8 +272,9 @@ cut.mondate <- function (x, breaks, labels = NULL,
 
 } # end cut.mondate
 
-.gcut <- function(x, step = 1, startmonth = NULL, include.lowest = TRUE,
-                  right = TRUE, labels = NULL, attr.breaks = FALSE, dF, fF) {
+.gcut <- function(x, step = 1, startmonth = NULL, startyear = NULL, 
+                  include.lowest = TRUE, right = TRUE, labels = NULL, 
+                  attr.breaks = FALSE, dF, fF) {
   if (!include.lowest) stop(
     "!include.lowest is ignored when breaks is character")
   
@@ -277,18 +282,27 @@ cut.mondate <- function (x, breaks, labels = NULL,
   nx <- ceiling(x)
   rngnx <- range(nx)
   breaks <- 
-    if (is.null(startmonth)) {
-      if (right) {
-        rev(seq(rngnx[2L], rngnx[1L] - step, by = -step))
+    if (is.null(startyear)) {
+      if (is.null(startmonth)) {
+        if (right) {
+          rev(seq(rngnx[2L], rngnx[1L] - step, by = -step))
+        }
+        else {
+          seq(rngnx[1L] - 1, rngnx[2L] - 1 + step, by = step)
+        }
       }
       else {
-        seq(rngnx[1L] - 1, rngnx[2L] - 1 + step, by = step)
+        intv <- (rngnx - startmonth) %/% step * step + step + startmonth - 1 - c(step, 0)
+        seq(intv[1L], intv[2L], by = step)
       }
     }
-  else {
-    intv <- (rngnx - startmonth) %/% step * step + step + startmonth - 1 - c(step, 0)
-    seq(intv[1L], intv[2L], by = step)
-  }
+    else { # startyear given
+      startmonth <- 1
+      yearshift.in.months <- (startyear - .mondate.year.zero) * 12
+      intv <- (rngnx - startmonth - yearshift.in.months) %/% step * step + 
+        step + startmonth - 1 + yearshift.in.months - c(step, 0)
+      seq(intv[1L], intv[2L], by = step)
+    }
   res <- cut(x, breaks, labels = labels)
   breaks <- mondate(breaks, displayFormat = dF, formatFUN = fF)
   if (is.null(labels)) levels(res) <- if (right) breaks[-1L] else 
