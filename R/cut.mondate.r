@@ -215,37 +215,26 @@ cut.mondate <- function (x, breaks, labels = NULL,
       }
     else
     if (valid == 2) { # weeks
-      x <- as.numeric(as.Date(x))
-      int <- step * 7
-      rngx <- range(x)
-      # 3 is the magic number for adjusting to mondays
-      # 1970-01-01 begins Thu, Fri, Sat, Sun, which mod 7 is
-      #                    0    1    2    3
-      breaks <- seq(from = ((rngx[1] - 3) %/% int) * int + 3 - ifelse(include.lowest, int, 0) - 
-                      ifelse(start.on.monday, 0, 1),
-                    to =   ceiling((rngx[2] - 3) / int) * int + 3   , 
-                    by = int)
-      res <- cut.default(x, breaks = breaks, 
-                         labels = labels, right = TRUE, 
-                         include.lowest = FALSE, ...)
-      breaks <- mondate(as.Date(breaks, "1970-01-01"), 
-                      displayFormat = dF, formatFUN = fF)
-      # label appropriately
-      if (is.null(labels)) levels(res) <- if (right) breaks[-1]
-                                          else head(breaks, -1)
-      if (attr.breaks) {
-        attr(res, "breaks") <- breaks
-        n <- length(breaks) - 1
-        lechar <- rep(ifelse(right, "(", "["), n)
-        rechar <- rep(ifelse(right, "]", ")"), n)
-        if (include.lowest) 
-          if (right) lechar[1] <- "["
-          else rechar[n] <- "]"
-        attr(breaks, "lechar") <- lechar
-        attr(breaks, "rechar") <- rechar
-        attr(res, "breaks") <- breaks
-        }
+      step <- step * 7
+      nx <- as.numeric(as.Date(x))
+      rngnx <- range(nx)
+      minnx <- rngnx[1L]
+      maxnx <- rngnx[2L]
+      if (right) {
+        web <- .webgex(ifelse(start.on.monday, 4, 3), maxnx)
+        breaks <- rev(seq(web, minnx - step, by = -step))
       }
+      else {
+        web <- .weblex(ifelse(start.on.monday, 4, 3), minnx)
+        breaks <- seq(web, maxnx + step, by = step)
+      }
+      
+      res <- cut(nx, breaks, labels = labels)
+      breaks <- mondate(as.Date(breaks, "1970-01-01"), displayFormat = dF, formatFUN = fF)
+      if (is.null(labels)) levels(res) <- if (right) breaks[-1L] else 
+        add(breaks[-length(breaks)], 1, "days")
+      if (attr.breaks) attr(res, "breaks") <- breaks
+    }
     else
     if (valid == 3) { # month
       res <- .gcut(x, step = step, startmonth = startmonth,
@@ -272,6 +261,13 @@ cut.mondate <- function (x, breaks, labels = NULL,
 
 } # end cut.mondate
 
+.webgex <- function(startday, maxnx) {
+  maxnx%/%7 * 7 + startday - 1 + ifelse(maxnx%%7 >= startday, 7, 0)
+} 
+.weblex <- function(startday, minnx) {
+  (minnx-1)%/%7*7 + startday - ifelse(minnx%%7 >= startday, 0, 7) - 1
+}
+
 .gcut <- function(x, step = 1, startmonth = NULL, startyear = NULL, 
                   include.lowest = TRUE, right = TRUE, labels = NULL, 
                   attr.breaks = FALSE, dF, fF) {
@@ -296,13 +292,13 @@ cut.mondate <- function (x, breaks, labels = NULL,
       else { # null startyear, not null startmonth
         if (right) {
           # year-end boundary
-          yeb <- .yebgex(startmonth)
+          yeb <- .yebgex(startmonth, maxnx)
           # quarter-end boundary if there's one in between yeb and maxnx
           qtrb <- yeb - (yeb-maxnx)%/%step*step
           rev(seq(qtrb, minnx - step, by = -step))
         }
         else { #left
-          yeb <- .yeblex(startmonth)
+          yeb <- .yeblex(startmonth, minnx)
           qtrb <- yeb + (minnx-1-yeb)%/%step*step
           seq(qtrb, maxnx + step - 1, by = step)
         }
@@ -330,11 +326,12 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #    add(breaks[-length(breaks)] - 1, 1, "days")
   if (attr.breaks) attr(res, "breaks") <- breaks
   return(res)
-.yebgex <- function(startmonth) ((maxnx-1)%/%12+ifelse(startmonth%%12<=maxnx%%12,1,0))*12 + 
-  startmonth - 1
-.yeblex <- function(startmonth) (minnx%/%12-ifelse(startmonth%%12>minnx%%12,1,0))*12 + 
-  startmonth - 1
 }
+
+.yebgex <- function(startmonth, maxnx) ((maxnx-1)%/%12+ifelse(startmonth%%12<=maxnx%%12,1,0))*12 + 
+  startmonth - 1
+.yeblex <- function(startmonth, minnx) (minnx%/%12-ifelse(startmonth%%12>minnx%%12,1,0))*12 + 
+  startmonth - 1
 
 .intervalsplit <- function(res){
   lvls <- levels(res)

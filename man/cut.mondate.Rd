@@ -132,9 +132,11 @@ cut(x, breaks = "days", include.lowest = TRUE)
 # weeks
 x <- mondate.ymd(2013, 1, 1:31)  # days in January 2013
 # labeled by the first 5 Sundays of 2013
-cut(x, breaks = "weeks", include.lowest = TRUE) 
-# labeled by 2nd, 4th, and 6th Sundays of 2013
-cut(x, breaks = "2 weeks", include.lowest = TRUE) 
+cut(x, breaks = "weeks", include.lowest = TRUE, right = TRUE) 
+
+x <- mondate.ymd(2015, 1, 5:25)  # days in January 2013
+# labeled by the 1st and 3rd Mondays of 2015
+cut(x, breaks = "2 weeks", include.lowest = TRUE, right = FALSE) 
 
 # months
 x <- mondate.ymd(2013, 1:12, 15) # 15th day of each month in 2013
