@@ -185,34 +185,22 @@ cut.mondate <- function (x, breaks, labels = NULL,
       int <- step
       rngx <- range(x)
       breaks <- if (right) rev(seq(rngx[2L], 
-                                   rngx[1L] - ifelse(include.lowest, int, 0), 
+                                   rngx[1L] - int, 
+#                                   rngx[1L] - ifelse(include.lowest, int, 0), 
                                    by = -int))
-                else seq(rngx[1L], 
-                         rngx[2L] + ifelse(include.lowest, int, 0), 
+                else seq(rngx[1L]-1, 
+                         rngx[2L] + int, 
+#                         rngx[2L] + ifelse(include.lowest, int, 0), 
                          by = int)
       
       res <- cut.default(x, breaks = breaks, 
-                         labels = labels, right = right, 
-                         include.lowest = include.lowest, ...)
+                         labels = labels)
       # label appropriately 
-      if (is.null(labels)) levels(res) <- mondate(
-          as.Date(.intervalsplit(res)[, ifelse(right, "upper", "lower")],
-                  "1970-01-01"),
-          displayFormat = dF, formatFUN = fF)
-      if (attr.breaks) {
-        breaks <- mondate(as.Date(breaks, "1970-01-01"), 
-                          displayFormat = dF, formatFUN = fF)
-        n <- length(breaks) - 1
-        lechar <- rep(ifelse(right, "(", "["), n)
-        rechar <- rep(ifelse(right, "]", ")"), n)
-        if (include.lowest) 
-          if (right) lechar[1] <- "["
-          else rechar[n] <- "]"
-        attr(breaks, "lechar") <- lechar
-        attr(breaks, "rechar") <- rechar
-        attr(res, "breaks") <- breaks
-        }
-      }
+      breaks <- mondate(as.Date(breaks, "1970-01-01"), displayFormat = dF, formatFUN = fF)
+      if (is.null(labels)) levels(res) <- if (right) breaks[-1L] else 
+        add(breaks[-length(breaks)], 1, "days")
+      if (attr.breaks) attr(res, "breaks") <- breaks
+    }
     else
     if (valid == 2) { # weeks
       step <- step * 7
