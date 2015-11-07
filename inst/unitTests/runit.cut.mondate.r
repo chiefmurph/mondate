@@ -6,7 +6,7 @@ test.cut.mondate <- function() {
 
   # mondate
 
-  x <- mondate(0:4)
+  (x <- mondate(0:4))
   (y <- cut(x, x))
   checkEquals(levels(y), c("(12/31/1999,01/31/2000]","(01/31/2000,02/29/2000]",
                            "(02/29/2000,03/31/2000]","(03/31/2000,04/30/2000]"))
@@ -18,13 +18,13 @@ test.cut.mondate <- function() {
   (y <- cut.mondate(x, breaks = 4, attr.breaks = TRUE))
   checkTrue(is.na(y[1]))
   checkEquals(levels(y), c("(12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
-  (y <- cut.mondate(x, breaks = 4, include.lowest = TRUE))
+  (y <- cut.mondate(x, breaks = 4, include.lowest = TRUE, attr.breaks = TRUE))
   checkTrue(!is.na(y[1]))
   checkEquals(levels(y), c("[12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
 
   (y <- cut(x, attr(y, "breaks"), right = TRUE, include.lowest = TRUE))
-  checkEquals(levels(y), c("[11/30/1999,12/31/1999]", "(12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
-
+  checkEquals(levels(y), c("[12/31/1999,01/31/2000]", "(01/31/2000,02/29/2000]", "(02/29/2000,03/31/2000]", "(03/31/2000,04/30/2000]"))
+  
   # "weeks"
   x <- c(mondate.ymd(2014, 3, 30:31), mondate.ymd(2014, 4, 1:30))
   (y <- cut.mondate(x, "weeks", attr.breaks = TRUE))
@@ -60,14 +60,30 @@ test.cut.mondate <- function() {
   checkEquals(levels(y), c("04/12/2014", "04/26/2014", "05/10/2014"))
 }
 test.cut.mondate.Date <- function() {
-  cutmondate(as.Date(c("2015-11-06", "2015-11-07", "2015-11-08")))
+  (x <- as.Date(c("2015-11-06", "2015-11-07", "2015-11-08")))
+  (y <- cutmondate(x))
+  checkEquals(levels(y), "2015-11-01")
+  (y <- cutmondate(x, breaks = 3))
+  checkEquals(levels(y), c("2015-11-06", "2015-11-07", "2015-11-08"))
+  (y <- cutmondate(x, breaks = "weeks", start.on.monday = FALSE))
+  checkEquals(levels(y), c("2015-11-01", "2015-11-08"))
+  (y <- cutmondate(x, breaks = "weeks", start.on.monday = TRUE))
+  checkEquals(levels(y), "2015-11-02")
+  (y <- cutmondate(mondate(x)))
+  checkEquals(levels(y), "2015-11-30") # Demo the month-end default for mondate's
+  
+  # Demo POSIXt's .. s/b just like Date's
+  (u <- cutmondate(x))
+  (v <- cutmondate(as.POSIXct(x)))
+  checkTrue(identical(u, v))
+  (v <- cutmondate(as.POSIXlt(x)))
+  checkTrue(identical(u, v))
 }
 test.cut.mondate.days <- function() {
   # "days"
   x <- mondate.ymd(2014, 4, c(1, 7))
-  (y <- cut.mondate(x, "days", attr.breaks = TRUE))
-  checkEquals(as.character(y), c(NA, "04/07/2014"))
-  checkEquals(levels(y), c("04/02/2014", "04/03/2014", "04/04/2014", 
+  (y <- cut.mondate(x, "days", attr.breaks = TRUE, include.lowest = TRUE))
+  checkEquals(levels(y), c("04/01/2014", "04/02/2014", "04/03/2014", "04/04/2014", 
                            "04/05/2014", "04/06/2014", "04/07/2014"))
   (y <- cut.mondate(x, "days", include.lowest = TRUE, attr.breaks = TRUE))
   checkEquals(as.character(y), c("04/01/2014", "04/07/2014"))
@@ -130,9 +146,6 @@ test.cut.mondate.months <- function() {
                            "03/01/2000", "04/01/2000"))
   (y <- cut(x, "months", right = TRUE, include.lowest = TRUE, attr.breaks = TRUE))
   checkEqualsNumeric(attr(y, "breaks"), mondate(-1:4))
-  
-  (x <- mondate(as.Date(c("2015-11-06", "2015-11-07", "2015-11-08"))))
-  (y <- cut(x, "months", right = FALSE))
   
   # Test for non-NA when scalar x on month boundary
   (x <- mondate.ymd(2008, 6))
