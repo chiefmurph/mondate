@@ -20,6 +20,7 @@
 \alias{--methods}
 \alias{-,mondate,difftime-method}
 \alias{-,mondate,mondate-method}
+\alias{-,mondate,missing-method}
 \alias{-,mondate,Date-method}
 \alias{-,mondate,ANY-method}
 \title{Methods for Function Group Arith on mondate Objects}
@@ -39,6 +40,10 @@ The only operation that would seem useful for two
 \code{mondate}s is subtraction.
 }
 
+\item{\code{signature(e1 = "mondate", e2 = "missing")}}{
+Creates a \code{mondate} as \code{0 - e1}.
+}
+
 \item{\code{signature(e1 = "mondate", e2 = "numeric")}}{
 }
 \item{\code{signature(e1 = "numeric", e2 = "mondate")}}{
@@ -53,6 +58,7 @@ of the \code{numeric} is taken from the
 The result will be a \code{mondate} with the same properties 
 as the \code{mondate}
 in the function call.
+
 
 The only operations that would seem useful for a \code{mondate} and a numeric
 are addition and subtraction.
@@ -102,6 +108,10 @@ and the result converted to a \code{mondate}.
   \code{e1} and \code{as.Date(e2)} \bold{- 1 day}, 
   where "units" = \code{timeunits(e1)}.
   }
+
+\item{\code{signature(e1 = "mondate", e2 = "missing")}}{
+Creates a \code{mondate} as \code{0 - e1}.
+}
 
 \item{\code{MonthsBetween(from = "mondate", to = "mondate")}}{
 Same as \code{abs(from - to)} in months.

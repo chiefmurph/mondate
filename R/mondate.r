@@ -426,13 +426,15 @@ setMethod("Arith", c("mondate", "mondate"), function(e1, e2) {
     })
 setMethod("-", c("mondate", "mondate"), function(e1, e2) {
   timeunits <- timeunits(e1)
-  if (timeunits == timeunits(e2)) as.difftime(as.numeric(e1) - as.numeric(e2), , units = timeunits)
-  else { 
-    warning("Unequal timeunits, using first mondate's -- '", timeunits, "'", sep = "")
-    if (timeunits == "months") as.difftime(as.numeric(e1) - as.numeric(e2) / 12, , units = timeunits)
-    else as.difftime(as.numeric(e1) - as.numeric(e2) * 12, , units = timeunits)
-    }
-  })
+  #  if (timeunits != timeunits(e2)) 
+  #    warning("Unequal timeunits, using first mondate's -- '", timeunits, "'", sep = "")
+  if (timeunits == "months") as.difftime(e1@.Data - e2@.Data, , units = timeunits)
+  else as.difftime((e1@.Data - e2@.Data) / 12, , units = timeunits)
+})
+
+setMethod("-", c("mondate", "missing"), function(e1, e2) {
+  0 - e1
+})
 
 setMethod("-", c("mondate", "Date"), function(e1, e2) {
   timeunits <- timeunits(e1)
