@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "mondate Basics"
+author: "Dan Murphy"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -9,11 +9,31 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+In contrast to the two fundamental date/time classes that mark a day with the instant of
+time at the beginning of the day,
+a \code{mondate} represents a day as at the instant of time at the end of the day
+("close of business").
+This has various benefits, especially in the modeling of accounting entries' as-of dates.
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+The four major advantages of "mondate" are:
+
+1. Date Aging
+1. Flexible Date Formatting
+1. Date Sequencing
+1. Date Cutting
+
+## Date Aging
+
+The "age" of an event can be an important factor in a business use case.
+On a personal note, 
+I was born on February 29, 1996. My age on February 28, 2015 was
+
+```{r birthday}
+require(mondate)
+mondate("2015-02-28", timeunits = "years") - mondate("1996-02-29", timeunits = "years")/12
+mondate("2015-02-28", timeunits = "months") - mondate("1996-02-29", timeunits = "months")
+
+```
 
 ## Vignette Info
 
