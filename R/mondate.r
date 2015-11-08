@@ -1310,6 +1310,9 @@ setMethod("MonthsBetween", c("mondate", "mondate"), function(from, to) {
         , .S3Class = NULL
         )
     })
+setMethod("MonthsBetween", c("ANY", "ANY"), function(from, to) {
+  MonthsBetween(mondate(from), mondate(to))
+})
 setGeneric("YearsBetween", function(from, to) standardGeneric("YearsBetween"))
 setMethod("YearsBetween", c("mondate", "mondate"), function(from, to) {
     if (length(from) >= length(to)) {
@@ -1331,6 +1334,9 @@ setMethod("YearsBetween", c("mondate", "mondate"), function(from, to) {
         , .S3Class = NULL
         )
     })
+setMethod("YearsBetween", c("ANY", "ANY"), function(from, to) {
+  YearsBetween(mondate(from), mondate(to))
+})
 setGeneric("DaysBetween", function(from, to) standardGeneric("DaysBetween"))
 setMethod("DaysBetween", c("mondate", "mondate"), function(from, to) {
     if (length(from) >= length(to)) {

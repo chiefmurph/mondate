@@ -9,9 +9,11 @@
 \alias{MonthsBetween}
 \alias{MonthsBetween-methods}
 \alias{MonthsBetween,mondate,mondate-method}
+\alias{MonthsBetween,ANY,ANY-method}
 \alias{YearsBetween}
 \alias{YearsBetween-methods}
 \alias{YearsBetween,mondate,mondate-method}
+\alias{YearsBetween,ANY,ANY-method}
 \alias{DaysBetween}
 \alias{DaysBetween-methods}
 \alias{DaysBetween,mondate,mondate-method}
@@ -113,11 +115,13 @@ and the result converted to a \code{mondate}.
 Creates a \code{mondate} as \code{0 - e1}.
 }
 
-\item{\code{MonthsBetween(from = "mondate", to = "mondate")}}{
+\item{\code{MonthsBetween(from = "mondate", to = "mondate")}}{}
+\item{\code{MonthsBetween(from = "ANY", to = "ANY")}}{
 Same as \code{abs(from - to)} in months.
 }
 
-\item{\code{YearsBetween(from = "mondate", to = "mondate")}}{
+\item{\code{YearsBetween(from = "mondate", to = "mondate")}}{}
+\item{\code{YearsBetween(from = "ANY", to = "ANY")}}{
 Same as \code{abs(from - to)} in years, 
 which is also the number of months between divided by 12.
 }
