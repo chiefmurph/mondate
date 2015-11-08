@@ -26,16 +26,21 @@ The four major advantages of "mondate" are:
 
 The "age" of an event can be an important factor in a business use case.
 On a personal note, 
-I was born on February 29, 1996. My age on February 28, 2015 was
+my birth event took place on February 29, 1996. My age on February 28, 2015 was
 
 ```{r birthday}
 require(mondate)
-mondate("2015-02-28", timeunits = "years") - mondate("1996-02-29", timeunits = "years")/12
+mondate("2015-02-28", timeunits = "years") - mondate("1996-02-29", timeunits = "years")
 mondate("2015-02-28", timeunits = "months") - mondate("1996-02-29", timeunits = "months")
+as.Date("2015-02-28") - as.Date("1996-02-29")
+# or simply ..
+YearsBetween("2015-02-28", "1996-02-29")
 
 ```
 
-## Vignette Info
+## Flexible Formatting
+
+YearQuartersFormat
 
 Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
 
