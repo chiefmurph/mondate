@@ -81,9 +81,9 @@ print(ages)
 For a final example in this section,
 suppose ABC Company records the date of insured losses using the variable name
 DateOfLoss. 
-The ages of each loss as of various quarter-ends using
+Here are the ages of each loss as of 2013 quarter-ends using
 `mondate.ymd` to generate the quarter-ends,
-and then simply subtract.
+and then subtraction.
 
 ```{r}
 # generate 10 random dates after 2010
@@ -164,7 +164,7 @@ to be displayed in the French format above
 despite the fact that the default format is changed to the ISO standard:
 
 ```{r}
-options(mondate.displayFormat = "%Y-%m-%d")
+options(mondate.default.displayFormat = "%Y-%m-%d")
 mondate(Sys.Date())
 m <- mondate.ymd(2015, 1:6, displayFormat = "%d/%m/%Y")
 print(m)
