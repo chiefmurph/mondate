@@ -14,6 +14,9 @@
 \alias{seqmondate,POSIXct,POSIXct-method}
 \alias{seqmondate,POSIXct,missing-method}
 \alias{seqmondate,missing,POSIXct-method}
+\alias{seqmondate,ANY,ANY-method}
+\alias{seqmondate,ANY,missing-method}
+\alias{seqmondate,missing,ANY-method}
 \title{Methods to Generate Date Sequences}
 \description{
 Methods to generate date sequences.
@@ -60,6 +63,10 @@ optional arguments passed to \code{\link{seq.mondate}}
 }
 
 \item{\code{signature(from = "POSIXct", to = "POSIXct", ...)}}{
+%%  ~~describe this method here~~
+}
+
+\item{\code{signature(from = "ANY", to = "ANY", ...)}}{
 %%  ~~describe this method here~~
 }
 

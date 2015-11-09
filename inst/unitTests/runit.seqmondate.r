@@ -113,9 +113,6 @@ test.seqmondate.basicfunctioning <- function() {
       c("2014-01-01", "2014-03-01", "2014-05-01", "2014-07-01", "2014-09-01", "2014-11-01")
   ))
   
-  # 'to' alone does not work for Date's
-  checkException(as.character(seqmondate(to = as.Date("2000-04-30"), by = 2)))
-  
   # by character
   # when by = "days" uses seq.Date, so both from and to must be specifiec
   checkException(seqmondate(from = as.Date("2000-04-30"), by = "days"))
@@ -166,6 +163,66 @@ test.seqmondate.basicfunctioning <- function() {
       seqmondate(from = as.Date("2014-12-31"), to = as.Date("2015-12-31"), by = "2 quarters")) ==
       c("2014-12-31", "2015-06-30", "2015-12-31")
   ))
+  
+  # 'from' alone
+  checkTrue(all(
+    as.character(
+      seqmondate(from = mondate("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2015-01-31", "2015-02-28", "2015-03-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(from = as.Date("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2015-01-31", "2015-02-28", "2015-03-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(from = as.POSIXlt("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2015-01-31", "2015-02-28", "2015-03-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(from = as.POSIXct("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2015-01-31", "2015-02-28", "2015-03-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(from = "2015-01-31", by = "month", length.out = 3)) ==
+      c("2015-01-31", "2015-02-28", "2015-03-31")
+  ))
+  
+  # 'to' alone
+  checkTrue(all(
+    as.character(
+      seqmondate(to = mondate("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2014-11-30", "2014-12-31", "2015-01-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(to = as.Date("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2014-11-30", "2014-12-31", "2015-01-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(to = as.POSIXlt("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2014-11-30", "2014-12-31", "2015-01-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(to = as.POSIXct("2015-01-31"), by = "month", length.out = 3)) ==
+      c("2014-11-30", "2014-12-31", "2015-01-31")
+  ))
+  checkTrue(all(
+    as.character(
+      seqmondate(to = "2015-01-31", by = "month", length.out = 3)) ==
+      c("2014-11-30", "2014-12-31", "2015-01-31")
+  ))
 
+  # ANY, ANY Mixture  
+  checkTrue(all(
+    as.character(
+      seqmondate(from = mondate.ymd(2014, 11), to = "2015-01-31")) ==
+      c("11/30/2014", "12/31/2014", "01/31/2015")
+  ))
 }
 

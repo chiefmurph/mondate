@@ -4,20 +4,20 @@ setMethod("seqmondate", c("mondate", "mondate"), function(from, to, ...)
 setMethod("seqmondate", c("mondate", "missing"), function(from, ...) 
   seq.mondate(from, ...))
 setMethod("seqmondate", c("missing", "mondate"), function(to, ...) 
-  seq.mondate(to, ...))
+  seq.mondate(to = to, ...))
 setMethod("seqmondate", c("Date", "Date"), function(from, to, ...)
-  as.Date(seq(mondate(as.numeric(mondate(from))),# - .02), 
-              mondate(as.numeric(mondate(to  ))),# - .02),
+  as.Date(seq(mondate(as.numeric(mondate(from))), 
+              mondate(as.numeric(mondate(to  ))),
               ...)
           )
   )
 setMethod("seqmondate", c("Date", "missing"), function(from, ...)
-  as.Date(seq(mondate(as.numeric(mondate(from))),# - .02), 
+  as.Date(seq(mondate(as.numeric(mondate(from))), 
               ...)
   )
 )
 setMethod("seqmondate", c("missing", "Date"), function(from, to, ...)
-  as.Date(seq(mondate(as.numeric(mondate(to  ))),# - .02),
+  as.Date(seq(to = mondate(as.numeric(mondate(to))),
               ...)
   )
 )
@@ -29,9 +29,9 @@ setMethod("seqmondate", c("POSIXlt", "missing"), function(from, to, ...)
   structure(as.POSIXlt(seqmondate(as.Date(from), ...)), 
             tzone = attr(from, "tzone"))
 )
-setMethod("seqmondate", c("missing", "POSIXlt"), function(from, to, ...) 
-  structure(as.POSIXlt(seqmondate(as.Date(to), ...)), 
-            tzone = attr(from, "tzone"))
+setMethod("seqmondate", c("missing", "POSIXlt"), function(from, to, ...)
+  structure(as.POSIXlt(seqmondate(to = as.Date(to), ...)), 
+            tzone = attr(to, "tzone"))
 )
 setMethod("seqmondate", c("POSIXct", "POSIXct"), function(from, to, ...) 
   as.POSIXct(seqmondate(as.POSIXlt(from), as.POSIXlt(to), ...))
@@ -40,5 +40,14 @@ setMethod("seqmondate", c("POSIXct", "missing"), function(from, to, ...)
   as.POSIXct(seqmondate(as.POSIXlt(from), ...))
 )
 setMethod("seqmondate", c("missing", "POSIXct"), function(from, to, ...) 
-  as.POSIXct(seqmondate(as.POSIXlt(to), ...))
+  as.POSIXct(seqmondate(to = as.POSIXlt(to), ...))
+)
+setMethod("seqmondate", c("ANY", "ANY"), function(from, to, ...) 
+  seqmondate(mondate(from), mondate(to), ...)
+)
+setMethod("seqmondate", c("ANY", "missing"), function(from, to, ...) 
+  seqmondate(mondate(from), ...)
+)
+setMethod("seqmondate", c("missing", "ANY"), function(from, to, ...) 
+  seqmondate(to = mondate(to), ...)
 )
