@@ -2,15 +2,15 @@
 title: "Introduction to the mondate Package"
 author: "Dan Murphy"
 date: "`r Sys.Date()`"
-#output: rmarkdown::html_vignette
-output: rmarkdown::word_document
+output: rmarkdown::html_vignette
+#output: rmarkdown::word_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-There are two broad date/time classes in base R,
+Base R provides the two broad date/time classes:
 `POSIXt` and `Date`.
 Objects of these classes
 mark a day with the instant of
@@ -35,17 +35,22 @@ The four major benefits of the mondate package are:
 ## Date Aging
 
 The "age" of an event plays many important roles in business use cases.
+By default, `Date` objects are measured in units of "days" and `POSIXt` objects in 
+units of "seconds".
+But sometimes it is more convenient to measure elapsed time in units of 
+"months" or "years".
+
 For example, 
 if my "birth event" took place on February 29, 1996
-then my age on February 28, 2015 was 19:
+then my age on February 28, 2006 was 10:
 
 ```{r birthday}
 require(mondate)
-YearsBetween("1996-02-29", "2015-02-28")
+YearsBetween("1996-02-29", "2006-02-28")
 ```
 or in the US
 ```{r}
-YearsBetween("2/29/1996", "2/28/2015")
+YearsBetween("2/29/1996", "2/28/2006")
 ```
 
 As another example,
@@ -57,8 +62,8 @@ as of the end of 2015 and 2016:
 
 ```{r}
 invoiceDate = as.Date("2015-11-01")
-age = mondate.ymd(2015:2016) - invoiceDate
-print(age)
+ages <- mondate.ymd(2015:2016) - invoiceDate
+print(ages)
 ```
 
 ### Actuarial example
@@ -75,10 +80,13 @@ The default formats currently recognized are
 
 in that order,
 depending on your value of `Sys.getlocale("LC_TIME")`.
-The order can be changed and new formats added using `base::options`.
+The order can be changed and new formats added using `base::options`
+for display ("writing") and 
+`set.mondate.displayFormats` for "reading".
 
-For example,
-this vignette is being written in the US, 
+#### "writing": dynamic format display
+
+This vignette is being written in the US, 
 so today's date will be represented using the first choice above by default ...
 
 ```{r}
@@ -87,10 +95,12 @@ mondate(Sys.Date())
 
 ... but that default can be changed to the
 international standard format^[ibid.]
-"YYYY-MM-DD" as follows
+"YYYY-MM-DD" using
+`base::options` and the name
+"mondate.default.displayFormat" as follows
 
 ```{r}
-options(mondate.displayFormat = "%Y-%m-%d")
+options(mondate.default.displayFormat = "%Y-%m-%d")
 mondate(Sys.Date())
 ```
 
@@ -98,18 +108,17 @@ As another example,
 French users may choose the format "dd/mm/YYYY" as follows:
 
 ```{r}
-options(mondate.displayFormat = "%d/%m/%Y")
+options(mondate.default.displayFormat = "%d/%m/%Y")
 mondate(Sys.Date())
 ```
 
 Note: 
-these examples show how to modify the default display format
-for **all** mondates in your session.
+these examples modified the default display format
+for **all** mondates in the R session.
 To set the display format for **just one** instance of a mondate object,
-use the `displayFormat` argument during its creation.
+use the `displayFormat` argument during the object's creation.
 
-For example,
-here we ceate the first 6 month-ends of 2015
+Here we create the first 6 month-ends of 2015
 to be displayed in the French format above
 despite the fact that the default format is changed to the ISO standard:
 
@@ -128,22 +137,22 @@ options(mondate.displayFormat = NULL)
 
 More creative formats can be used, as for instance
 to display just the year and month.
-For example, here we create the first six 
-month-ends of 2016 whose display will omit the day.
-(It is *not* recommended to do this by default!)
+Here are the first six 
+month-ends of 2016 displayed using a format that only shows year and month.
 
 ```{r}
 m <- mondate.ymd(2016, 1:6, displayFormat = "%Y%m")
 print(m)
 ```
 
-### Dynamic format detection
+#### "reading": dynamic format detection
 
-The `mondate` package is preloaded with four formats for detecting dates
+As mentioned above,
+the `mondate` package is pre-loaded with four formats for detecting dates
 
 1. US format a: "%m/%d/%Y"
 2. US format b: "%m-%d-%Y"
-3. EU format a: "%Y-%m-%d" and
+3. EU format a: "%Y-%m-%d"
 4. EU format b: "%Y/%m/%d"
 
 To inform `mondate` of another format for converting character to date,
@@ -162,7 +171,7 @@ set.mondate.displayFormats(c(Frb = "%d/%m/%Y", get.mondate.displayFormats()),
 (This example is given in ?set.mondate.displayFormats.)
 Contining, 
 suppose dates in a spreadsheet are saved to a csv file in France
-and the `read.csv` function results in the example data.frame:
+and the `read.csv` function results in this data.frame:
 ```{r}
 data <- data.frame(
   cbind(Invoice=c("A", "B", "C"),
