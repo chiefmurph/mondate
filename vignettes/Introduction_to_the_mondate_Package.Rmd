@@ -25,6 +25,9 @@ In contrast,
 This "close of business" perspective can be useful, 
 as when modeling accounting as-of dates.
 
+The other major purpose of the `mondate` package is to measure elapsed time in 
+units of "months", and therefore also "years".
+
 The four major benefits of the mondate package are:
 
 1. Date Aging
@@ -39,6 +42,7 @@ By default, `Date` objects are measured in units of "days" and `POSIXt` objects 
 units of "seconds".
 But sometimes it is more convenient to measure elapsed time in units of 
 "months" or "years".
+This is where `mondate` comes in.
 
 For example, 
 if my "birth event" took place on February 29, 1996
@@ -51,13 +55,19 @@ YearsBetween("1996-02-29", "2006-02-28")
 or in the US
 ```{r}
 YearsBetween("2/29/1996", "2/28/2006")
+# and
+MonthsBetween("2/29/1996", "2/28/2006")
+# or simply
+m1 <- mondate.ymd(1996, 2)
+m2 <- mondate.ymd(2006, 2)
+m2 - m1
 ```
 
 As another example,
-suppose ABC Company invoices a customer at end of November 2015
+suppose ABC Company invoices a customer in late October 2015
 and has a policy of recognizing those invoices to have been sent
-on the 1st of October.
-This code calculates the age of that invoice in months 
+on the 1st of November.
+This code calculates the ages of that invoice in months 
 as of the end of 2015 and 2016:
 
 ```{r}
@@ -66,9 +76,41 @@ ages <- mondate.ymd(2015:2016) - invoiceDate
 print(ages)
 ```
 
-### Actuarial example
+#### Actuarial example
 
-See the "Date Cutting" section below for a better way to do this calculation.
+For a final example in this section,
+suppose ABC Company records the date of insured losses using the variable name
+DateOfLoss. 
+The ages of each loss as of various quarter-ends using
+`mondate.ymd` to generate the quarter-ends,
+and then simply subtract.
+
+```{r}
+# generate 10 random dates after 2010
+set.seed(1)
+z <- rexp(10, .1)
+DateOfLoss <- as.Date(mondate.ymd(2010) + z)
+print(DateOfLoss)
+
+# Quarter-ends in 2013
+QE <- mondate.ymd(2013, 3 * 1:4, displayFormat = "%Y%m")
+names(QE) <- QE
+
+# a matrix of ages in units of months
+Ages <- sapply(QE, `-` , DateOfLoss)
+# code "not available" ages corresponding to evaluation dates prior to Date of Loss
+# (one instance)
+Ages[Ages <= 0] <- NA
+print(Ages)
+
+# Accident year age
+AccidentYear <- year(DateOfLoss)
+aybegin <- sort(unique(as.Date(mondate.ymd(AccidentYear, 1, 1))))
+print(sapply(QE, `-`, aybegin))
+```
+
+See the "Date Cutting" section below for a
+more elegant way to do the last calculation.
 
 ## Date Formatting
 
@@ -87,7 +129,7 @@ for display ("writing") and
 #### "writing": dynamic format display
 
 This vignette is being written in the US, 
-so today's date will be represented using the first choice above by default ...
+so today's date will be represented using the first format above by default ...
 
 ```{r}
 mondate(Sys.Date())
@@ -117,7 +159,6 @@ these examples modified the default display format
 for **all** mondates in the R session.
 To set the display format for **just one** instance of a mondate object,
 use the `displayFormat` argument during the object's creation.
-
 Here we create the first 6 month-ends of 2015
 to be displayed in the French format above
 despite the fact that the default format is changed to the ISO standard:
@@ -135,7 +176,8 @@ options(mondate.displayFormat = NULL)
 
 ```
 
-More creative formats can be used, as for instance
+More creative formats can be used, 
+as for instance
 to display just the year and month.
 Here are the first six 
 month-ends of 2016 displayed using a format that only shows year and month.
@@ -161,12 +203,13 @@ This function sets the `options` value of "mondate.displayFormats"
 to the value(s) of your choice.
 
 For example, to add the French format "dd/mm/yyyy" to the *head* of the
-list of detectable formats, 
+current list of detectable formats, 
 use the following code:
 
 ```{r}
-set.mondate.displayFormats(c(Frb = "%d/%m/%Y", get.mondate.displayFormats()), 
-                          clear = TRUE)
+set.mondate.displayFormats(c("%d/%m/%Y", 
+                             get.mondate.displayFormats()), 
+                           clear = TRUE)
 ```
 (This example is given in ?set.mondate.displayFormats.)
 Contining, 
