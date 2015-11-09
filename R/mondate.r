@@ -30,6 +30,11 @@
                    USb="%m-%d-%Y", 
                    EU="%Y-%m-%d", # EU format
                    EUb="%Y/%m/%d")
+get.mondate.displayFormats <- function() 
+  getOption("mondate.displayFormats", .displayFormat)
+set.mondate.displayFormats <- function(x, clear = FALSE) 
+  options(mondate.displayFormats = 
+            if (!clear) c(get.mondate.displayFormats(), x) else x)
 
 # 5/1/2014: IfElse construct does not return names 
 #.default.displayFormat <- ifelse (
@@ -153,7 +158,8 @@ setReplaceMethod("timeunits", "mondate", function(x, value) {
 # CONVERSION TO MONDATE
 
 setGeneric("mondate", function(x, 
-    displayFormat = getOption("mondate.displayFormat", default = .get.default.displayFormat()), 
+    displayFormat = getOption("mondate.default.displayFormat", 
+                              default = .get.default.displayFormat()), 
     timeunits = getOption("mondate.timeunits", default = .get.default.timeunits()),
     ...) standardGeneric("mondate"))
 
@@ -230,21 +236,25 @@ setMethod("mondate", "character", function(x, displayFormat = "keep", timeunits,
     }
   if (mf) {
     # Find best format for converting this character to date
-    for (i in 1:length(.displayFormat)) {
-      d <- as.Date(x[m], format = .displayFormat[i], ...)
+    .displayFormats <- get.mondate.displayFormats()
+#print(.displayFormats)
+    for (i in 1:length(.displayFormats)) {
+      d <- as.Date(x[m], format = .displayFormats[i], ...)
       if (!is.na(d)) break
       }
     if (is.na(d)) {
-      msg <- paste("mondate character: first non-NA element '", x[m], "' is not a date.", sep = "")
-      msg <- c(msg, "\nConverting to numeric, then to mondate. Try specifying 'format'.")
+      msg <- paste("mondate character: first non-NA element '", x[m], 
+                   "' is not a date.", sep = "")
+      msg <- c(msg, 
+               "\nConverting to numeric, then to mondate. Try specifying 'format'.")
       if (displayFormat == "keep") {
-        displayFormat <- getOption("mondate.displayFormat", default = .default.displayFormat)
+        displayFormat <- getOption("mondate.default.displayFormat", default = .default.displayFormat)
         msg <- c(msg, '\ndisplayFormat = "keep" not applicable, using default.')
         }
       warning(msg) 
       return(mondate(as.numeric(x), displayFormat = displayFormat, timeunits = timeunits, ...))
       }
-    format <- .displayFormat[i]
+    format <- .displayFormats[i] # the one that worked
     if (displayFormat == "keep") displayFormat <- format # else goes to default
     }
   # Use format to convert the character
@@ -819,7 +829,7 @@ cbindmondate <- function(..., deparse.level = 1) {
   y <- list(...)
   dspFmt <- displayFormat(y[[1L]])
 #  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
-  if (is.null(dspFmt)) dspFmt <- getOption("mondate.displayFormat", default = .get.default.displayFormat())
+  if (is.null(dspFmt)) dspFmt <- getOption("mondate.default.displayFormat", default = .get.default.displayFormat())
   tu <- timeunits(y[[1L]])
 #  if (is.null(tu)) tu <- .default.timeunits
   if (is.null(tu)) tu <- getOption("mondate.timeunits", default = .get.default.timeunits())
@@ -832,7 +842,7 @@ rbindmondate <- function(..., deparse.level = 1) {
   y <- list(...)
   dspFmt <- displayFormat(y[[1L]])
 #  if (is.null(dspFmt)) dspFmt <- .default.displayFormat
-  if (is.null(dspFmt)) dspFmt <- getOption("mondate.displayFormat", default = .get.default.displayFormat())
+  if (is.null(dspFmt)) dspFmt <- getOption("mondate.default.displayFormat", default = .get.default.displayFormat())
   tu <- timeunits(y[[1L]])
 #  if (is.null(tu)) tu <- .default.timeunits
   if (is.null(tu)) tu <- getOption("mondate.timeunits", default = .get.default.timeunits())

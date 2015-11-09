@@ -62,22 +62,22 @@ from argument \code{from}, if provided, otherwise from argument \code{to}.
 Dan Murphy
 }
 \seealso{
-\code{\link{seq}} and \code{\link{seq.Date}}
+\code{\link{seq}}, \code{\link{seq.Date}} and \code{\link{seqmondate}}
 }
 \examples{
 x <- mondate.ymd(2010, 1)   # January 31, 2014
 y <- mondate.ymd(2010, 12)  # December 31, 2014
-seq(from = x, to = y)  # all month-ends in 2014
+seq(from = x, to = y, by = 1)  # all month-ends in 2014
 # 8 quarter-ends beginning 1st quarter 2009; US displayFormat
 seq(mondate("3/31/2009"), by = 3, length.out = 8) 
 # 8 quarter-ends ending year-end 2009; R's date format
 seq(to = mondate("2009-12-31"), by = 3, length.out = 8)
 #
-# Using RIGHT = FALSE can be used to generate sequences of 
+# Use of RIGHT = FALSE in seq.mondate is depracated. 
+# Instead, to generate sequences of 
 #   Dates corresponding to the first days of the months
-# Note the use of the full method name, seq.mondate, otherwise
-#   the seq.Date method would be called.
-seq.mondate(as.Date("2014-01-01"), by = "months", length = 12, right = FALSE)
+# use the seq.Date method.
+seqmondate(as.Date("2014-01-01"), by = "months", length = 12)
 # To generate the last day of a sequence of months, 
 #   use the default right = TRUE:
 (m <- seq.mondate(as.Date("2014-01-31"), by = "months", length = 12))

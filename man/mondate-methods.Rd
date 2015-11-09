@@ -18,7 +18,7 @@ All purpose \bold{mondate} constructor / coercer.
 }
 \usage{
     mondate(x, 
-      displayFormat = getOption("mondate.displayFormat", 
+      displayFormat = getOption("mondate.default.displayFormat", 
                                 default = .get.default.displayFormat()), 
       timeunits = getOption("mondate.timeunits",
                             default = .get.default.timeunits()),
