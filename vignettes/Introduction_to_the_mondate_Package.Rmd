@@ -2,8 +2,8 @@
 title: "Introduction to the mondate Package"
 author: "Dan Murphy"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-#output: rmarkdown::word_document
+#output: rmarkdown::html_vignette
+output: rmarkdown::word_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
@@ -139,27 +139,59 @@ print(m)
 
 ### Dynamic format detection
 
+The `mondate` package is preloaded with four formats for detecting dates
+
+1. US format a: "%m/%d/%Y"
+2. US format b: "%m-%d-%Y"
+3. EU format a: "%Y-%m-%d" and
+4. EU format b: "%Y/%m/%d"
+
+To inform `mondate` of another format for converting character to date,
+use `set.mondate.displayFormats`.
+This function sets the `options` value of "mondate.displayFormats"
+to the value(s) of your choice.
+
+For example, to add the French format "dd/mm/yyyy" to the *head* of the
+list of detectable formats, 
+use the following code:
+
+```{r}
+set.mondate.displayFormats(c(Frb = "%d/%m/%Y", get.mondate.displayFormats()), 
+                          clear = TRUE)
+```
+(This example is given in ?set.mondate.displayFormats.)
+Contining, 
+suppose dates in a spreadsheet are saved to a csv file in France
+and the `read.csv` function results in the example data.frame:
+```{r}
+data <- data.frame(
+  cbind(Invoice=c("A", "B", "C"),
+        datechar = c("28/11/2015", "29/11/2015", "30/11/2015")))
+print(data)
+```
+Then the character dates can be converted automatically to `Date` objects
+via `mondate` as follows
+```{r}
+data$InvoiceDate <- as.Date(mondate(data$datechar))
+print(data)
+```
+
 For more information on the codes to use when formatting dates,
 see the R help page for the `strptime` function.
 To add addtional defaults according to your value of
 `Sys.getlocale("LC_TIME")`,
 contact the 
 author^[chiefmurphy at gmail].
-(Please visit the package repository at
+(All are welcome to visit the package's public repository at
 https://github.com/chiefmurph/mondate.)
 
 ## Date Sequencing
 ## Date Cutting
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+## Thank you
 
-## Styles
+Damien Laker
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
 
 ## Figures
 
