@@ -10,7 +10,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Base R provides the two broad date/time classes:
+Base R provides two broad date/time classes,
 `POSIXt` and `Date`.
 Objects of these classes
 mark a day with the instant of
@@ -23,9 +23,10 @@ https://en.wikipedia.org/wiki/ISO_8601].
 In contrast, 
 `mondate` objects represent a day as at the instant of time that ends the day.
 This "close of business" perspective can be useful, 
-as when modeling accounting as-of dates.
-
-The other major purpose of the `mondate` package is to measure elapsed time in 
+as when modeling accounting as-of dates,
+extends to "month close" and "year close,"
+and enables the other major purpose of the `mondate` package -- 
+measuring elapsed time in 
 units of "months", and therefore also "years".
 
 The four major benefits of the mondate package are:
@@ -44,8 +45,8 @@ But sometimes it is more convenient to measure elapsed time in units of
 "months" or "years".
 This is where `mondate` comes in.
 
-For example, 
-if my "birth event" took place on February 29, 1996
+#### Example 1 
+If my "birth event" took place on February 29, 1996
 then my age on February 28, 2006 was 10:
 
 ```{r birthday}
@@ -55,17 +56,21 @@ YearsBetween("1996-02-29", "2006-02-28")
 or in the US
 ```{r}
 YearsBetween("2/29/1996", "2/28/2006")
-# and
+```
+and
+```{r}
 MonthsBetween("2/29/1996", "2/28/2006")
-# or simply
+```
+which also results when subtracting two `mondate`s
+```{r}
 m1 <- mondate.ymd(1996, 2)
 m2 <- mondate.ymd(2006, 2)
 m2 - m1
 ```
 
-As another example,
-suppose ABC Company invoices a customer in late October 2015
-and has a policy of recognizing those invoices to have been sent
+#### Example 2
+Suppose ABC Company invoices a customer in late October 2015
+and has a policy of recognizing that invoice to have been sent
 on the 1st of November.
 This code calculates the ages of that invoice in months 
 as of the end of 2015 and 2016:
@@ -76,33 +81,38 @@ ages <- mondate.ymd(2015:2016) - invoiceDate
 print(ages)
 ```
 
-#### Actuarial example
-
-For a final example in this section,
-suppose ABC Company records the date of insured losses using the variable name
+#### Example 3
+The last example in this section is actuarial in nature.
+Suppose ABC Company records the date of insured losses using the variable name
 DateOfLoss. 
-Here are the ages of each loss as of 2013 quarter-ends using
-`mondate.ymd` to generate the quarter-ends,
-and then subtraction.
-
+Here are 10 random dates after the end of 2010:
 ```{r}
 # generate 10 random dates after 2010
 set.seed(1)
 z <- rexp(10, .1)
 DateOfLoss <- as.Date(mondate.ymd(2010) + z)
 print(DateOfLoss)
-
+```
+Here are the four quarter-ends in 2013:
+```{r}
 # Quarter-ends in 2013
 QE <- mondate.ymd(2013, 3 * 1:4, displayFormat = "%Y%m")
 names(QE) <- QE
-
+print(QE)
+```
+(The 'displayFormat' argument will be explained in the next section.
+"names" were assigned to enable the matrix header labels below.)
+And here are the ages of the 10 losses as of each quarter end:
+```{r}
 # a matrix of ages in units of months
 Ages <- sapply(QE, `-` , DateOfLoss)
 # code "not available" ages corresponding to evaluation dates prior to Date of Loss
 # (one instance)
 Ages[Ages <= 0] <- NA
 print(Ages)
-
+```
+The actuarial "accident year" concept can be created as follows:
+```{r}
 # Accident year age
 AccidentYear <- year(DateOfLoss)
 aybegin <- sort(unique(as.Date(mondate.ymd(AccidentYear, 1, 1))))
@@ -111,6 +121,26 @@ print(sapply(QE, `-`, aybegin))
 
 See the "Date Cutting" section below for a
 more elegant way to do the last calculation.
+
+### Date Arithmetic
+
+`mondate`s can act arithmetically in the same way
+their underlying `numeric` can 
+act.^[The underlying numeric measures the number of months since 
+the close of business 1999-12-31 (".mondate.origin").]
+In particular, 
+the magnitude of the interval between two dates in units of months
+is measured, of course, using subtraction:
+```{r}
+mondate("12/31/2015") - mondate("12/31/2014")
+mondate("12/31/2015") - as.Date("2015-01-01")
+```
+Why do the two calculations result in the same value?
+The answer is that the two objects,
+as.Date("2015-01-01") and mondate("12/31/2014")
+*represent the same instant in time*
+separating the moments in 2014 from the moments in 2015.
+Those two instants are by convention one year apart.
 
 ## Date Formatting
 
@@ -126,8 +156,9 @@ The order can be changed and new formats added using `base::options`
 for display ("writing") and 
 `set.mondate.displayFormats` for "reading".
 
-#### "writing": dynamic format display
+### "writing": dynamic format display
 
+#### Example 4
 This vignette is being written in the US, 
 so today's date will be represented using the first format above by default ...
 
@@ -146,7 +177,7 @@ options(mondate.default.displayFormat = "%Y-%m-%d")
 mondate(Sys.Date())
 ```
 
-As another example, 
+#### Example 5 
 French users may choose the format "dd/mm/YYYY" as follows:
 
 ```{r}
@@ -159,6 +190,8 @@ these examples modified the default display format
 for **all** mondates in the R session.
 To set the display format for **just one** instance of a mondate object,
 use the `displayFormat` argument during the object's creation.
+
+#### Example 6
 Here we create the first 6 month-ends of 2015
 to be displayed in the French format above
 despite the fact that the default format is changed to the ISO standard:
@@ -178,16 +211,13 @@ options(mondate.displayFormat = NULL)
 
 More creative formats can be used, 
 as for instance
-to display just the year and month.
-Here are the first six 
-month-ends of 2016 displayed using a format that only shows year and month.
-
-```{r}
-m <- mondate.ymd(2016, 1:6, displayFormat = "%Y%m")
-print(m)
+to display just the year and month,
+as was done in "Example 3" above.
+```{r echo=FALSE}
+options(mondate.default.displayFormat = NULL)
 ```
 
-#### "reading": dynamic format detection
+### "reading": dynamic format detection
 
 As mentioned above,
 the `mondate` package is pre-loaded with four formats for detecting dates
@@ -202,8 +232,10 @@ use `set.mondate.displayFormats`.
 This function sets the `options` value of "mondate.displayFormats"
 to the value(s) of your choice.
 
-For example, to add the French format "dd/mm/yyyy" to the *head* of the
-current list of detectable formats, 
+#### Example 7
+To add the French format "dd/mm/yyyy" to the *head* of the
+current list of detectable formats --
+thereby setting that format to priority 1 status --
 use the following code:
 
 ```{r}
@@ -238,6 +270,79 @@ author^[chiefmurphy at gmail].
 https://github.com/chiefmurph/mondate.)
 
 ## Date Sequencing
+
+Sequences of dates in units of days or multiples of days
+or weeks is easily accomplished using the base R's `Date` class:  
+```{r} 
+seq(as.Date("2015-11-01"), by = "day", length.out = 5)
+```
+Month-sequences can similarly be generated with `Date`s, and work well
+for most dates.
+The exception can occur for dates near the end of the month.
+Compare, for example, the two sequences below,
+the first starting from the first day of January,
+the second from the last day of January:
+```{r}
+seq(as.Date("2015-01-01"), by = "month", length.out = 5)
+seq(as.Date("2015-01-31"), by = "month", length.out = 5)
+```
+All dates in the first sequence are the first days of the month,
+but some dates in the second sequence "leak" into subsequent months.
+Indeed this is is well documented in the help for `seq.POSIXt`:
+
+>Using "month" first advances the month without changing the day: if this results in an invalid day of the month, it is counted forward into the next month
+
+The mondate package avoids this 
+shortcoming.^["Under the hood", `mondate` represent dates 
+relative to the 
+percent of the month that has transpired by the close of business that day.]
+
+#### Example 8
+Sequences of month ends can be accomplished in various "mondate" ways.
+Here are two:
+```{r}
+seq(mondate("2015-01-31"), by = "month", length.out = 5)
+mondate.ymd(2015, 1:5)
+```
+Note that the display format in the first sequence inherits from the
+format of the character representation of the beginning date.
+The display format in the second sequence is a function of the 
+author's locale (see "Date Formatting" section above).
+Also note that each of the objects generated above are of class "mondate".
+
+### seqmondate
+It might be more convenient to be able to generate month sequences from `Date` objects
+without having to resort to a `mondate` "transitional" object as above
+**and result in an object of class "Date".**
+That is the purpose of the `seqmondate` method, 
+which works on a variety of classes.
+By default, 'by = "month"' is assumed.
+
+#### Example 9
+
+This example repeats Example 7, 
+omits the 'by' argument and shortens the name of the 'length.out' argument.
+Note that
+the second sequence consists of all month-ends.
+Also note that the class of the resulting object is the same class
+as the object being operated on.
+```{r}
+seqmondate(as.Date("2015-01-01"), length = 5)
+seqmondate(as.Date("2015-01-31"), length = 5)
+class(seqmondate(as.Date("2015-01-31"), length = 5))
+class(seqmondate(as.POSIXlt("2015-01-31"), length = 5))
+```
+
+#### Example 10: Year-ends
+Here are two ways to generate sequences of year-end dates.
+The first uses seqmondate as above.
+The second uses the `mondate.ymd` function, 
+specifying only the first argument ('year').
+```{r}
+seqmondate("2010-12-31", by = "year", length = 6)
+mondate.ymd(2010:2015)
+```
+
 ## Date Cutting
 
 ## Thank you
