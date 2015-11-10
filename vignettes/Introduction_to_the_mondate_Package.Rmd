@@ -2,16 +2,18 @@
 title: "Introduction to the mondate Package"
 author: "Dan Murphy"
 date: "`r Sys.Date()`"
-#output: rmarkdown::html_vignette
-output: rmarkdown::word_document
+output: rmarkdown::html_vignette
+#output: rmarkdown::word_document
+sansfont: Calibri Light
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Base R provides two broad date/time classes,
-`POSIXt` and `Date`.
+Base
+<span style="color:blue; font-family:Georgia;">R</span>
+provides two broad date/time classes,`POSIXt` and `Date`.
 Objects of these classes
 mark a day with the instant of
 time that begins the day. 
@@ -187,7 +189,9 @@ mondate(Sys.Date())
 
 Note: 
 these examples modified the default display format
-for **all** mondates in the R session.
+for **all** mondates in the 
+<span style="color:blue; font-family:Georgia;">R</span>
+session.
 To set the display format for **just one** instance of a mondate object,
 use the `displayFormat` argument during the object's creation.
 
@@ -261,7 +265,9 @@ print(data)
 ```
 
 For more information on the codes to use when formatting dates,
-see the R help page for the `strptime` function.
+see the 
+<span style="color:blue; font-family:Georgia;">R</span>
+help page for the `strptime` function.
 To add addtional defaults according to your value of
 `Sys.getlocale("LC_TIME")`,
 contact the 
@@ -272,7 +278,8 @@ https://github.com/chiefmurph/mondate.)
 ## Date Sequencing
 
 Sequences of dates in units of days or multiples of days
-or weeks is easily accomplished using the base R's `Date` class:  
+or weeks is easily accomplished using the base 
+<span style="color:blue; font-family:Georgia;">R</span>'s `Date` class:  
 ```{r} 
 seq(as.Date("2015-11-01"), by = "day", length.out = 5)
 ```
@@ -352,7 +359,9 @@ By "cover" is meant that every value in 'x' is contained in some
 interval^[and thus not an "open cover" in a topological sense],
 with the exception that the minimum value of 'x' is excluded --
 unless the 'include.lowest' argument is explicitly set to `TRUE`.
-A 'cut' in R is represented by a `factor`.
+A 'cut' in 
+<span style="color:blue; font-family:Georgia;">R</span>
+is represented by a `factor`.
 The `cut.default` function beautifully enunciates
 the intervals by clearly identifying their borders
 in the labels of the cut's levels.
@@ -526,7 +535,8 @@ FY <- cutmondate(mondate(DateOfLoss, displayFormat = "%Y"),
 age <- mondate.ymd(2016, 6)- attr(FY, "breaks")[FY]
 (data <- data.frame(DateOfLoss, LossAmount, FY, FYage = age))
 ```
-^[R includes the units in FYage because 'age' is a `difftime` object.]
+^[<span style="color:blue; font-family:Georgia;">R</span>
+includes the units in FYage because 'age' is a `difftime` object.]
 
 Barplots of total loss by fiscal year and by fiscal year age can be
 generated as follows:
@@ -552,7 +562,9 @@ of interest.
 
 ## Thank you
 
-Many thanks to the R Development team for their work on
+Many thanks to the 
+<span style="color:blue; font-family:Georgia;">R</span>
+Development team for their work on
 `Date` and `POSIXt` objects and methods.
 
 A special thank you goes out to Gabor Grothendieck for his suggestion of,
