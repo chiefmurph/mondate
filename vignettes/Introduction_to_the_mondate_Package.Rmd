@@ -124,7 +124,7 @@ more elegant way to do the last calculation.
 
 ### Date Arithmetic
 
-`mondate`s can act arithmetically in the same way
+`mondate`s can act arithmetically in (almost always) the same way
 their underlying `numeric` can 
 act.^[The underlying numeric measures the number of months since 
 the close of business 1999-12-31 (".mondate.origin").]
@@ -345,37 +345,206 @@ mondate.ymd(2010:2015)
 
 ## Date Cutting
 
+>Sidebar on `cut.default`  
+A `cut` of a `numeric` 'x' is a collection of (half-open,half-closed]
+intervals that "cover" 'x'.
+By "cover" is meant that every value in 'x' is contained in some 
+interval^[and thus not an "open cover" in a topological sense],
+with the exception that the minimum value of 'x' is excluded --
+unless the 'include.lowest' argument is explicitly set to `TRUE`.
+A 'cut' in R is represented by a `factor`.
+`cut.default` beautifully enunciates
+the intervals by clearly identifying their borders
+in the labels of the cut's levels.
+
+A `cut` of a set of dates 'x' by "months" can be thought of as
+a collection of contiguous months such that every date in x is contained in
+some month.
+This correspondence between a date and its neighboring members in its 'cut'
+can be mined in a statistical analysis of events occurring in similar time periods.
+
+`cut` has a method that works on `mondate`s when the 'breaks' argument is
+
+* `numeric` and so represents 
+the borders between intervals, or
+* `character` and so identifies that the cover is to be a set of
+day-, week-, month-, year-, or 
+quarter-intervals.
+
+First we will define some cuts.
+Then we will see how one might use a `cut`.
+
+####Example 11
+The following two commands work identically,
+only the displays of the results differ:
+```{r}
+cut(seq(from = 180.5, to = 185.5, by = .5), breaks = 180:186)
+cut(seq(from = mondate(180.5), to = mondate(185.5), by = .5), breaks = 180:186)
+```
+
+In the monthly intervals that cut(x) above, 
+if one were to label the interval with one of the endpoints,
+it would be natural to choose the closed endpoint.
+That is the 'mondate' convention when 'breaks' is `character`.
+That bears repeating:
+
+>The 'mondate' convention is to label a character cut of a set of dates
+with the **closed endpoint** defining each interval.
+As with `cut.default`, the closed endpoint is determined by
+the argument 'right':
+when `TRUE` the right endpoint is closed;
+when `FALSE` the left endpoint is closed.
+
+>Furthermore,
+when 'breaks' is `character` (e.g., "months")
+the closed endpoint becomes the label for the interval.
+
+####Example 12
+
+The following two commands generate the same result
+The first explicitly sets the break points as the 
+month-ends beginning 2014-12-31 and ending six months later.
+The second implicitly sets the same break points.
+```{r}
+cut(seq(mondate("2015-01-15"), mondate("2015-06-15"), by = .5), 
+    breaks = mondate.ymd(2014) + 0:6)
+cut(seq(mondate("2015-01-15"), mondate("2015-06-15"), by = .5), breaks = "month",
+    include.lowest = TRUE)
+```
+In the case that breaks is `character` it is unfortunate to have to 
+set include.lowest opposite its default.
+(Excluding the minimum value of 'x' would be somewhat "random" given
+that other values of 'x' are probably in the same time interval.)
+
+`include.lowest` is not the only argument that can be counterintuitive
+when it comes to cutting dates.
+Probably the most troubling default is `right = TRUE` because it violates 
+the basic principle that `Date` objects begin on,
+and are synonymous with,
+the instant beginning the day,
+i.e., the left endpoint.
+
+For those and other reasons,
+a `cutmondate` method was written to work on `Date`, `mondate`, and other objects
+with arguments that are more appropriate for their class.
+Other arguments were added, which we will see in due course.
+
+We now turn our attention to the `cutmondate` methods.
+
+### cutmondate
+
+The 'cutmondate' collection of methods are most effective when 
+'breaks' defines a cover in terms of months or multiple months.
+When the object being cut is a `Date` or `POSIXt`,
+the breakpoints are assumed to begin the period.
+Therefore, right = FALSE by default. 
+This results in a labeling of the levels according to the 
+first date in the period.
+
+####Example 13
+
+Here we regenerate the dates in Example 3, and cut them into month intervals.
+```{r}
+set.seed(1)
+z <- rexp(10, .1)
+monDOL <- mondate.ymd(2010) + z
+DateOfLoss <- as.Date(monDOL)
+print(DateOfLoss)
+cutmondate(DateOfLoss)
+```
+The "28 Levels" says that it takes 28 contiguous months to cover 'DateOfLoss'.
+Note that the levels are labeled with the first day of each month,
+starting with February 1, 2011 and ending with May 1, 2013.
+In this case, 
+since class(DateOfLoss) equals "Date"
+cutmondate knows that the more natural value for 'right' is `FALSE`.
+
+To label the levels with the last day of the month, 
+specify right = TRUE when the object is a `Date`.
+Here the levels are labeled with the lasst day of each month,
+starting with February 28, 2011 and ending with May 31, 2013.
+In the second case the object is a `mondate`, so right = `TRUE` by default
+and the date is displayed the default format of the author's locale.
+```{r}
+cutmondate(DateOfLoss, right = TRUE)
+cutmondate(monDOL)
+```
+
+Before tackling the last example,
+it is important to point out three additional arguments for `cut.mondate`
+(and therefore `cutmondate`)
+that do not appear in `cut.default` or `cut.Date`:
+
+* startmonth
+* startyear
+* attr.breaks = FALSE
+
+See the help for `cut.mondate` for details behind these arguments. 
+The only one we will discuss in this intro vignette is 'startmonth'.
+
+### Fiscal Years
+
+The 'startmonth' argument is important when you want to model fiscal years.
+
+####Example 14
+
+ABC Company's fiscal year is July 1 through June 30. 
+The dates of loss in the previous examples can be cut into fiscal years
+by setting startmonth = 7.
+The fiscal year cover will be three years long. 
+In the first case below the FYs are labeled by the first day of the fiscal year;
+in the second case, by the last day.
+```{r}
+cutmondate(DateOfLoss, breaks = "year", startmonth = 7)
+cutmondate(mondate(DateOfLoss), breaks = "year", startmonth = 7)
+```
+Continuing, suppose ABC Company conventually refers to a fiscal year
+by the first calendar year.
+The level labels can be set automatically as follows:
+```{r}
+cutmondate(mondate(DateOfLoss, displayFormat = "%Y"), 
+           breaks = "year", right = FALSE, startmonth = 7)
+```
+
+
+####Example 15
+
+ABC Company records loss amounts associated with the dates of loss at 
+regular intervals. 
+Suppose the amounts as of 2016-06-30 are
+```{r}
+(LossAmount <- round(rnorm(10, 1000, 100), -1))
+```
+ABC is interested in calculating the ages of those amounts as of the
+end of the current fiscal year, June 30, 2016.
+Those ages are easily calculated as follows.
+Generate the Fiscal Year (FY) indicators as below, 
+using "attr.breaks = TRUE".
+This will return the break points as a attribute
+that can be used in the date arithmetic.
+```{r}
+FY <- cutmondate(mondate(DateOfLoss, displayFormat = "%Y"), 
+           breaks = "year", right = FALSE, startmonth = 7,
+           attr.breaks = TRUE)
+age <- mondate.ymd(2016, 6)- attr(FY, "breaks")[FY]
+(data <- data.frame(DateOfLoss, LossAmount, FY, FYage = age))
+```
+^[R includes the units in FYage because 'age' above is a `difftime` object.]
+In summary,
+
+* "cutmondate" the set of dates using values for 'right' and 'startmonth'
+as appropriate for the situation.
+* Using `mondate(DateOfLoss)` is just one convenient way of abbreviating the factor levels.
+* Set 'attr.breaks = TRUE' so breakpoints are available for arithmetic.
+* Since FY is fundamentally an "index", `attr(FY, "breaks")[FY]` pulls out the 
+left breakpoint corresponding to each DateOfLoss's value of FY
+* The "age" results from subtraction from the `mondate` "as of" evaluation date
+of interest.
+
+
 ## Thank you
 
 Damien Laker
+Gabor
+R-Development team
 
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
