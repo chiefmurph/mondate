@@ -2,9 +2,11 @@
 title: "Introduction to the mondate Package"
 author: "Dan Murphy"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
 #output: rmarkdown::word_document
-sansfont: Calibri Light
+output: rmarkdown::pdf_document
+#output: rmarkdown::html_vignette
+#  number_sections: yes
+#  toc: yes
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
@@ -24,12 +26,19 @@ or
 https://en.wikipedia.org/wiki/ISO_8601].
 In contrast, 
 `mondate` objects represent a day as at the instant of time that ends the day.
-This "close of business" perspective can be useful, 
-as when modeling accounting as-of dates,
-extends to "month close" and "year close,"
-and enables the other major purpose of the `mondate` package -- 
-measuring elapsed time in 
-units of "months", and therefore also "years".
+This "close of business" perspective is useful 
+for modeling accounting as-of dates,
+and easily
+extends to "month close" and "year close."
+The other major purpose of the `mondate` package is to
+measure elapsed time in 
+units of "months", 
+and therefore also "years",
+in a way that improves on base
+<span style="color:blue; font-family:Georgia;">R</span>'s 
+approach,
+particularly in 
+end-of-month situations.
 
 The four major benefits of the mondate package are:
 
@@ -38,7 +47,7 @@ The four major benefits of the mondate package are:
 1. Date Sequencing
 1. Date Cutting
 
-## Date Aging
+## 1. Date Aging
 
 The "age" of an event plays many important roles in business use cases.
 By default, `Date` objects are measured in units of "days" and `POSIXt` objects in 
@@ -85,9 +94,9 @@ print(ages)
 
 #### Example 3
 The last example in this section is actuarial in nature.
-Suppose ABC Company records the date of insured losses using the variable name
+Suppose ABC Insurance Co. records the date of insured losses using the variable
 DateOfLoss. 
-Here are 10 random dates after the end of 2010:
+Here are 10 random dates of loss after the end of 2010:
 ```{r}
 # generate 10 random dates after 2010
 set.seed(1)
@@ -107,9 +116,9 @@ print(QE)
 And here are the ages of the 10 losses as of each quarter end:
 ```{r}
 # a matrix of ages in units of months
-Ages <- sapply(QE, `-` , DateOfLoss)
-# code "not available" ages corresponding to evaluation dates prior to Date of Loss
-# (one instance)
+Ages <- round(sapply(QE, `-` , DateOfLoss), 1)
+# code ages as "not available" if the evaluation date preceeds 
+# the Date of Loss (one instance)
 Ages[Ages <= 0] <- NA
 print(Ages)
 ```
@@ -128,23 +137,30 @@ more elegant way to do the last calculation.
 
 `mondate`s can act arithmetically in (almost always) the same way
 their underlying `numeric` can 
-act.^[The underlying numeric measures the number of months since 
+act.^[The underlying `numeric` measures the number of months since 
 the close of business 1999-12-31 (".mondate.origin").]
 In particular, 
 the magnitude of the interval between two dates in units of months
-is measured, of course, using subtraction:
+is measured, of course, using subtraction.
+These two calculations yield the same result?
 ```{r}
-mondate("12/31/2015") - mondate("12/31/2014")
-mondate("12/31/2015") - as.Date("2015-01-01")
+mondate("2015-12-31") - mondate("2014-12-31")
+mondate("2015-12-31") - as.Date("2015-01-01")
 ```
-Why do the two calculations result in the same value?
+Why are the results identical
+even though the subtrahends would appear to be a day apart? 
 The answer is that the two objects,
-as.Date("2015-01-01") and mondate("12/31/2014")
-*represent the same instant in time*
-separating the moments in 2014 from the moments in 2015.
-Those two instants are by convention one year apart.
+`as.Date("2015-01-01")` and `mondate("2014-12-31")`
+*represent the same instant in time*,
+i.e.,
+the moment that separates events occuring in 2014 from
+those occurring in 2015.
+That moment is exactly one year away from the corresponding
+moment, 
+`mondate("2015-12-31")`,
+that separates calendar year 2015 from calendar year 2016.
 
-## Date Formatting
+##2. Date Formatting
 
 `mondate` enables dates to be read and displayed in more than one format.
 The default formats currently recognized are
@@ -162,7 +178,9 @@ for display ("writing") and
 
 #### Example 4
 This vignette is being written in the US, 
-so today's date will be represented using the first format above by default ...
+so today's date,
+`r format(Sys.Date(), "%B %d, %Y")`,
+will be represented using the first format above by default ...
 
 ```{r}
 mondate(Sys.Date())
@@ -180,7 +198,7 @@ mondate(Sys.Date())
 ```
 
 #### Example 5 
-French users may choose the format "dd/mm/YYYY" as follows:
+French users may choose to use the format "dd/mm/YYYY" as follows:
 
 ```{r}
 options(mondate.default.displayFormat = "%d/%m/%Y")
@@ -198,7 +216,7 @@ use the `displayFormat` argument during the object's creation.
 #### Example 6
 Here we create the first 6 month-ends of 2015
 to be displayed in the French format above
-despite the fact that the default format is changed to the ISO standard:
+despite the fact that the default format is first changed to the ISO standard:
 
 ```{r}
 options(mondate.default.displayFormat = "%Y-%m-%d")
@@ -223,7 +241,7 @@ options(mondate.default.displayFormat = NULL)
 
 ### "reading": dynamic format detection
 
-As mentioned above,
+As previously mentioned,
 the `mondate` package is pre-loaded with four formats for detecting dates
 
 1. US format a: "%m/%d/%Y"
@@ -240,14 +258,15 @@ to the value(s) of your choice.
 To add the French format "dd/mm/yyyy" to the *head* of the
 current list of detectable formats --
 thereby setting that format to priority 1 status --
-use the following code:
+use the following 
+code^[This example is given in ?set.mondate.displayFormats]:
 
 ```{r}
 set.mondate.displayFormats(c("%d/%m/%Y", 
                              get.mondate.displayFormats()), 
                            clear = TRUE)
 ```
-(This example is given in ?set.mondate.displayFormats.)
+
 Contining, 
 suppose dates in a spreadsheet are saved to a csv file in France
 and the `read.csv` function results in this data.frame:
@@ -275,34 +294,40 @@ author^[chiefmurphy at gmail].
 (All are welcome to visit the package's public repository at
 https://github.com/chiefmurph/mondate.)
 
-## Date Sequencing
+##3. Date Sequencing
 
-Sequences of dates in units of days or multiples of days
+Sequences of dates in units of days
 or weeks is easily accomplished using the base 
 <span style="color:blue; font-family:Georgia;">R</span>'s `Date` class:  
 ```{r} 
 seq(as.Date("2015-11-01"), by = "day", length.out = 5)
 ```
-Month-sequences can similarly be generated with `Date`s, and work well
+Month-sequences can similarly be generated with `Date`s, 
+which does work well
 for most dates.
-The exception can occur for dates near the end of the month.
-Compare, for example, the two sequences below,
-the first starting from the first day of January,
-the second from the last day of January:
+Results can be disappointing,
+however,
+for dates near the end of the month.
+Compare these two sequences
+starting from the first and last days of January:
 ```{r}
 seq(as.Date("2015-01-01"), by = "month", length.out = 5)
 seq(as.Date("2015-01-31"), by = "month", length.out = 5)
 ```
 All dates in the first sequence are the first days of the month,
 but some dates in the second sequence "leak" into subsequent months.
-Indeed this is is well documented in the help for `seq.POSIXt`:
+This behavior is well documented in
+<span style="color:blue; font-family:Georgia;">R</span>
+help^[see `?seq.POSIXt`]:
 
 >Using "month" first advances the month without changing the day: if this results in an invalid day of the month, it is counted forward into the next month
 
-The mondate package avoids this 
-shortcoming.^["Under the hood", `mondate` represent dates 
+Perhaps the major purpose of the mondate package
+is to avoid this 
+shortcoming.^["Under the hood" `mondate` represent dates 
 relative to the 
-percent of the month that has transpired by the close of business that day.]
+percent of the month that has transpired by the close of business that day.
+See references to Damien Laker in the "Thank You" section at the end.]
 
 #### Example 8
 Sequences of month ends can be accomplished in various "mondate" ways.
@@ -311,60 +336,68 @@ Here are two:
 seq(mondate("2015-01-31"), by = "month", length.out = 5)
 mondate.ymd(2015, 1:5)
 ```
-Note that the display format in the first sequence inherits from the
+The display format in the first sequence inherits from the
 format of the character representation of the beginning date.
-The display format in the second sequence is a function of the 
+The display format in the second sequence is based on the 
 author's locale (see "Date Formatting" section above).
 Also note that each of the objects generated above are of class "mondate".
 
+It is often more convenient to generate month sequences from `Date` objects,
+**and produce `Date` objects**,
+without having to resort to a `mondate` object in between.
+For that purpose the `seqmondate` generic function was written.
+
 ### seqmondate
-It might be more convenient to be able to generate month sequences from `Date` objects
-without having to resort to a `mondate` "transitional" object as above
-**and result in an object of class "Date".**
-That is the purpose of the `seqmondate` method, 
-which works on a variety of classes.
+`seqmondate(x)` generates sequences of class(x) for a variety of classes:
+`Date`, `POSIXt`, and `mondate`.
+For any other class(x) `seqmondate(x)` will produce a sequence of
+`mondate`s, if possible.
 By default, 'by = "month"' is assumed.
 
 #### Example 9
 
-This example repeats Example 7, 
-omits the 'by' argument and shortens the name of the 'length.out' argument.
-Note that
-the second sequence consists of all month-ends.
-Also note that the class of the resulting object is the same class
-as the object being operated on.
+This example repeats Example 7.
+The first sequence holds all firsts-of-the-month,
+the second all month-ends.
+The class of the resulting object is the same class
+as the object being operated upon.
 ```{r}
-seqmondate(as.Date("2015-01-01"), length = 5)
-seqmondate(as.Date("2015-01-31"), length = 5)
-class(seqmondate(as.Date("2015-01-31"), length = 5))
-class(seqmondate(as.POSIXlt("2015-01-31"), length = 5))
+(d <- seqmondate(as.Date("2015-01-01"), length = 5))
+(m <- seqmondate(as.Date("2015-01-31"), length = 5))
+class(d)
+class(m)
 ```
 
 #### Example 10: Year-ends
 Here are two ways to generate sequences of year-end dates.
 The first uses seqmondate as above.
-The second uses the `mondate.ymd` function, 
-specifying only the first argument ('year').
+The second uses the `mondate.ymd` function which,
+when only the first argument 'year' is specified,
+always generates the last day of the year.
 ```{r}
 seqmondate("2010-12-31", by = "year", length = 6)
 mondate.ymd(2010:2015)
 ```
 
-## Date Cutting
+## 4. Date Cutting
 
->Sidebar on `cut.default`  
+>**Sidebar on "cut" for numerics**  
 A `cut` of a `numeric` 'x' is a collection of (half-open,half-closed]
 intervals that "cover" 'x'.
 By "cover" is meant that every value in 'x' is contained in some 
 interval^[and thus not an "open cover" in a topological sense],
 with the exception that the minimum value of 'x' is excluded --
 unless the 'include.lowest' argument is explicitly set to `TRUE`.
-A 'cut' in 
+By default, the right endpoint is assumed to be closed, 
+but can be changed by setting `right = FALSE`.
+
+>A `cut` in 
 <span style="color:blue; font-family:Georgia;">R</span>
 is represented by a `factor`.
-The `cut.default` function beautifully enunciates
-the intervals by clearly identifying their borders
-in the labels of the cut's levels.
+The `cut` function elegantly enunciates
+the `numeric` intervals by clearly identifying the 
+(open,closed] borders
+in the labels of the factor's levels.
 
 A `cut` of a set of dates 'x' by "months" can be thought of as
 a collection of contiguous months such that every date in x is contained in
@@ -375,7 +408,7 @@ in the statistical analysis of events occurring in similar time periods.
 
 There is a `cut` method for `mondate`s when the 'breaks' argument is
 
-* `numeric` and so represents 
+* `numeric` and so determines 
 the borders between intervals, or
 * `character` and so identifies that the cover is to be a set of
 day-, week-, month-, year-, or 
@@ -386,7 +419,7 @@ Then we will see how one might use a `cut`.
 
 ####Example 11
 The following two commands work identically,
-only the displays of the results differ:
+the first on `numeric`, the second on `mondate`:
 ```{r}
 cut(seq(from = 180.5, to = 185.5, by = .5), breaks = 180:186)
 cut(seq(from = mondate(180.5), to = mondate(185.5), by = .5), breaks = 180:186)
@@ -398,19 +431,27 @@ it would be natural to choose the closed endpoint.
 That is the 'mondate' convention when 'breaks' is `character`.
 That bears repeating:
 
->The 'mondate' convention is to label a character cut of a set of dates
-with the **closed endpoint** defining each interval.
+>The 'mondate' convention is to label a *character cut*
+(breaks = "days", "months", ...)
+with the **closed endpoint** of the interval.
 As with `cut.default`, the closed endpoint is determined by
-the argument 'right':
-when `TRUE` the right endpoint is closed;
-when `FALSE` the left endpoint is closed.
+the argument `right`:
+when `TRUE` the right endpoint labels the interval,
+when `FALSE` the left endpoint labels the interval.
+
+We begin with examples of `mondate` cuts, 
+with `breaks` being `numeric` and `character`.
 
 ####Example 12
 
 The following two commands generate the same result
 The first explicitly sets the break points as the 
 month-ends beginning 2014-12-31 and ending six months later.
-The second implicitly sets the **same break points.**
+The second implicitly sets the same break points.
+As with `cut.default`,
+the labels of the first cut clearly enunciate the
+(open,closed] monthly intervals.
+The labels of the second cut only give the closed endpoint.
 ```{r}
 cut(seq(mondate("2015-01-15"), mondate("2015-06-15"), by = .5), 
     breaks = mondate.ymd(2014) + 0:6)
@@ -418,22 +459,26 @@ cut(seq(mondate("2015-01-15"), mondate("2015-06-15"), by = .5), breaks = "month"
     include.lowest = TRUE)
 ```
 In the case that breaks is `character` it is unfortunate to have to 
-set include.lowest opposite its default.
-(Excluding the minimum value of 'x' would be somewhat "random" given
-that other values of 'x' are probably in the same time interval.)
-
-`include.lowest` is not the only argument that can be counterintuitive
+set `include.lowest = TRUE`, 
+opposite its default value 
+`FALSE`.^[Excluding the minimum value of 'x' would be somewhat "random" given
+that other values of 'x' are probably in the same time interval.
+In the chase of `character` breakls,
+`include.lowest=FALSE` will result in an error.]
+Other `cut` arguments have default values as well that may seem 
+counterintuitive
 when it comes to cutting dates.
-Probably the most troubling default is `right = TRUE` because it violates 
+Probably the most troubling default is `right = TRUE` for `Date` objects 
+because it violates 
 the basic principle that `Date` objects begin on,
-and are synonymous with,
+and can be considered synonymous with,
 the instant beginning the day,
 i.e., the *left* endpoint.
 
 For those and other reasons,
 a `cutmondate` method was written to work on `Date`, `mondate`, and other objects
 with arguments that are more appropriate for their class.
-Other arguments were added, which we will see in due course.
+Other arguments were added as well, which we will see in due course.
 
 We now turn our attention to the `cutmondate` methods.
 
@@ -442,14 +487,15 @@ We now turn our attention to the `cutmondate` methods.
 The 'cutmondate' collection of methods are most effective when 
 'breaks' defines a cover in terms of months or multiple months.
 When the object being cut is a `Date` or `POSIXt`,
-the breakpoints are assumed to begin the period.
-Therefore, right = FALSE by default. 
-The results is a labeling of the levels according to the 
+the breakpoints are assumed to begin the period,
+right = FALSE by default,
+and the levels are labeled by the 
 first date in the period.
 
 ####Example 13
 
-Here we regenerate the dates in Example 3, and cut them into month intervals.
+Here we regenerate the same DateOfLoss dates from Example 3, 
+and cut them into month intervals.
 ```{r}
 set.seed(1)
 z <- rexp(10, .1)
@@ -459,26 +505,20 @@ print(DateOfLoss)
 cutmondate(DateOfLoss)
 ```
 The "28 Levels" says that it takes 28 contiguous months to cover 'DateOfLoss'.
-Note that the levels are labeled with the first day of each month,
-starting with February 1, 2011 and ending with May 1, 2013.
-In this case, 
-since class(DateOfLoss) equals "Date"
-cutmondate knows that the more natural value for 'right' is `FALSE`.
-
-To label the levels with the last day of the month, 
-specify right = TRUE when the object is a `Date`.
-Here the levels are labeled with the last day of each month,
-starting with February 28, 2011 and ending with May 31, 2013.
-In the second case the object is a `mondate`, so right = `TRUE` by default
-and the date is displayed in the default format of the author's locale.
+Note that the levels are labeled with the first day of each month because
+in this case
+`right=FALSE` by default.
+Specify `right=TRUE` and the levels are labeled by
+the last day of the month,
+which occurs by default in the second, `mondate` case below:
 ```{r}
 cutmondate(DateOfLoss, right = TRUE)
 cutmondate(monDOL)
 ```
 
 Before tackling the final examples,
-it is important to point out three additional arguments for `cut.mondate`
-(and therefore `cutmondate`)
+it is important to point out three new arguments for `cut.mondate`
+(and therefore for `cutmondate`)
 that do not appear in `cut.default` or `cut.Date`:
 
 * startmonth
@@ -486,60 +526,71 @@ that do not appear in `cut.default` or `cut.Date`:
 * attr.breaks = FALSE
 
 See the help for `cut.mondate` for details behind these arguments. 
-We will show how to use the first and third.
+We will show use of the first and third.
 
 ### Fiscal Years
 
-The 'startmonth' argument is important when you want to model fiscal years.
+The 'startmonth' argument enables *fiscal year cuts*.
 
 ####Example 14
 
-ABC Company's fiscal year is July 1 through June 30. 
+Suppose ABC's fiscal year is July 1 through June 30. 
 The dates of loss in the previous examples can be cut into fiscal years
 by setting startmonth = 7.
-The fiscal year cover will be three years long. 
-In the first case below the FYs are labeled by the first day of the fiscal year;
-in the second case, by the last day.
+Here we show three ways to cut DateOfLoss.
+The choice may depend on whether the company thinks of its fiscal year
+as being identified with the beginning or ending calendar year 
+(right = FALSE or TRUE, respectively).
+
 ```{r}
 cutmondate(DateOfLoss, breaks = "year", startmonth = 7)
+cutmondate(DateOfLoss, breaks = "year", startmonth = 7, right = TRUE)
 cutmondate(mondate(DateOfLoss), breaks = "year", startmonth = 7)
 ```
+
 Continuing, suppose ABC Company conventually refers to a fiscal year
 by the first of the two connected calendar years.
-The level labels can be automatically abbreviated as follows:
+The dates can be cut and the abbreviated labels automatically generated
+in the single function call
+
 ```{r}
 cutmondate(mondate(DateOfLoss, displayFormat = "%Y"), 
            breaks = "year", right = FALSE, startmonth = 7)
 ```
 
+In the final example we aggregate and plot data by fiscal year.
 
 ####Example 15
 
-ABC Company records loss amounts associated with the dates of loss at 
+ABC Insurance Co. records loss amounts associated with the dates of loss at 
 regular intervals. 
 Suppose the amounts as of 2016-06-30 are
 ```{r}
 (LossAmount <- round(rnorm(10, 1000, 100), -1))
 ```
-ABC is interested in calculating the ages in "months" of those amounts as of the
-end of the current fiscal year, June 30, 2016.
-Those ages are easily calculated as follows.
-Generate the Fiscal Year (FY) indicators as below, 
-using "attr.breaks = TRUE".
-This will return the break points as a attribute
-that can be used in the date arithmetic.
+
+ABC's actuaries want to calculate the "fiscal-accident-year" ages 
+in "months" of those amounts as of
+June 30, 2016,
+and total thos amounts by fiscal-accident-year.
+No problem!
+
+First, cut the loss dates into fiscal years (FY), 
+but this time also use
+"attr.breaks = TRUE",
+which makes the break points available for subsequent age calculations.
 ```{r}
 FY <- cutmondate(mondate(DateOfLoss, displayFormat = "%Y"), 
            breaks = "year", right = FALSE, startmonth = 7,
            attr.breaks = TRUE)
-age <- mondate.ymd(2016, 6)- attr(FY, "breaks")[FY]
+age <- mondate("2016-12-31") - attr(FY, "breaks")[FY]
 (data <- data.frame(DateOfLoss, LossAmount, FY, FYage = age))
 ```
 ^[<span style="color:blue; font-family:Georgia;">R</span>
 includes the units in FYage because 'age' is a `difftime` object.]
 
-Barplots of total loss by fiscal year and by fiscal year age can be
-generated as follows:
+Then plot the loss totals.
+The first plot below is by FY, the second by the age of the FY.
 ```{r}
 (LossByFY <- aggregate(LossAmount ~ FY, data, sum))
 barplot(LossByFY$LossAmount, names.arg = LossByFY$FY)
@@ -547,17 +598,6 @@ barplot(LossByFY$LossAmount, names.arg = LossByFY$FY)
 (LossByFYage <- aggregate(LossAmount ~ FYage, data, sum))
 barplot(LossByFYage$LossAmount, names.arg = LossByFYage$FYage)
 ```
-
-In summary,
-
-* "cutmondate" the set of dates using values for 'right' and 'startmonth'
-as appropriate for the situation.
-* `mondate(DateOfLoss)` is just one convenient way of abbreviating the factor levels.
-* Set 'attr.breaks = TRUE' so breakpoints are available for arithmetic.
-* Since FY is fundamentally an "index", `attr(FY, "breaks")[FY]` pulls out the 
-left breakpoint corresponding to each DateOfLoss's value of FY
-* The "age" results from subtraction from the `mondate` "as of" evaluation date
-of interest.
 
 
 ## Thank you
@@ -569,7 +609,7 @@ Development team for their work on
 
 A special thank you goes out to Gabor Grothendieck for his suggestion of,
 and help with,
-cut.mondate.
+`cut.mondate`.
 
 Finally,
 the "mondate perspective" was motivated by 
@@ -577,11 +617,12 @@ Damien Laker
 in his somewhat obscure 2008 paper
 *Time Calculations for Annualizing Returns: The Need for 
 Standardization*^[The Journal of Performance Measurement, Summer 2008]
-where he states the obvious 
+where he states the obvious :-) 
 "Annualization calculations based on whole
 months never wind up accidentally calculating that a
 year is anything other than a year long."
-Mr. Laker goes on to suggest two cases:
+
+Mr. Laker goes on to state his Recommended Method based on two cases:
 
 1. "For any period that starts and finishes on the last day of a
 month, the time calculation can be done entirely in
@@ -590,4 +631,7 @@ months."
 day of a month, it will be necessary to count a partial
 month."
 
-The mondate package embraces Mr. Laker's month-centric, end-of-business perspective.
+The mondate package embraces Mr. Laker's end-of-business,
+month-centric, 
+a-year-equals-twelve-months perspective.
+
