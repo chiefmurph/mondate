@@ -160,7 +160,7 @@ cut.mondate <- function (x, breaks, labels = NULL,
                         displayFormat = dF, formatFUN = fF)
       attr(breaks, "lechar") <- attr(lval, "lechar")
       attr(breaks, "rechar") <- attr(lval, "rechar")
-      if (is.null(labels)) levels(res) <- .intervalsplitToChar(lval)
+      if (is.null(labels)) levels(res) <- .intervalsplitToChar(lval, dF)
       else levels(res) <- labels
       if (attr.breaks) attr(res, "breaks") <- breaks  
       }
@@ -177,7 +177,8 @@ cut.mondate <- function (x, breaks, labels = NULL,
     
   # 11/3/15: !include.lowest is error when breaks is char
     if (!include.lowest) stop(
-      "!include.lowest is invalid when breaks is character")
+      "!include.lowest is invalid when breaks is character",
+      "\nExplicitly set to TRUE or consider using 'cutmondate'")
 
     # if days
     if (valid == 1) { # days
@@ -334,8 +335,10 @@ cut.mondate <- function (x, breaks, labels = NULL,
   #                  upper = as.numeric( sub("[^,]*,([^]]*)\\]", "\\1", labs) ))
   structure(cbind(lower = lenum, upper = renum), lechar = lechar, rechar = rechar)
 }
-.intervalsplitToChar <- function(lval)
-  paste(attr(lval, "lechar"), apply(as.character(mondate(lval)), 1, paste, collapse = ","), 
+.intervalsplitToChar <- function(lval, dF)
+  paste(attr(lval, "lechar"), apply(as.character(mondate(lval, 
+                                                         displayFormat = dF)), 
+                                    1, paste, collapse = ","), 
         attr(lval, "rechar"), sep = "")
 .year_boundary_right <- function(x, yearend.month = 12) {
   shift <- 12 - yearend.month
