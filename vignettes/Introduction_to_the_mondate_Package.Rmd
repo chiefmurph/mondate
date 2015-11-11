@@ -3,11 +3,12 @@ title: "Introduction to the mondate Package"
 author: "Dan Murphy"
 date: '`r Sys.Date()`'
 output:
-  html_document:
-    toc: yes
+  word_document: default
   pdf_document:
     toc: yes
     toc_depth: 3
+  html_document:
+    toc: yes
 vignette: |
   %\VignetteIndexEntry{Vignette Title} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
@@ -19,7 +20,7 @@ provides two broad classes for representing dates,
 Objects of these classes
 conform with 
 international
-standards^[Refer to http://www.iso.org/iso/home/standards/iso8601.htm
+standards^[Refer to http://www.iso.org/iso/home/standards/iso8601.htm]
 by marking a "day" with the instant of
 time that begins the day.
 It is straightforward to calculate 
@@ -56,7 +57,7 @@ The four major benefits of the mondate package are:
 1. Date Sequencing
 1. Date Cutting
 
-## 1. Date Aging
+## <span style="color:blue">1. Date Aging</span>
 
 The "age" of an event plays many important roles in business use cases.
 By default, `Date` objects are measured in units of "days" and `POSIXt` objects in 
@@ -65,7 +66,7 @@ But sometimes it is more convenient to measure elapsed time in units of
 "months" or "years".
 This is where `mondate` comes in.
 
-#### Example 1 
+#### Example 1
 If my "birth event" took place on February 29, 1996
 then my age on February 28, 2006 was 10:
 
@@ -143,7 +144,7 @@ Ages[Ages <= 0] <- NA
 data.frame(DateOfLoss, Ages)
 ```
 
-### Date Arithmetic
+### <span style="color:blue">Date Arithmetic</span>
 
 `mondate`s can act arithmetically in (almost always) the same way
 their underlying `numeric` can 
@@ -168,12 +169,12 @@ The answer is that the two objects,
 i.e.,
 the moment that separates events occuring in 2014 from
 events occurring in 2015.
+This points out a new feature in mondate v1.0.
 
-![star](star.png)
-This points out a new feature in mondate v1.0:
-*`Date`s can be subracted directly from `mondate`s.*
+>![star](star.png)
+`Date`s can be subracted directly from `mondate`s.
 
-##2. Date Formatting
+## <span style="color:blue">2. Date Formatting</span>
 
 `mondate` enables dates to be read and displayed in more than one format.
 The built-in formats that are automatically recognized are currently
@@ -187,7 +188,7 @@ The order can be changed and new formats added using `base::options`
 for display ("writing") and 
 `set.mondate.displayFormats` for "reading".
 
-### "writing": dynamic format display
+### <span style="color:blue">"writing": dynamic format display</span>
 
 By default,
 `mondate` looks at your value of `Sys.getlocale("LC_TIME")` at startup.
@@ -226,7 +227,7 @@ options(mondate.default.displayFormat = "%d/%m/%Y")
 mondate(Sys.Date())
 ```
 
-![star](star.png)
+>![star](star.png)
 The `options` approach modifies the default display format
 for **all** mondates in the 
 <span style="color:blue; font-family:Georgia;">R</span>
@@ -260,7 +261,7 @@ as was done in "Example 3" above.
 options(mondate.default.displayFormat = NULL)
 ```
 
-### "reading": dynamic format detection
+### <span style="color:blue">"reading": dynamic format detection</span>
 
 As previously mentioned,
 the `mondate` package has the four formats
@@ -315,7 +316,7 @@ author^[chiefmurphy at gmail].
 (All are welcome to visit the package's public repository at
 https://github.com/chiefmurph/mondate.)
 
-##3. Date Sequencing
+## <span style="color:blue">3. Date Sequencing</span>
 
 Sequences of dates in units of days
 or weeks is easily accomplished using the base 
@@ -363,13 +364,13 @@ The display format in the second sequence is based on the
 author's locale (see "Date Formatting" section above).
 Also note that each of the objects generated above are of class "mondate".
 
-![star](star.png)
+>![star](star.png)
 It is often more convenient to generate month sequences from `Date` objects,
 **and produce `Date` objects**,
 without having to resort to a `mondate` object in between.
 For that purpose the `seqmondate` generic function was written.
 
-### seqmondate
+### <span style="color:blue">seqmondate</span>
 `seqmondate(x)` generates sequences of class(x) for a variety of classes:
 `Date`, `POSIXt`, and `mondate`.
 For any other class(x) `seqmondate(x)` will produce a sequence of
@@ -397,13 +398,13 @@ seqmondate("2010-12-31", by = "year", length = 6)
 mondate.ymd(2010:2015)
 ```
 
-![star](star.png)
+>![star](star.png)
 If month- and year-end dates are intended to represent "as of" dates,
 it is preferable to create them as `mondate` objects rather than, say,
 `Date` objects if those dates will be used for "date aging" in units of
 months/years.
 
-## 4. Date Cutting
+## <span style="color:blue">4. Date Cutting</span>
 
 >**Sidebar on "cut" for numerics**  
 A `cut` of a `numeric` 'x' is a collection of (half-open,half-closed]
@@ -467,8 +468,7 @@ it seems natural to choose the closed endpoint.
 That is the 'mondate' convention when 'breaks' is `character`.
 This bears repeating:
 
-![star](star.png)
->The 'mondate' convention is to label a *character cut*
+>![star](star.png)The 'mondate' convention is to label a *character cut*
 (breaks = "days", "months", ...)
 with the **closed endpoint** of the interval.
 As with `cut.default`, the closed endpoint is determined by
@@ -516,30 +516,32 @@ the basic principle that `Date` objects begin on,
 and can be considered synonymous with,
 the instant beginning the day,
 i.e., the *left* endpoint.
+For those and other reasons
+a new `cutmondate` generic exists in mondate v1.0.
 
-![star](star.png)
-For those and other reasons,
-a `cutmondate` method was written to work on `Date`, `mondate`, and other objects
+>![star](star.png)
+The `cutmondate` work on `Date`, `mondate`, and other objects
 with arguments that are more appropriate for their class.
+
 Additionally,
 three new arguments were added to `cut.mondate`, 
 which we will cover in due course.
 
 We now turn our attention to the `cutmondate` methods.
 
-### cutmondate
+### <span style="color:blue">cutmondate</span>
 
 The 'cutmondate' collection of methods are most effective when 
 'breaks' defines a cover in terms of months or multiple months.
 
-![star](star.png)
+>![star](star.png)
 When the object being cut is a `Date` or `POSIXt`,
 the breakpoints are assumed to begin the period,
 right = FALSE by default,
 and the levels are labeled by the 
 first date in the period.
 If necessary,
-the labels can be set to the right endpoint with `right = TRUE`.
+set labels to the right endpoint with `right = TRUE`.
 
 ####Example 13
 
@@ -577,9 +579,9 @@ that do not appear in `cut.default` or `cut.Date`:
 See the help for `cut.mondate` for details behind these arguments. 
 We will show use of the first and third.
 
-### Fiscal Years
+### <span style="color:blue">Fiscal Years</span>
 
-![star](star.png)
+>![star](star.png)
 The 'startmonth' argument enables *fiscal year cuts*!
 
 ####Example 14
@@ -628,7 +630,7 @@ First, cut the loss dates into fiscal years (FY),
 but this time also use
 `attr.breaks = TRUE`.
 
-![star](star.png)
+>![star](star.png)
 To make the break points available for subsequent date aging,
 set `attr.breaks = TRUE` in `cutmondate`.
 
@@ -650,16 +652,21 @@ The first plot is by FY, the second by FY age.
 
 ```{r}
 (LossByFY <- aggregate(LossAmount ~ FY, data, sum))
-barplot(LossByFY$LossAmount, names.arg = LossByFY$FY, xlab = "Fiscal Year",
-        main = "Total Loss")
+barplot(LossByFY$LossAmount, names.arg = LossByFY$FY,
+        ylab = "$thousands",
+        xlab = "Fiscal Year",
+        main = paste("Total Loss\n As of", asof),
+                     col = "blue")
 # and
 (LossByFYage <- aggregate(LossAmount ~ FYage, data, sum))
 barplot(LossByFYage$LossAmount, names.arg = LossByFYage$FYage,
-        xlab = paste("Fiscal Year Age (mos) as of", asof),
-        main = "Total Loss")
+        ylab = "$thousands",
+        xlab = "Fiscal Year Age (months)",
+        main = paste("Total Loss\n As of", asof),
+                     col = "blue")
 ```
 
-## Summary
+## <span style="color:blue">Summary</span>
 
 The mondate package represents dates in a way that
 enables date aging and sequencing in a mathematically "invertible"
@@ -697,8 +704,9 @@ function to use for cutting those and other
 date-representing objects (`Date`, `POSIXt`)
 is `cutmondate` because the arguments default to values 
 intuitively appropriate for the object.
+The "startmonth" arguments allows the creation of fiscal year cuts.
 
-## Thank you
+## <span style="color:blue">Thank you</span>
 
 Many thanks to the 
 <span style="color:blue; font-family:Georgia;">R</span>
