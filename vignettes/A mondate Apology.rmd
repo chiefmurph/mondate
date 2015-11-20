@@ -2,7 +2,7 @@
 title: "A mondate Apology"
 author: "Dan Murphy"
 date: "November 19, 2015"
-output: pdf_document
+output: word_document
 ---
 
 The following example sentences are found throughout Financial Services:
@@ -42,14 +42,16 @@ so if a time designator is to be used,
 midnight
 would be the most appropriate.
 
-the 
-The International Organization for Standardization (ISO) wrote
+
+The International Organization for Standardization (ISO) sets
 the standards for computer representation of
-dates and times as a string of characters (ISO 8601).
-These standards hold that the first moment beginning a day occurs at time zero
-(00:00:00).
-ISO also has a standard way to indicate the last moment of a day, 
-24:00:00.^["Midnight ...
+dates and times as a string of characters.
+In particular,
+to represent the moment in time separating day 1 from day 2,
+ISO recognized that it had a choice between using the format
+24:00:00 ("hour 24") on day 1 or format 00:00:00 ("hour 00") on day 2.
+ISO chose not to adopt the former, rear-facing, accounting fomat but the latter,
+forward-facing, experimental-design format.^["Midnight ...
 may be referred to as either '00:00' or '24:00'.
 The notation '00:00' is used at the beginning of a calendar day and 
 is the more frequently used. 
@@ -57,84 +59,82 @@ At the end of a day use '24:00',
 i.e., midnight.
 '2007-04-05T24:00' is the same instant as '2007-04-06T00:00'. 
 www.wikipedia.org/wiki/ISO_8601]
-With computers it is important to build correspondences ("mappings")
-in a one-to-one fashion,
-and date/time representation is no exception.
-With regard to the instant in time
-separating day 1 from day 2,
-hour zero on day 2 was chosen as the standard representation
-rather than hour 24 on day 1.
+These standards are known as ISO 
+8601.
+^[ISO 8601, Third edition, *Data elements and interchange formats -- Information 
+interchange -- Representation of dates and times*
+(c) ISO 2004]
+
 Base
 R
-follows that standard.
+follows ISO 8601.
 
 "Under the hood"
 base
 R
-primarily uses the 
-`POSIX` classes for representing time,
-stored as the number of seconds since the beginning
-of 1970.^[In R, see ?DateTimeClasses. 
+stores time as the number of *seconds* since the beginning
+of 1970.^[The `POSIXt` classes. 
+In R, see ?DateTimeClasses. 
 For additional background, see https://en.wikipedia.org/wiki/Unix_time]
-For representing dates without time,
-base
+Base
 R
-primarily uses the 
-`Date` class,
-stored as the number of days since the beginning
-of 1970.^[See ?Dates.]
+stores dates without time as the number of *days* since the beginning
+of 1970.^[The `Date` class. 
+See ?Dates.]
 
 For example, 
-here we tell R that we want to save the first instant in time belonging
-to the first day of calendar year 2016 
+here we tell R that we want to store the instant in time belonging
+to the first day of 2016 
 in the variable *t*. 
-According to ISO 8601, 
-the proper way to represent that moment is "2015-01-01 00:00:00".
-That moment is 
+Per ISO 8601, 
+the proper format for that moment is "2015-01-01 00:00:00".
+Internally,
+R stores that moment as
 `r prettyNum(as.numeric(as.POSIXct("2016-01-01 00:00:00")))`
-seconds since the beginning of 1970,
-which we can see 
-using 
+seconds since the beginning of 1970.
 R's
-`as.numeric` function:
+`as.numeric` function strips away the POSIXct class'
+accoutrements to reveal the number inside.
 
 ```{r} 
 t <- as.POSIXct("2016-01-01 00:00:00")
 as.numeric(t)
 ```
 
-Notwithstanding the above,
+In the spirit of 8601 historical development,
+R developers allow
 R
-recognizes that hour 24 on December 31, 2015 is
-the same moment in time,
-and makes an exception^[Per `?strptime`
+to recognize hour 24
+as being
+the same moment in time as hour 00 the following day.^[Per `?strptime`
 "As a special exception strings such as 24:00:00 are accepted for input, 
 since ISO 8601 allows these."]
-in allowing hour 24 to be used when 
-specifying a time to POSIX.
 However
 R
-will consistently use hour zero when communicating that moment back to the user.
+will consistently use hour 00 when communicating that moment back to the user.
 
-Here we tell 
+For example,
+here we tell 
 R
-to store the 24th hour of December 31, 2015 in the variable *u*
-and note that *u* and *t* above store the same number of seconds,
-therefore coincide with the same moment in time,
-a point reinforced when
-the character string representations of the two variables are 
-displayed back to the user.
+to store the 24th hour of December 31, 2015 in the variable *u*.
+Note that R stores the same number of seconds for 
+*u* as for *t* above.
+Therefore,
+R
+considers those character strings to represent
+the same moment in time.
+When R uses 8601 format to communicate moment *u* back to the user,
+it says the moment is hour 00 January 1st.
 
 ``` {r}
 u <- as.POSIXct("2015-12-31 24:00:00")
-as.numeric(u) # same value as as.numeric(t)
-as.character(c(t, u), format = "%Y-%m-%d %H:%M:%S") # same string representation
+as.numeric(u)
+as.character(u, format = "%Y-%m-%d %H:%M:%S")
 ```
 
-The same consistent behavior occurs with 
+The same 8601-consistent behavior occurs with 
 R's
 `Date` class.
-
 Here we tell
 R
 to record the day (no time)
@@ -147,16 +147,20 @@ d <- as.Date("2015-12-31 24:00:00", format = "%Y-%m-%d %H:%M:%S")
 d
 ```
 
-This consistent behavior can lead to confusion
-when a December 31st accounting date is defined to R
+This 8601-consistent behavior can lead to confusion
+when a December 31st *accounting date* is defined to R
 using the last moment of that day,
 but R subsequently displays that date as January 1st.
 It would be preferable to be able to define an "asof" 
-accounting date to R,
-have R store the correct number of seconds until hour 24 that day,
-and also have R display the date of the day
-on which hour 24 occurred,
-not the following day on which hour zero occurred.
+accounting date so that R
+
+* Stores the correct number of seconds (or days) 
+from 1970-01-01 00:00:00 until hour 24 that day,
+and 
+* Displays back to the user the traditional "as of" date,
+i.e., the day
+on which hour 24 occurs,
+not the following day on which hour zero occurs.
 
 That is the purpose of the "asof" package.
 
