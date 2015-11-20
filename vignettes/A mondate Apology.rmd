@@ -1,0 +1,225 @@
+---
+title: "A mondate Apology"
+author: "Dan Murphy"
+date: "November 19, 2015"
+output: pdf_document
+---
+
+The following types of sentences can be found throughout financial services:
+
+A. The value of ABC Company liabilities as of December 31, 2015 is $100M.
+
+B. The age of November receivables as of December 31, 2015 is two months.
+
+These two sentences are difficult to model in R.
+The mondate2 package was written to implement a working model of sentences A and B.
+
+# Accounting Date
+
+> Definition: Accounting Date  
+An accounting date is the cutoff date for 
+reflecting events and recording amounts as paid or unpaid
+in a financial statement or accounting system. 
+The accounting date is sometimes referred to as the “as of” 
+date.^[Casualty Actuarial Society *Statement
+of Principles Regarding Property and Casualty Unpaid Claims Estimates*]
+
+Although financial statements are always stated as of a date, 
+say, December 31, 2015,
+it would be more complete to assign a time as well.
+Some say "any particular moment on the 31st" could be used.^["it 
+would be more accurate to write December 31, 20XX, 11:59:59, 
+or any particular moment on the 
+31st." http://www.investopedia.com/university/accounting/accounting5.asp]
+However, payments can potentially occur up to and including midnight
+December 31, 2015,
+so if a time designator is to be used, 
+midnight ending the day
+would be the most appropriate.
+
+The International Organization for Standardization (ISO) devised
+the recognized formats for representing
+dates and times (ISO 8601).
+These standards say that the first moment beginning a day is at time zero
+(00:00:00).
+ISO also has a standard way to indicate the last moment of a day, 
+24:00:00.^["Midnight ...
+may be referred to as either '00:00' or '24:00'.
+The notation '00:00' is used at the beginning of a calendar day and 
+is the more frequently used. 
+At the end of a day use '24:00',
+i.e., midnight.
+'2007-04-05T24:00' is the same instant as '2007-04-06T00:00'. 
+www.wikipedia.org/wiki/ISO_8601]
+With computers it is important to define correspondences
+in a one-to-one fashion.
+As regards instants in time and their character representations,
+the choice was made to represent the instant in time separating
+two days using time zero of the latter day.
+Base
+R
+follows that standard.
+For example, the first instant in time belonging
+to the first day of calendar year 2016 is "2015-01-01 00:00:00":
+
+```{r} 
+format(as.POSIXct("2016-01-01"), format = "%Y-%m-%d %H:%M:%S")
+```
+
+It turns out that the last instant in time belonging to calendar year 2015,
+midnight on December 31st, which is the same moment,
+can be used to designate a time instant to
+R.^[It is actually an exception.
+Per `?strptime`
+"As a special exception strings such as 24:00:00 are accepted for input, 
+since ISO 8601 allows these."]
+R
+will never use 24:00:00 to represent that instant when displaying that moment
+but will always use 00:00:00.
+Here is an example 
+(note: R must be informed of the full format of the character string
+in ordere to interpret the contents correctly).
+
+```{r}
+d <- as.Date("2015-12-31 24:00:00", format = "%Y-%m-%d %H:%M:%S")
+d
+```
+
+One way to represent an accounting date,
+or "as of" date, 
+in
+R
+is with an object
+that coincides with time zero of the following day.
+The asof package models accounting dates in that fashion. 
+
+# Age
+
+> Definition: Age  
+The age of event E as of accounting date A is the 
+length of time between the occurrence of event E and the end of 
+date A.
+
+Note that units are not mentioned in the definition of age. 
+This is because the appropriate unit should be use case specific.
+
+There is little ambiguity in defining elapsed time 
+(durations) in units of
+seconds or days.
+R's
+two Date/Time classes facilitate date/time
+arithmetic in uits of seconds and days.
+
+* The POSIXt classes store time as the number of seconds
+since the beginning of 1970, 
+so elapsed time in units of seconds is easily combined
+with a POSIXt object to yield another POSIXt object unambiguously.
+
+* The Date class stores time as the number of days
+since the beginning of 1970,
+so elapsed time in units of days is easily combined
+with a Date object to yield another Date object unambiguously.
+
+It is more complicated with units of months because
+month periods are comprised of different numbers of days.
+But this complication can be overcome with two key observations.
+
+1. It is commonly accepted that the length of time between 
+the beginning and end of a month is one "month".
+
+2. Given any time *t* in any given month,
+there is a unique portion *p*, 0<=*p*<=1,
+that represents the portion of the month completed by time *t*.
+Conversely, given any portion *p*,
+the point in time of a month completed as of that portion of the month
+can be easily found.
+
+Those two observations give rise to the definition of the 
+"month-time" of an instant in time:
+
+>Definition: Month Time  
+The month time of time *t* is a real number
+measuring the number of months since the beginning of 1970 to time *t*.
+The fractional part of the real number represents the portion
+of *t*'s month to have expired by time *t*.
+
+
+
+R
+has two classes,
+POSIXlt and POSIXct
+
+## Sentence B
+
+Base R follows that standard and represents an instant of time 
+as the number of seconds that have transpired since the beginning of 1970.
+
+It is well known that "months" are comprised of different 
+numbers of days.
+Although it is widely accepted that the length of time between 
+the beginning and end of a month is one "month",
+it is also recognized that month durations
+cannot be defined consistently in units of days.
+Those observations give rise to a different type of unit:
+"elapsed month" or "emonth".
+
+> Definition: Elapsed Month ("emonth")  
+The length of time between two instants in time *t1* and *t2*
+in units of "emonths" is  
+  mondate(*t2*) - mondate(*t1*)
+where
+  *mondate(t)* is a real number representing
+the number of months between the beginning of 1970 and
+time *t*.
+
+> Example  
+mondate("1970-02-01") = 1  
+mondate("1971-01-01") = 12
+mondate("1970-02-15 00:00:00") = 1.5 because the beginning of 
+February 15, 1970 is halfway through February 1970.
+as.Date("1971-01-01") - as.Date("1971-02-01") = 10.5 emonths 
+
+Conversely, given any real number t, 
+it is straightforward to find the time ?YYYYMMDD?HH:MM:SS.zzzzz? 
+that is t months away from the beginning of 1970 by 
+first counting whole months, 
+then counting into the next month (if necessary) the number of days and 
+seconds corresponding to that month per the fractional value of t.
+
+> Defintion: Elapsed Years  
+The number of elapsed years between times *t1* and *t2*
+equals the number of elapsed months divided by 12.
+
+### Case Study:
+
+ABC Ins. Co. started on 1/1/2010 to write earthquake insurance in California. 
+As claims are made, 
+ABC defines the occurrence date of a claim claim to be the date of 
+the earthquake and stores that date in an ISO-8601 compliant o
+bject (`POSIXt`). 
+ABC has had good luck so far -- only 20 claims have been made. 
+Here are their occurrence dates and their know values as of 12/31/2015:
+
+data ?
+
+To complete Sentence B, we need one more definition:
+
+> Definition: The age of accident year AY as of AOD is AOD - AY-01-01.
+
+The accident year age of the 20 claims is the vector  
+	mondate(?2015-12-31?) ? year(occurrenceDate)-01-01
+
+
+
+http://smallbusiness.chron.com/differences-dates-between-balance-sheet-income-sheet-24881.html
+
+"Balance Sheet Date
+A balance sheet often states that it is prepared as of a specific date, referred to as the balance sheet date. The balance sheet reports on a company’s financial conditions, namely the values of the company’s assets, liabilities and shareholders’ equity. Values are measured in terms of their monetary amounts at particular points in time rather than over any periods. At the end of an accounting cycle, with the accounting books closed to recording new business transactions, companies can summarize their financial conditions as of the cycle's end."
+
+http://www.casact.org/professionalism/standards/princip/SOP-Regarding-Property-and-Casualty-Unpaid-Claims-Estimates_Final%204-22-2015.pdf
+
+
+## Bibliography
+
+Here's a pretty good paper about dates, Lubridate, Chron:
+http://biostat.mc.vanderbilt.edu/wiki/pub/Main/ColeBeck/datestimes.pdf
