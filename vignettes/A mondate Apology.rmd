@@ -5,16 +5,19 @@ date: "November 19, 2015"
 output: pdf_document
 ---
 
-The following types of sentences can be found throughout financial services:
+The following example sentences are found throughout Financial Services:
 
 A. The value of ABC Company liabilities as of December 31, 2015 is $100M.
 
 B. The age of November receivables as of December 31, 2015 is two months.
 
-These two sentences are difficult to model in R.
-The mondate2 package was written to implement a working model of sentences A and B.
+The "asof" and "emonth" packages were written to simplify the modeling of these
+two sentences in 
+R.
 
-# Accounting Date
+# Package asof
+
+## Accounting Date
 
 > Definition: Accounting Date  
 An accounting date is the cutoff date for 
@@ -26,7 +29,9 @@ of Principles Regarding Property and Casualty Unpaid Claims Estimates*]
 
 Although financial statements are always stated as of a date, 
 say, December 31, 2015,
-it would be more complete to assign a time as well.
+it would be more thorough to assign a time as well,
+so as to identify all transactions
+impacting the financial statements as of that date.
 Some say "any particular moment on the 31st" could be used.^["it 
 would be more accurate to write December 31, 20XX, 11:59:59, 
 or any particular moment on the 
@@ -34,13 +39,14 @@ or any particular moment on the
 However, payments can potentially occur up to and including midnight
 December 31, 2015,
 so if a time designator is to be used, 
-midnight ending the day
+midnight
 would be the most appropriate.
 
-The International Organization for Standardization (ISO) devised
-the recognized formats for representing
-dates and times (ISO 8601).
-These standards say that the first moment beginning a day is at time zero
+the 
+The International Organization for Standardization (ISO) wrote
+the standards for computer representation of
+dates and times as a string of characters (ISO 8601).
+These standards hold that the first moment beginning a day occurs at time zero
 (00:00:00).
 ISO also has a standard way to indicate the last moment of a day, 
 24:00:00.^["Midnight ...
@@ -51,49 +57,112 @@ At the end of a day use '24:00',
 i.e., midnight.
 '2007-04-05T24:00' is the same instant as '2007-04-06T00:00'. 
 www.wikipedia.org/wiki/ISO_8601]
-With computers it is important to define correspondences
-in a one-to-one fashion.
-As regards instants in time and their character representations,
-the choice was made to represent the instant in time separating
-two days using time zero of the latter day.
+With computers it is important to build correspondences ("mappings")
+in a one-to-one fashion,
+and date/time representation is no exception.
+With regard to the instant in time
+separating day 1 from day 2,
+hour zero on day 2 was chosen as the standard representation
+rather than hour 24 on day 1.
 Base
 R
 follows that standard.
-For example, the first instant in time belonging
-to the first day of calendar year 2016 is "2015-01-01 00:00:00":
+
+"Under the hood"
+base
+R
+primarily uses the 
+`POSIX` classes for representing time,
+stored as the number of seconds since the beginning
+of 1970.^[In R, see ?DateTimeClasses. 
+For additional background, see https://en.wikipedia.org/wiki/Unix_time]
+For representing dates without time,
+base
+R
+primarily uses the 
+`Date` class,
+stored as the number of days since the beginning
+of 1970.^[See ?Dates.]
+
+For example, 
+here we tell R that we want to save the first instant in time belonging
+to the first day of calendar year 2016 
+in the variable *t*. 
+According to ISO 8601, 
+the proper way to represent that moment is "2015-01-01 00:00:00".
+That moment is 
+`r prettyNum(as.numeric(as.POSIXct("2016-01-01 00:00:00")))`
+seconds since the beginning of 1970,
+which we can see 
+using 
+R's
+`as.numeric` function:
 
 ```{r} 
-format(as.POSIXct("2016-01-01"), format = "%Y-%m-%d %H:%M:%S")
+t <- as.POSIXct("2016-01-01 00:00:00")
+as.numeric(t)
 ```
 
-It turns out that the last instant in time belonging to calendar year 2015,
-midnight on December 31st, which is the same moment,
-can be used to designate a time instant to
-R.^[It is actually an exception.
-Per `?strptime`
+Notwithstanding the above,
+R
+recognizes that hour 24 on December 31, 2015 is
+the same moment in time,
+and makes an exception^[Per `?strptime`
 "As a special exception strings such as 24:00:00 are accepted for input, 
 since ISO 8601 allows these."]
+in allowing hour 24 to be used when 
+specifying a time to POSIX.
+However
 R
-will never use 24:00:00 to represent that instant when displaying that moment
-but will always use 00:00:00.
-Here is an example 
-(note: R must be informed of the full format of the character string
-in ordere to interpret the contents correctly).
+will consistently use hour zero when communicating that moment back to the user.
+
+Here we tell 
+R
+to store the 24th hour of December 31, 2015 in the variable *u*
+and note that *u* and *t* above store the same number of seconds,
+therefore coincide with the same moment in time,
+a point reinforced when
+the character string representations of the two variables are 
+displayed back to the user.
+
+``` {r}
+u <- as.POSIXct("2015-12-31 24:00:00")
+as.numeric(u) # same value as as.numeric(t)
+as.character(c(t, u), format = "%Y-%m-%d %H:%M:%S") # same string representation
+```
+
+The same consistent behavior occurs with 
+R's
+`Date` class.
+
+Here we tell
+R
+to record the day (no time)
+on which the moment 2015-12-31 24:00:00 occurs.
+When the date is communicated back to the user,
+January 1st is displayed.
 
 ```{r}
 d <- as.Date("2015-12-31 24:00:00", format = "%Y-%m-%d %H:%M:%S")
 d
 ```
 
-One way to represent an accounting date,
-or "as of" date, 
-in
-R
-is with an object
-that coincides with time zero of the following day.
-The asof package models accounting dates in that fashion. 
+This consistent behavior can lead to confusion
+when a December 31st accounting date is defined to R
+using the last moment of that day,
+but R subsequently displays that date as January 1st.
+It would be preferable to be able to define an "asof" 
+accounting date to R,
+have R store the correct number of seconds until hour 24 that day,
+and also have R display the date of the day
+on which hour 24 occurred,
+not the following day on which hour zero occurred.
 
-# Age
+That is the purpose of the "asof" package.
+
+# Package emonth
+
+## Age
 
 > Definition: Age  
 The age of event E as of accounting date A is the 
@@ -101,7 +170,7 @@ length of time between the occurrence of event E and the end of
 date A.
 
 Note that units are not mentioned in the definition of age. 
-This is because the appropriate unit should be use case specific.
+This is because the appropriate unit should be specific to the use case.
 
 There is little ambiguity in defining elapsed time 
 (durations) in units of
@@ -149,7 +218,7 @@ R
 has two classes,
 POSIXlt and POSIXct
 
-## Sentence B
+### Sentence B
 
 Base R follows that standard and represents an instant of time 
 as the number of seconds that have transpired since the beginning of 1970.
@@ -218,8 +287,7 @@ A balance sheet often states that it is prepared as of a specific date, referred
 
 http://www.casact.org/professionalism/standards/princip/SOP-Regarding-Property-and-Casualty-Unpaid-Claims-Estimates_Final%204-22-2015.pdf
 
-
-## Bibliography
+# Bibliography
 
 Here's a pretty good paper about dates, Lubridate, Chron:
 http://biostat.mc.vanderbilt.edu/wiki/pub/Main/ColeBeck/datestimes.pdf
