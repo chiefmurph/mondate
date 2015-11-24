@@ -1,9 +1,20 @@
 ---
-title: "A mondate Apology"
+title: "The mondate Package"
 author: "Dan Murphy"
-date: "November 19, 2015"
-output: word_document
+date: "November 23, 2015"
+output: html_document
 ---
+
+Dates and date arithmetic are implemented in 
+R
+using international standards.
+The interpretation of
+those standards
+in an accounting context can often be difficult
+and sometimes misleading,
+particularly with respect to 
+identifying "closing dates"
+and date arithmetic measured in units of months and years.
 
 The following example sentences are found throughout Financial Services:
 
@@ -42,125 +53,70 @@ so if a time designator is to be used,
 midnight
 would be the most appropriate.
 
+Another reason for the closing instant to be the end of the day is
+for the purposes of date arithmetic.
+For example,
+the instant closing the month of December is 31 days from the beginning
+of December.
 
 The International Organization for Standardization (ISO) sets
 the standards for computer representation of
-dates and times as a string of characters.
-In particular,
-to represent the moment in time separating day 1 from day 2,
-ISO recognized that it had a choice between using the format
-24:00:00 ("hour 24") on day 1 or format 00:00:00 ("hour 00") on day 2.
-ISO chose not to adopt the former, rear-facing, accounting fomat but the latter,
-forward-facing, experimental-design format.^["Midnight ...
-may be referred to as either '00:00' or '24:00'.
-The notation '00:00' is used at the beginning of a calendar day and 
-is the more frequently used. 
-At the end of a day use '24:00',
-i.e., midnight.
-'2007-04-05T24:00' is the same instant as '2007-04-06T00:00'. 
-www.wikipedia.org/wiki/ISO_8601]
-These standards are known as ISO 
-8601.
-^[ISO 8601, Third edition, *Data elements and interchange formats -- Information 
+dates and times as a string of 
+characters.^[ISO 8601, 
+Third edition, *Data elements and interchange formats -- Information 
 interchange -- Representation of dates and times*
 (c) ISO 2004]
+Regarding "midnight",
+the standards recognize that the instant 24:00:00 (hour 24)
+marking the end of one calendar day 
+coincides with the instant 00:00:00 (hour 00) marking the start of the next calendar day.
+Furthermore, 
+"the choice of [hour 24 or hour 00] will depend upon any association with a date,
+or a time interval. 
+[Hour 24] representations are preferred to represent the *end*
+of a time interval."^[ISO 8601 4.2.3. Emphasis added.]
+The concept of the closing of the books at the end of a calendar year, 
+calendar month or calendar day^[defined as "time intervals" by ISO 8601]
+suggests that hour 24 is preferred for representing
+an accounting date.
 
-Base
-R
-follows ISO 8601.
+ISO 8601's representation of the accounting date referred to as
+"close of the 2015 calendar year" or "as of year end 2015"
+is therefore "2015-12-31 24:00:00".
 
-"Under the hood"
+On the other hand,
 base
-R
-stores time as the number of *seconds* since the beginning
-of 1970.^[The `POSIXt` classes. 
-In R, see ?DateTimeClasses. 
+R's
+implementation of the 8601 standards^[The `POSIXt` classes. 
+In R see ?DateTimeClasses. 
 For additional background, see https://en.wikipedia.org/wiki/Unix_time]
-Base
+stores time as the number of seconds since the beginning
+of 1970,
+so midnight is represented as hour 00 of the beginning of each 
+day.
+Therefore, the representation of "as of year end 2015"
+in
 R
-stores dates without time as the number of *days* since the beginning
-of 1970.^[The `Date` class. 
-See ?Dates.]
+is "2016-01-01 00:00:00"
+which is January 1st when 
+shortened to just the date.^[ISO 8601 2.1.5 recognizes that a "date" can represent 
+an instant in time as well as a span of time ("duration").]
+However,
+to refer to the 
+accounting date "as of year end 2015" with a label that
+uses the month "January"
+does not
+satisfactorily communicate the
+"as of December 31, 2015" accounting date concept.
 
-For example, 
-here we tell R that we want to store the instant in time belonging
-to the first day of 2016 
-in the variable *t*. 
-Per ISO 8601, 
-the proper format for that moment is "2015-01-01 00:00:00".
-Internally,
-R stores that moment as
-`r prettyNum(as.numeric(as.POSIXct("2016-01-01 00:00:00")))`
-seconds since the beginning of 1970.
-R's
-`as.numeric` function strips away the POSIXct class'
-accoutrements to reveal the number inside.
-
-```{r} 
-t <- as.POSIXct("2016-01-01 00:00:00")
-as.numeric(t)
-```
-
-In the spirit of 8601 historical development,
-R developers allow
+It would be preferable that 
 R
-to recognize hour 24
-as being
-the same moment in time as hour 00 the following day.^[Per `?strptime`
-"As a special exception strings such as 24:00:00 are accepted for input, 
-since ISO 8601 allows these."]
-However
-R
-will consistently use hour 00 when communicating that moment back to the user.
-
-For example,
-here we tell 
-R
-to store the 24th hour of December 31, 2015 in the variable *u*.
-Note that R stores the same number of seconds for 
-*u* as for *t* above.
-Therefore,
-R
-considers those character strings to represent
-the same moment in time.
-When R uses 8601 format to communicate moment *u* back to the user,
-it says the moment is hour 00 January 1st.
-
-``` {r}
-u <- as.POSIXct("2015-12-31 24:00:00")
-as.numeric(u)
-as.character(u, format = "%Y-%m-%d %H:%M:%S")
-```
-
-The same 8601-consistent behavior occurs with 
-R's
-`Date` class.
-Here we tell
-R
-to record the day (no time)
-on which the moment 2015-12-31 24:00:00 occurs.
-When the date is communicated back to the user,
-January 1st is displayed.
-
-```{r}
-d <- as.Date("2015-12-31 24:00:00", format = "%Y-%m-%d %H:%M:%S")
-d
-```
-
-This 8601-consistent behavior can lead to confusion
-when a December 31st *accounting date* is defined to R
-using the last moment of that day,
-but R subsequently displays that date as January 1st.
-It would be preferable to be able to define an "asof" 
-accounting date so that R
-
-* Stores the correct number of seconds (or days) 
-from 1970-01-01 00:00:00 until hour 24 that day,
-and 
-* Displays back to the user the traditional "as of" date,
-i.e., the day
-on which hour 24 occurs,
-not the following day on which hour zero occurs.
+and a user be able to communicate that
+concept using a label with "December" in it
+and also have that label refer to the instant
+in time separating calendar years 2015 and 2016 
+(`as.Date("2016-01-01")` in
+R).
 
 That is the purpose of the "asof" package.
 
@@ -170,11 +126,14 @@ That is the purpose of the "asof" package.
 
 > Definition: Age  
 The age of event E as of accounting date A is the 
-length of time between the occurrence of event E and the end of 
-date A.
+length of time from the occurrence of event E to 
+hour 24 on accounting date A.
 
 Note that units are not mentioned in the definition of age. 
 This is because the appropriate unit should be specific to the use case.
+In the vast majority of accounting situations,
+age is measured in units of days, months or years, not seconds,
+and the occurrence of the event is considered to coincide with hour 00. 
 
 There is little ambiguity in defining elapsed time 
 (durations) in units of
