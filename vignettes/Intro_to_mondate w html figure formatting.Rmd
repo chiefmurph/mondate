@@ -7,6 +7,125 @@ output:
     fig_caption: yes
 ---
 
+```{r echo=FALSE}
+
+# These 3 chunks from https://rpubs.com/ajlyons/autonumfigs
+
+# A function for generating captions and cross-references
+
+fig <- local({
+    i <- 0
+    list(
+        cap=function(refName, text, center=FALSE, col="black", inline=FALSE) {
+            i <<- i + 1
+            ref[[refName]] <<- i
+            css_ctr <- ""
+            if (center) css_ctr <- "text-align:center; display:inline-block; width:100%;"
+            cap_txt <- paste0("<span style=\"color:", col, "; ", css_ctr, "\">Figure ", i, ": ", text , "</span>")
+            anchor <- paste0("<a name=\"", refName, "\"></a>")
+            if (inline) {
+                paste0(anchor, cap_txt)    
+            } else {
+                list(anchor=anchor, cap_txt=cap_txt)
+            }
+        },
+        
+        ref=function(refName, link=FALSE, checkRef=TRUE) {
+            
+            ## This function puts in a cross reference to a caption. You refer to the
+            ## caption with the refName that was passed to fig$cap() (not the code chunk name).
+            ## The cross reference can be hyperlinked.
+            
+            if (checkRef && !refName %in% names(ref)) stop(paste0("fig$ref() error: ", refName, " not found"))
+            if (link) {
+                paste0("<A HREF=\"#", refName, "\">Figure ", ref[[refName]], "</A>")
+            } else {
+                paste0("Figure ", ref[[refName]])
+            }
+        },
+        
+        ref_all=function(){
+            ## For debugging
+            ref
+        })
+})
+```
+
+```{r echo=FALSE}
+## This chunk replaces the default hook for processing plots. It achieves the purposes,
+## of laying out auto-numbered captions, but other functionality may be gone.
+
+library(knitr)
+knit_hooks$set(plot = function(x, options) {
+    sty <- ""
+    if (options$fig.align == 'default') {
+        sty <- ""
+    } else {
+        sty <- paste0(" style=\"text-align:", options$fig.align, ";\"")
+    }
+    
+    if (is.list(options$fig.cap)) {
+        ## options$fig.cap is a list returned by the function fig$cap()
+        str_caption <- options$fig.cap$cap_txt
+        str_anchr <- options$fig.cap$anchor
+    } else {
+        ## options$fig.cap is a character object (hard coded, no anchor)
+        str_caption <- options$fig.cap
+        str_anchr <- ""
+    }
+    
+    paste('<figure', sty, '>', str_anchr, '<img src="',
+        opts_knit$get('base.url'), paste(x, collapse = '.'),
+        '"><figcaption>', str_caption, '</figcaption></figure>',
+        sep = '')
+    
+})
+```
+
+```{r echo=FALSE}
+## This chucnk will read through *this* Rmd file, and attempt to extract all of the 
+## labels (not caption text) used for Figure captions. These labels are used
+## as anchors, so scanning through the document now will allow us to create cross references
+## before the caption actually appears. 
+
+## Get the name of this Rmd file
+rmdFn <- knitr::current_input()  # filename of input document
+
+## Read lines and close connection
+rmdCon <- file(rmdFn, open = "r")
+rmdLines <- readLines(rmdCon)
+close(rmdCon)
+
+## Pull out all occurences of at least one back tick, followed 
+## by any number of characters, followed by fig$cap (all on one line)
+figscap_idx <- grep("`+(.*)fig\\$cap", rmdLines)
+rmdLines <- rmdLines[figscap_idx]
+
+## Get rid of everything up until the start of the caption label
+## This presumes the caption label is the first argument of fig$cap()
+## E.g., fig.cap = fig$cap("my_label", ...)
+rmdLinesSansPre <- sub("(.*)fig\\$cap(.*?)[\"']", "", rmdLines)
+
+## Identify everything up until the first quote
+match_data <- regexpr("(.*?)[\"']", rmdLinesSansPre)
+
+## Reduce the length by one, because we're not interested in the final quote
+attr(match_data, "match.length") <- attr(match_data, "match.length") - 1
+
+## Extract
+fig_labels <- regmatches(rmdLinesSansPre, match_data, invert=FALSE)
+
+if (length(fig_labels) > 0) {
+
+    ## Test for duplicates
+    if (anyDuplicated(fig_labels) > 0) stop("Duplicate caption labels detected")
+    
+    ## Create a named list of Figure numbers
+    ref <- as.list(1:length(fig_labels))
+    names(ref) <- fig_labels
+}    
+```
+
 ## Abstract:
 
 Dates and date arithmetic are implemented in 
@@ -132,152 +251,90 @@ length of time from the occurrence of event E to
 hour 24 on accounting date A.
 
 Note that units are not mentioned in the definition of age. 
-This is because the appropriate unit will be specific to the use case.
+This is because the appropriate unit should be specific to the use case.
 In the vast majority of accounting cases,
-age is measured in units of days, months or years, 
-not seconds.
+age is measured in units of days, months or years, not seconds.
 
-It turns out that the definitions of units days, months and years in ISO 8601
+It turns out that the definitions of these units in ISO 8601
 is not particularly straightforward,
-with complexity in proportion to the width of the unit.
+with complexity escalating in proportion to the width of the unit.
 Due to the fundamental monthly, quarterly, and yearly accounting cycles,
 it is generally not productive to used data defined more granularly than "month",
 but even that level of granularity has its complexities.
 
 This paper adds to that complexity with another take on "month": "emonth."
 But before getting to that, 
-let's first visit some "Basic Concepts" discussed by ISO 8601's:
-time intervals and their characteristics, including units of measurement.
+let's visit the common units as defined under ISO 8601's "Basic Concepts."
 
 ### time interval
 
-> Definition: time interval  
-A time interval is "part of the time axis limited by two 
+> A time interval is "part of the time axis limited by two 
 instants.
 [It] comprises all instants between the two limiting instants 
 and, unless otherwise stated, the limiting instants themselves."^[ISO 8601 2.1.3]
 
-Here is a diagram of three time intervals A, B, and C.
-Each of the intervals include their respective endpoints
-as allowed in the definiton,
-as indicated by the square brackets "[" and "]".
-When an endpoint is included in an interval, that
-endpoint is called "closed."
-When not included, the endpoint is called "open."
-Note that intervals B and C overlap at time instant 4 because
-each are closed at that point.
+```{r time_interval, fig.width = 10, fig.height=2, echo = F}
+#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+#par(mar=c(1,2,1,2))
+#plot(2, 0, , col="green", pch = 20, axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
+#     xlab="time", ylab="", main="time interval")
+#axis(1, pos=0)
+#arrows(x0=-.1, y0=0, x1=5.15, length=.1)
+#arrows(x0=2, y0=0, x1=3, col="green", lwd =2)
+#text(5.1, 0, "t", pos = 1)
+#box()
+```
 
-```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="a time interval"}
+Here is a diagram of a "time interval" where square brackets are used
+to indicate that the endpoints are included in the interval.
+
+```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="Fig 1"}
 #plot.window(xlim=c(0,5), ylim=c(-.5, .5))
 par(mar=c(1,2,1,2))
 par(lend="butt")
-plot(c(2,3), c(0,0), col="blue", type = "l", 
+plot(c(2,3), c(0,0), col="green", type = "l", #pch = 20, 
      axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
-     xlab="", ylab="")
+     xlab="time", ylab="", main="time interval")
 axis(1, pos=0)
 arrows(x0=-.1, y0=0, x1=5.15, length=.1)
+segments(x0=2.01, y0=0, x1=2.99, col="green", lwd =4)
+text(x=2.013, y=0, "[", col="green", font = 2)
+text(x=2.987, y=0, "]", col="green", font = 2)
 text(5.1, 0, "t", pos = 1)
 box()
-segments(x0=1.01, y0=0, x1=1.99, col="blue", lwd =4)
-
-text(x=1.013, y=0, "[", col="blue", font = 2)
-text(x=1.987, y=0, "]", col="blue", font = 2)
-text(x=1.5, y= .1, "A", col="blue")
-
-segments(x0=3.01, y0=0, x1=3.99, col="blue", lwd =4)
-text(x=3.013, y=0, "[", col="blue", font = 2)
-text(x=3.987, y=0, "]", col="blue", font = 2)
-text(x=3.5, y= .1, "B", col="blue")
-
-segments(x0=4.01, y0=0, x1=4.99, col="blue", lwd =4)
-text(x=4.01, y=0, "[", col="blue", font = 2)
-text(x=4.987, y=0, "]", col="blue", font = 2)
-text(x=4.5, y= .1, "C", col="blue")
 ```
 
-Although allowed, 
-it is generally undesirable for intervals to overlap
-because of the ambiguity implied when a time instant 
-is a member of two intervals.
-This ambiguity arises because,
-conforming with common tradition, 
-all instants within an interval 
-may be labeled by the same
-"mark." ^[See ISO 8601 2.1.4 Note 1.]
-
-For example, suppose Figure 1 illustrates
-the first five days of calendar year 1970.
-Intervals A, B, and C correspond to January 2, 4, and 5, respectively.
-ISO 8601 recognizes that all times within January 2nd may be 
-labeled with the mark "January 2, 1970."
-Other "marks" that may be used are "1970-01-02" and "1970-01-02 00:00:00".
-Indeed, in this case the mark "1970-01-02 00:00:00",
-i.e., midnight between January 1st and 2nd, 
-refers not just to that instant but as well to every other
-instant during January 2, 1970.
-ISO 8601 recognizes this common tradition when it says
-"On a time scale consisting of successive steps, 
-two distinct instants may be expressed by the same time 
-point."^[2.1.5 Note 1]
-
-On the other hand, if B and C are allowed to overlap 
-at the instant "1970-01-05 00:00:00" 
-then that mark -- and its commonly-shortened version "1970-01-05" -- 
-could conceivably express all instants within both B
-(January 4) and C (January 5), 
-clearly an undesirable situation.
-
-To avoid overlapping time intevals it is preferable to leave 
-one of the endpoints "open", indicated by parens:
-"(" for a left-open endpoint, ")" for a right-open endpoint.
-
-R's POSIXt implementation models time intervals as left-closed,
-right-open intervals.
-Figure 2 is a plot of R's representation of the five days 
-surrounding the transition from calendar year 1969 to 1970,
-using the `POSIXct` class to represent the endpoints.
-
-```{r}
-a <- as.POSIXct((-5:5)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
-a
-```
-
-```{r first_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="beginning days of 1970, borders modeled by POSIXt instances"}
+```{r chunk2, fig.width = 10, fig.height=2, echo = F, fig.cap = fig$cap("five_to_one", "This is a plot of the numbers five to one")}
 #plot.window(xlim=c(0,5), ylim=c(-.5, .5))
 par(mar=c(1,2,1,2))
 par(lend="butt")
-plot(a, y=rep(0, 6), type = "l", axes = F, 
-     ylim=c(-.5, .5), xlim = c(a[1]-(a[2]-a[1])/2, a[6]+(a[2]-a[1])/2),
-     xlab="", ylab="")
-axis(1, at=a, labels=a, pos=0)
-arrows(x0=a[1]-60*60*8, y0=0, x1=a[6]+60*60*8, length=.1)
-text(a[6]+60*60*6, 0, "t", pos = 1)
-segments(x0=a[1:5], y0=0, x1=a[2:6], col="blue", lwd =4)
-for (i in 1:5) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2)
-for (i in 2:6) text(x=a[i] - 15*60, y=0, ")", col="blue", font = 2)
-
-box()
-```
-
-
-
-```{r time_interval_open, fig.width = 10, fig.height=2, echo = F, fig.cap="a left-closed / right-open time interval"}
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
-par(mar=c(1,2,1,2))
-par(lend="butt")
-plot(c(2,3), c(0,0), col="blue", type = "l",
+plot(c(2,3), c(0,0), col="green", type = "l", #pch = 20, 
      axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
-     xlab="time", ylab="")
-axis(1, pos=-.2)
-axis(1, pos=.3)
-arrows(x0=-.1, y0=-.2, x1=5.15, length=.1)
+     xlab="time", ylab="", main="time interval")
+axis(1, pos=0)
+arrows(x0=-.1, y0=0, x1=5.15, length=.1)
+segments(x0=2.01, y0=0, x1=2.99, col="green", lwd =4)
+text(x=2.013, y=0, "[", col="green", font = 2)
+text(x=2.987, y=0, "]", col="green", font = 2)
 text(5.1, 0, "t", pos = 1)
-segments(x0=2.01, y0=0, x1=2.99, col="blue", lwd =4)
-text(x=2.013, y=0, "[", col="blue", font = 2)
-text(x=2.987, y=0, ")", col="blue", font = 2)
 box()
 ```
 
+```{r chunk3, fig.width = 10, fig.height=2, echo = F, fig.cap = fig$cap("timeinterval", "A time interval"), fig.align="center"}
+#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+par(mar=c(1,2,1,2))
+par(lend="butt")
+plot(c(2,3), c(0,0), col="green", type = "l", #pch = 20, 
+     axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
+     xlab="time", ylab="", main="time interval")
+axis(1, pos=0)
+arrows(x0=-.1, y0=0, x1=5.15, length=.1)
+segments(x0=2.01, y0=0, x1=2.99, col="green", lwd =4)
+text(x=2.013, y=0, "[", col="green", font = 2)
+text(x=2.987, y=0, "]", col="green", font = 2)
+text(5.1, 0, "t", pos = 1)
+box()
+```
 
 ### duration
 
