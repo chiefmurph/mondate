@@ -31,17 +31,237 @@ are somewhat cumbersome to implement using base R alone:
 The purpose of this paper is show a way to
 implement ISO-8601:2004-consistent solutions to those requirements in an R package.
 
-## Introduction
+## A Short Background on ISO 8601
 
-The following example sentences are found throughout financial services:
+It will be important to visit a few "basic concepts"
+that most people understand intuitively but must be defined precisely
+if computers are to understand too.
 
-A. The value of ABC Company liabilities as of December 31, 2015 is $100M.
+* time interval
+* duration
+* other?
 
-B. The age of November receivables as of December 31, 2015 is two months.
+### time interval
 
-The mondate package was written to simplify the modeling of these
-two sentences in 
-R.
+> Definition: time interval  
+A time interval is "part of the time axis limited by two 
+instants.
+[It] comprises all instants between the two limiting instants 
+and, unless otherwise stated, the limiting instants themselves."^[ISO 8601 2.1.3]
+
+Figure 1 below is a diagram of two time intervals A and B on the time axis.
+Each includes its respective endpoints
+as indicated by the square brackets "[" and "]".
+A and B overlap at time point 1.
+
+```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="a time interval"}
+#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+par(mar=c(1,2,1,2))
+par(lend="butt")
+plot(c(2,3), c(0,0), col="blue", type = "l", 
+     axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
+     xlab="", ylab="")
+axis(1, pos=0)
+arrows(x0=-.1, y0=0, x1=5.15, length=.1)
+text(5.1, 0, "t", pos = 1)
+box()
+
+segments(x0=0.01, y0=0, x1=0.99, col="blue", lwd =4)
+text(x=0.013, y=0, "[", col="blue", font = 2, cex=2)
+text(x=0.987, y=0, "]", col="blue", font = 2, cex=2)
+text(x=0.5, y= .1, "A", col="blue")
+
+segments(x0=1.01, y0=0, x1=1.99, col="blue", lwd =4)
+text(x=1.013, y=0, "[", col="blue", font = 2, cex=2)
+text(x=1.987, y=0, "]", col="blue", font = 2, cex=2)
+text(x=1.5, y= .1, "B", col="blue")
+
+#segments(x0=4.01, y0=0, x1=4.99, col="blue", lwd =4)
+#text(x=4.01, y=0, "[", col="blue", font = 2, cex=2)
+#text(x=4.987, y=0, "]", col="blue", font = 2, cex=2)
+#text(x=4.5, y= .1, "C", col="blue")
+```
+
+
+
+Although allowed, 
+it is generally undesirable for intervals to overlap
+because of the ambiguity implied when a time instant 
+is a member of two intervals.
+This ambiguity arises because,
+conforming with common tradition, 
+all instants within an interval 
+may be labeled by the same
+"mark."^[See ISO 8601 2.1.4 Note 1.]
+
+For example, suppose Figure 1 is actually a simple diagram of
+the first days of calendar year 1970.
+Intervals A and B correspond to January 1st and 2nd, respectively.
+Indeed,
+A is a "time interval" because it is a part of the time axis,
+specifically the part between the two instants 
+"midnight before January 1" and "midnight before January 2".
+Any instant within interval A may wear the label "January 1, 1970"
+equally in situations when the time of day is not important.
+The ISO committee recognized the sharing of a common label among
+similar neighboring objects at a more granular level when it said
+"On a time scale consisting of successive steps [e.g., seconds], 
+two distinct instants may be expressed by the same time 
+point [e.g., 1970-01-01]."^[2.1.5 Note 1]
+
+Under its broadest interpretation, however,
+the sharing of labels among time intervals can create ambiguities,
+particularly in the broadest case when
+time intervals are allowed to be closed at both ends.
+
+For example, 
+intervals A and B overlap at midnight.
+Does that instant belong to A or to B?
+If "both", then wouldn't it follow that the midnight mark
+"1970-01-02 00:00:00" could refer to the instants in both A and B?
+What about when midnight is expressed as "1970-01-01 24:00:00"?^Also allowed by ISO 8601:2004
+
+These complications can be easily avoided, however.
+Simply leave 
+one of the endpoints "open."
+
+That is exactly what R does in its implementation of the 
+`POSIXt` and `Date` classes.
+
+Figure 2 is a plot of R's representation of the five days 
+surrounding the transition from calendar year 1969 to 1970,
+using the `POSIXct` class to express the endpoints.
+
+```{r}
+n = 5
+a <- as.POSIXct((-n:n)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
+a
+```
+
+```{r surrounding_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="beginning days of 1970, borders modeled by POSIXt instances"}
+#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+par(mar=c(1,2,1,2))
+par(lend="butt")
+NDaysInSecs <- 60*60*24*n
+RadiusOfWindow <- NDaysInSecs + 60*60*24
+plot(a, y=rep(0, 2*n+1), type = "l", axes = F, 
+     ylim=c(-1, 1), xlim = c(-RadiusOfWindow, RadiusOfWindow),
+     xlab="", ylab="")
+axis(1, at=a, labels=a, pos=0)
+arrows(x0=a[1]-60*60*24, y0=0, x1=a[2*n+1]+60*60*24, length=.1, code = 3)
+text(a[2*n+1]+60*60*12, 0, "t", pos = 1)
+segments(x0=a[1:(2*n)], y0=0, x1=a[2:(2*n+1)], col="blue", lwd =4)
+for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2, cex=2)
+for (i in 2:(2*n+1)) text(x=a[i] - 15*60, y=0, ")", col="blue", font = 2, cex=2)
+axis(2, pos=0, labels = FALSE, lwd.ticks=0, lty="dotted")
+text(0, .8, "origin =\n\"1970-01-01 00:00:00\"", pos=1)
+box()
+```
+
+Labeling an interval
+
+rotate around origin -- "dual"
+
+"cut"
+
+leap second?
+
+
+
+### duration
+
+> A duration is the "non-negative quantity ['magnitude'] attributed to a time interval, 
+the value of which is equal to the difference between the time points 
+of the final instant and the initial instant of the time interval."^[ISO 8601 2.1.6]
+
+Think of a duration as the length of the vector ("magnitude") representing
+a time interval.
+In the figure below, the magnitude of the vector is one -- 
+second, day, month, etc. --
+depending on the context.
+
+```{r duration, fig.width = 10, fig.height=2}
+par(mar=c(1,2,1,2))
+plot(2, 0, xlim=c(0,5), ylim=c(-.5, .5), col="green", pch = 20, axes=F, 
+     xlab="", ylab="", main="duration")
+arrows(x0=2, y0=0, x1=3, col="green", lwd =2)
+box()
+```
+
+Under the International System of Units (SI),
+the base unit of duration is "seconds".
+Indeed,
+whenever a duration is expressed in units other than "seconds"
+that length of time is referred to as a "nominal duration."^[ISO 8601 2.1.7]
+Examples of nominal durations are calendar day (its length in seconds can vary
+depending on leap seconds and daylight/standard time shifts),
+calendar month (its length in seconds varies, in addition to calendar day
+variability, due to differing numbers of calendar days in a month),
+and calendar year (in addition to calendar day variability, its length
+can vary due to the addition of a leap day).
+We will see examples of this behavior in R below.
+
+#### seconds
+
+`seconds` are the base unit for expressing duration.
+
+
+
+As pertains
+R,
+that means ages need not rely on classes as granular as POSIXt;
+the `Date` class, which keeps track of calendar days,
+should suffice.
+
+When a contract specifies an inception date but no time,
+e.g., an insurance policy,
+for 
+the event E corresponding to the financial responsibilities incepting therein,
+it is customary to consider those responsibilities to start at hour 00.
+When considering the age of the aggregation of events occurring during a 
+time interval, 
+financial and accounting models will "tag" those events with the same 
+instant of inception.
+Two general instants can be found,
+particularly in the actuarial literature:
+
+1. the beginning instant of the interval
+2. the midpoint of the interval.
+
+
+
+It would seem that the calculation of an age in units of "days" would
+be straightforward,
+but there are a couple of complicating factors.
+First, ISO 8601 defines a "day" to be the unit of time
+equal to exactly 24 hours.
+It defines a "calendar day" to be the interval of time
+between successive midnights.
+Those calendar day intervals are usually one day in length, 
+but for two exceptions:
+
+1. Leap seconds:
+Every once in a while a second must be added to or subtracted
+from Coordinated Universal Time (UTC) to realign UTC solar time (UT1).
+
+2. Daylight time:
+Frequently the clock is adjusted by local authorities.
+
+`r 60*60*24 == 86400`
+`r 86400*30 == 2592000`
+
+`r as.Date("2015-12-01") - as.Date("2015-11-01") # Time difference of 30 days`
+
+`r as.POSIXct("2015-12-01") - as.POSIXct("2015-11-01") # Time difference of 30.04167 days`
+
+`r as.POSIXct("2015-12-01 00:00:00") - as.POSIXct("2015-11-01 00:00:00") # Time difference of 30.04167 days`
+
+`r as.character(difftime(as.POSIXct("2015-12-01 00:00:00"), 
+as.POSIXct("2015-11-01 00:00:00"), units = "sec")) # Time difference of 2595600 secs`
+
+`r 2595600 - 2592000 == 3600`
+
+`r 3600 == 60*60 # 1 hour`
 
 ## Accounting Date
 
@@ -156,238 +376,8 @@ it is generally not productive to used data defined more granularly than "month"
 but even that level of granularity has its complexities.
 
 This paper adds to that complexity with another take on "month": "emonth."
-But before getting to that, 
-let's first visit some "Basic Concepts" discussed by ISO 8601's:
-time intervals and their characteristics, including units of measurement.
-
-### time interval
-
-> Definition: time interval  
-A time interval is "part of the time axis limited by two 
-instants.
-[It] comprises all instants between the two limiting instants 
-and, unless otherwise stated, the limiting instants themselves."^[ISO 8601 2.1.3]
-
-Here is a diagram of three time intervals A, B, and C.
-Each of the intervals include their respective endpoints
-as allowed in the definiton,
-as indicated by the square brackets "[" and "]".
-When an endpoint is included in an interval, that
-endpoint is called "closed."
-When not included, the endpoint is called "open."
-Note that intervals B and C overlap at time instant 4 because
-each are closed at that point.
-
-```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="a time interval"}
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
-par(mar=c(1,2,1,2))
-par(lend="butt")
-plot(c(2,3), c(0,0), col="blue", type = "l", 
-     axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
-     xlab="", ylab="")
-axis(1, pos=0)
-arrows(x0=-.1, y0=0, x1=5.15, length=.1)
-text(5.1, 0, "t", pos = 1)
-box()
-segments(x0=1.01, y0=0, x1=1.99, col="blue", lwd =4)
-
-text(x=1.013, y=0, "[", col="blue", font = 2)
-text(x=1.987, y=0, "]", col="blue", font = 2)
-text(x=1.5, y= .1, "A", col="blue")
-
-segments(x0=3.01, y0=0, x1=3.99, col="blue", lwd =4)
-text(x=3.013, y=0, "[", col="blue", font = 2)
-text(x=3.987, y=0, "]", col="blue", font = 2)
-text(x=3.5, y= .1, "B", col="blue")
-
-segments(x0=4.01, y0=0, x1=4.99, col="blue", lwd =4)
-text(x=4.01, y=0, "[", col="blue", font = 2)
-text(x=4.987, y=0, "]", col="blue", font = 2)
-text(x=4.5, y= .1, "C", col="blue")
-```
-
-Although allowed, 
-it is generally undesirable for intervals to overlap
-because of the ambiguity implied when a time instant 
-is a member of two intervals.
-This ambiguity arises because,
-conforming with common tradition, 
-all instants within an interval 
-may be labeled by the same
-"mark." ^[See ISO 8601 2.1.4 Note 1.]
-
-For example, suppose Figure 1 illustrates
-the first five days of calendar year 1970.
-Intervals A, B, and C correspond to January 2, 4, and 5, respectively.
-ISO 8601 recognizes that all times within January 2nd may be 
-labeled with the mark "January 2, 1970."
-Other "marks" that may be used are "1970-01-02" and "1970-01-02 00:00:00".
-Indeed, in this case the mark "1970-01-02 00:00:00",
-i.e., midnight between January 1st and 2nd, 
-refers not just to that instant but as well to every other
-instant during January 2, 1970.
-ISO 8601 recognizes this common tradition when it says
-"On a time scale consisting of successive steps, 
-two distinct instants may be expressed by the same time 
-point."^[2.1.5 Note 1]
-
-On the other hand, if B and C are allowed to overlap 
-at the instant "1970-01-05 00:00:00" 
-then that mark -- and its commonly-shortened version "1970-01-05" -- 
-could conceivably express all instants within both B
-(January 4) and C (January 5), 
-clearly an undesirable situation.
-
-To avoid overlapping time intevals it is preferable to leave 
-one of the endpoints "open", indicated by parens:
-"(" for a left-open endpoint, ")" for a right-open endpoint.
-
-R's POSIXt implementation models time intervals as left-closed,
-right-open intervals.
-Figure 2 is a plot of R's representation of the five days 
-surrounding the transition from calendar year 1969 to 1970,
-using the `POSIXct` class to represent the endpoints.
-
-```{r}
-n = 5
-a <- as.POSIXct((-n:n)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
-a
-```
-
-```{r surrounding_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="beginning days of 1970, borders modeled by POSIXt instances"}
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
-par(mar=c(1,2,1,2))
-par(lend="butt")
-NDaysInSecs <- 60*60*24*n
-RadiusOfWindow <- NDaysInSecs + 60*60*24
-plot(a, y=rep(0, 2*n+1), type = "l", axes = F, 
-     ylim=c(-1, 1), xlim = c(-RadiusOfWindow, RadiusOfWindow),
-     xlab="", ylab="")
-axis(1, at=a, labels=a, pos=0)
-arrows(x0=a[1]-60*60*24, y0=0, x1=a[2*n+1]+60*60*24, length=.1, code = 3)
-text(a[2*n+1]+60*60*12, 0, "t", pos = 1)
-segments(x0=a[1:(2*n)], y0=0, x1=a[2:(2*n+1)], col="blue", lwd =4)
-for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2)
-for (i in 2:(2*n+1)) text(x=a[i] - 15*60, y=0, ")", col="blue", font = 2)
-axis(2, pos=0, labels = FALSE, lwd.ticks=0, lty="dotted")
-text(0, .5, "origin =\n\"1970-01-01\"", pos = 1)
-box()
-```
 
 
-
-```{r time_interval_open, fig.width = 10, fig.height=2, echo = F, fig.cap="a left-closed / right-open time interval"}
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
-par(mar=c(1,2,1,2))
-par(lend="butt")
-plot(c(2,3), c(0,0), col="blue", type = "l",
-     axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
-     xlab="time", ylab="")
-axis(1, pos=-.2)
-axis(1, pos=.3)
-arrows(x0=-.1, y0=-.2, x1=5.15, length=.1)
-text(5.1, 0, "t", pos = 1)
-segments(x0=2.01, y0=0, x1=2.99, col="blue", lwd =4)
-text(x=2.013, y=0, "[", col="blue", font = 2)
-text(x=2.987, y=0, ")", col="blue", font = 2)
-box()
-```
-
-
-### duration
-
-> A duration is the "non-negative quantity ['magnitude'] attributed to a time interval, 
-the value of which is equal to the difference between the time points 
-of the final instant and the initial instant of the time interval."^[ISO 8601 2.1.6]
-
-Think of a duration as the length of the vector ("magnitude") representing
-a time interval.
-In the figure below, the magnitude of the vector is one -- 
-second, day, month, etc. --
-depending on the context.
-
-```{r duration, fig.width = 10, fig.height=2}
-par(mar=c(1,2,1,2))
-plot(2, 0, xlim=c(0,5), ylim=c(-.5, .5), col="green", pch = 20, axes=F, 
-     xlab="", ylab="", main="duration")
-arrows(x0=2, y0=0, x1=3, col="green", lwd =2)
-box()
-```
-
-Under the International System of Units (SI),
-the base unit of duration is "seconds".
-Indeed,
-whenever a duration is expressed in units other than "seconds"
-that length of time is referred to as a "nominal duration."^[ISO 8601 2.1.7]
-Examples of nominal durations are calendar day (its length in seconds can vary
-depending on leap seconds and daylight/standard time shifts),
-calendar month (its length in seconds varies, in addition to calendar day
-variability, due to differing numbers of calendar days in a month),
-and calendar year (in addition to calendar day variability, its length
-can vary due to the addition of a leap day).
-We will see examples of this behavior in R below.
-
-#### seconds
-
-`seconds` are the base unit for expressing duration.
-
-
-
-As pertains
-R,
-that means ages need not rely on classes as granular as POSIXt;
-the `Date` class, which keeps track of calendar days,
-should suffice.
-
-When a contract specifies an inception date but no time,
-e.g., an insurance policy,
-for 
-the event E corresponding to the financial responsibilities incepting therein,
-it is customary to consider those responsibilities to start at hour 00.
-When considering the age of the aggregation of events occurring during a 
-time interval, 
-financial and accounting models will "tag" those events with the same 
-instant of inception.
-Two general instants can be found,
-particularly in the actuarial literature:
-
-1. the beginning instant of the interval
-2. the midpoint of the interval.
-
-
-
-It would seem that the calculation of an age in units of "days" would
-be straightforward,
-but there are a couple of complicating factors.
-First, ISO 8601 defines a "day" to be the unit of time
-equal to exactly 24 hours.
-It defines a "calendar day" to be the interval of time
-between successive midnights.
-Those calendar day intervals are usually one day in length, 
-but for two exceptions:
-
-1. Leap seconds:
-Every once in a while a second must be added to or subtracted
-from Coordinated Universal Time (UTC) to realign UTC solar time (UT1).
-
-2. Daylight time:
-Frequently the clock is adjusted by local authorities.
-
-`r 60*60*24 == 86400`
-`r 86400*30 == 2592000`
-
-`r as.Date("2015-12-01") - as.Date("2015-11-01") # Time difference of 30 days`
-
-`r as.POSIXct("2015-12-01") - as.POSIXct("2015-11-01") # Time difference of 30.04167 days`
-
-`r as.POSIXct("2015-12-01 00:00:00") - as.POSIXct("2015-11-01 00:00:00") # Time difference of 30.04167 days`
-
-`r as.character(difftime(as.POSIXct("2015-12-01 00:00:00"), 
-as.POSIXct("2015-11-01 00:00:00"), units = "sec")) # Time difference of 2595600 secs`
-
-`r 2595600 - 2592000 == 3600`
-
-`r 3600 == 60*60 # 1 hour`
 
 There is little ambiguity in defining elapsed time 
 (durations) in units of
