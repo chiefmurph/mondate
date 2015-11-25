@@ -9,20 +9,31 @@ output:
 
 ## Abstract:
 
-Dates and date arithmetic are implemented in 
-R
-using international standards.
-The interpretation of
-those standards
-in an accounting context can often be difficult
-and sometimes misleading,
-particularly with respect to 
-identifying "closing dates"
-and date arithmetic measured in units of months and years.
+Dates and the results of date arithmetic are 
+exchanged throughout the world using the international standards 
+"Data elements and interchange formats — Information interchange — Representation of dates and times" (ISO 8601:2004)
+assembled by the International Organization for Standardization (ISO).
+When accountants, actuaries and other financial services analysts
+use the R Statistical Environment ("R") for creating models,
+they have access to tried-and-true implementations of those standards
+through R's offering of two "objects" ("classes") to the user:
+POSIXt and Date.
+Those two objects satisfy the vast majority of date/time user requirements.
+After all, without them how could R have experienced its remarkable growth
+in popularity
+as the definitive go-to computational tool?
+
+Those base objects are not completely satisfactory, however.
+There are two key accounting concepts that 
+are somewhat cumbersome to implement using base R alone:
+*accounting date* and *account aging in month units*.
+
+The purpose of this paper is show a way to
+implement ISO-8601:2004-consistent solutions to those requirements in an R package.
 
 ## Introduction
 
-The following example sentences are found throughout Financial Services:
+The following example sentences are found throughout financial services:
 
 A. The value of ABC Company liabilities as of December 31, 2015 is $100M.
 
@@ -238,24 +249,28 @@ surrounding the transition from calendar year 1969 to 1970,
 using the `POSIXct` class to represent the endpoints.
 
 ```{r}
-a <- as.POSIXct((-5:5)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
+n = 5
+a <- as.POSIXct((-n:n)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
 a
 ```
 
-```{r first_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="beginning days of 1970, borders modeled by POSIXt instances"}
+```{r surrounding_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="beginning days of 1970, borders modeled by POSIXt instances"}
 #plot.window(xlim=c(0,5), ylim=c(-.5, .5))
 par(mar=c(1,2,1,2))
 par(lend="butt")
-plot(a, y=rep(0, 6), type = "l", axes = F, 
-     ylim=c(-.5, .5), xlim = c(a[1]-(a[2]-a[1])/2, a[6]+(a[2]-a[1])/2),
+NDaysInSecs <- 60*60*24*n
+RadiusOfWindow <- NDaysInSecs + 60*60*24
+plot(a, y=rep(0, 2*n+1), type = "l", axes = F, 
+     ylim=c(-1, 1), xlim = c(-RadiusOfWindow, RadiusOfWindow),
      xlab="", ylab="")
 axis(1, at=a, labels=a, pos=0)
-arrows(x0=a[1]-60*60*8, y0=0, x1=a[6]+60*60*8, length=.1)
-text(a[6]+60*60*6, 0, "t", pos = 1)
-segments(x0=a[1:5], y0=0, x1=a[2:6], col="blue", lwd =4)
-for (i in 1:5) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2)
-for (i in 2:6) text(x=a[i] - 15*60, y=0, ")", col="blue", font = 2)
-
+arrows(x0=a[1]-60*60*24, y0=0, x1=a[2*n+1]+60*60*24, length=.1, code = 3)
+text(a[2*n+1]+60*60*12, 0, "t", pos = 1)
+segments(x0=a[1:(2*n)], y0=0, x1=a[2:(2*n+1)], col="blue", lwd =4)
+for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2)
+for (i in 2:(2*n+1)) text(x=a[i] - 15*60, y=0, ")", col="blue", font = 2)
+axis(2, pos=0, labels = FALSE, lwd.ticks=0, lty="dotted")
+text(0, .5, "origin =\n\"1970-01-01\"", pos = 1)
 box()
 ```
 
