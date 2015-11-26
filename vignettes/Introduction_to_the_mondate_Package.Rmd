@@ -1,7 +1,7 @@
 ---
 title: "Introduction to the mondate Package"
 author: "Dan Murphy"
-date: "November 23, 2015"
+date: "November 25, 2015"
 output: 
   pdf_document:
     fig_caption: yes
@@ -18,10 +18,10 @@ use the R Statistical Environment ("R") for creating models,
 they have access to tried-and-true implementations of those standards
 through R's offering of two "objects" ("classes") to the user:
 POSIXt and Date.
-Those two objects satisfy the vast majority of date/time user requirements.
-After all, without them how could R have experienced its remarkable growth
+Those two objects satisfy the vast majority of date/time user requirements,
+an important factor in R's rise in
 in popularity
-as the definitive go-to computational tool?
+as the go-to computational tool.
 
 Those base objects are not completely satisfactory, however.
 There are two key accounting concepts that 
@@ -34,8 +34,8 @@ implement ISO-8601:2004-consistent solutions to those requirements in an R packa
 ## A Short Background on ISO 8601
 
 It will be important to visit a few "basic concepts"
-that most people understand intuitively but must be defined precisely
-if computers are to understand too.
+that people understand intuitively but must be defined precisely
+if computers are to understand too:
 
 * time interval
 * duration
@@ -43,28 +43,33 @@ if computers are to understand too.
 
 ### time interval
 
-> Definition: time interval  
+> **Definition:** time interval  
 A time interval is "part of the time axis limited by two 
 instants.
 [It] comprises all instants between the two limiting instants 
 and, unless otherwise stated, the limiting instants themselves."^[ISO 8601 2.1.3]
 
-Figure 1 below is a diagram of two time intervals A and B on the time axis.
+Figure 1 below is a diagram of two time intervals A and B.
 Each includes its respective endpoints
-as indicated by the square brackets "[" and "]".
+as indicated by the square brackets.
 A and B overlap at time point 1.
 
-```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="a time interval"}
+```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="time intervals A and B"}
 #plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+n=3
 par(mar=c(1,2,1,2))
 par(lend="butt")
-plot(c(2,3), c(0,0), col="blue", type = "l", 
-     axes=F, xlim=c(0,5), ylim=c(-.5, .5), 
+plot(c(0,n), c(0,0), col="black", type = "l", 
+     axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
      xlab="", ylab="")
-axis(1, pos=0)
-arrows(x0=-.1, y0=0, x1=5.15, length=.1)
-text(5.1, 0, "t", pos = 1)
+axis(1, pos=0, labels=FALSE, tick=FALSE)
 box()
+
+arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
+text(n+.1, 0, "t", pos = 1)
+
+axis(1, at=0:2, pos=0)
+axis(1, at=seq(from=0, to=2, length.out=2*24+1), tcl=par("tcl")*.5, labels=FALSE, pos=0)
 
 segments(x0=0.01, y0=0, x1=0.99, col="blue", lwd =4)
 text(x=0.013, y=0, "[", col="blue", font = 2, cex=2)
@@ -82,63 +87,68 @@ text(x=1.5, y= .1, "B", col="blue")
 #text(x=4.5, y= .1, "C", col="blue")
 ```
 
-
-
-Although allowed, 
-it is generally undesirable for intervals to overlap
-because of the ambiguity implied when a time instant 
-is a member of two intervals.
-This ambiguity arises because,
-conforming with common tradition, 
-all instants within an interval 
-may be labeled by the same
-"mark."^[See ISO 8601 2.1.4 Note 1.]
-
-For example, suppose Figure 1 is actually a simple diagram of
-the first days of calendar year 1970.
-Intervals A and B correspond to January 1st and 2nd, respectively.
-Indeed,
-A is a "time interval" because it is a part of the time axis,
-specifically the part between the two instants 
-"midnight before January 1" and "midnight before January 2".
-Any instant within interval A may wear the label "January 1, 1970"
-equally in situations when the time of day is not important.
-The ISO committee recognized the sharing of a common label among
-similar neighboring objects at a more granular level when it said
-"On a time scale consisting of successive steps [e.g., seconds], 
-two distinct instants may be expressed by the same time 
-point [e.g., 1970-01-01]."^[2.1.5 Note 1]
-
-Under its broadest interpretation, however,
-the sharing of labels among time intervals can create ambiguities,
-particularly in the broadest case when
-time intervals are allowed to be closed at both ends.
-
+Time intervals are generally endowed with more evocative names than
+"A" and "B", however.
 For example, 
-intervals A and B overlap at midnight.
-Does that instant belong to A or to B?
-If "both", then wouldn't it follow that the midnight mark
-"1970-01-02 00:00:00" could refer to the instants in both A and B?
-What about when midnight is expressed as "1970-01-01 24:00:00"?^Also allowed by ISO 8601:2004
-
-These complications can be easily avoided, however.
-Simply leave 
+if Figure 1 is a diagram of the first few days of calendar year 1970,
+then more descriptive names for calendar days A and B 
+would be "1970-01-01" and "1970-01-02",
+using ISO 8601's "complete representation" of a calendar date.^[ISO 8601:2004 4.1.2.2]
+Those names also apply to all time instants enclosed by the endpoints.
+This leads to some ambiguity in this example because midnight between
+January 1st and 2nd is included in both intervals.
+Such ambiguity can be easily avoided, however,
+by leaving 
 one of the endpoints "open."
 
-That is exactly what R does in its implementation of the 
-`POSIXt` and `Date` classes.
+In the case of calendar days, 
+the question is how to represent midnight.
 
-Figure 2 is a plot of R's representation of the five days 
-surrounding the transition from calendar year 1969 to 1970,
-using the `POSIXct` class to express the endpoints.
+### Midnight
 
+Section 4.2.3 of ISO 8601 says that midnight between January 1st and 2nd, 1970
+can be represented as either  
+&nbsp;&nbsp;Hour 00) 1970-01-02 00:00:00 or   
+&nbsp;&nbsp;Hour 24) 1970-01-01 24:00:00.  
+"The choice of representation ... will depend upon any association with a date, 
+or a time interval."^[ISO 8601:2004 4.2.3]
+
+In the design of an experiment, 
+it seeem natural to associate the beginning
+of the experiment as belonging to the first time period of the experiment.
+That suggests a time interval that is closed on the left
+and open on the right where the initiation of a time interval is included in 
+the interval.
+Base R's POSIXt implementation follows the hour 00 approach.
+
+### POSIXt
+
+Base R's "POSIXt" classes of objects 
+store time as the number of seconds that have elapsed
+since the beginning of 1970.
+Midnight is the first instant of a calendar day.
+That is easily seen.
+Here we tell R to store midnight ending January 1, 1970 in the variable `a`.
+R is smart enough to understand the hour 24 notation.
+However, when we ask R to print that value back to us at the console,
+it says that the time point represented in the variable `a`
+is a member of the second day of January.
 ```{r}
-n = 5
-a <- as.POSIXct((-n:n)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
-a
+a <- as.POSIXct("1970-01-01 24:00:00", tz = "UTC")
+print(a)
 ```
 
-```{r surrounding_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="beginning days of 1970, borders modeled by POSIXt instances"}
+Figure 2 below is an illustration of a few of the calendar days
+surrounding the transition from 1969 to 1970,
+where the endpoints of the time intervals are represented
+by POSIXt objects.
+Since hour 00 begins each day, 
+calendar days are represented by left-closed/right-open time intervals.
+The endpoints are modeled by POSIXt objects.
+
+```{r surrounding_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="Calendar days surrounding January 1, 1970, time interval borders modeled by POSIXt instance `a`"}
+n = 3
+a <- as.POSIXct((-n:n)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
 #plot.window(xlim=c(0,5), ylim=c(-.5, .5))
 par(mar=c(1,2,1,2))
 par(lend="butt")
@@ -148,7 +158,7 @@ plot(a, y=rep(0, 2*n+1), type = "l", axes = F,
      ylim=c(-1, 1), xlim = c(-RadiusOfWindow, RadiusOfWindow),
      xlab="", ylab="")
 axis(1, at=a, labels=a, pos=0)
-arrows(x0=a[1]-60*60*24, y0=0, x1=a[2*n+1]+60*60*24, length=.1, code = 3)
+arrows(x0=a[1]-60*60*24, y0=0, x1=a[2*n+1]+60*60*24, length=.1, code = 2)
 text(a[2*n+1]+60*60*12, 0, "t", pos = 1)
 segments(x0=a[1:(2*n)], y0=0, x1=a[2:(2*n+1)], col="blue", lwd =4)
 for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2, cex=2)
@@ -158,15 +168,49 @@ text(0, .8, "origin =\n\"1970-01-01 00:00:00\"", pos=1)
 box()
 ```
 
+Although R's choice of hour 00 is understandable and defensible,
+it is nevertheless arbitrary. 
+The hour 24 choice could just as arbitrarily have been made, 
+in which case the intervals in figure 2 would have been
+left-open/right-closed.
+Indeed, 
+if Figure 2 were rotated around the origin,
+the resulting diagram would illustrate a sequence of
+left-open/right-closed time intervals.
+
+```{r rotated_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="Calendar days surrounding January 1, 1970, time interval borders modeled by POSIXt instance `a`"}
+#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+par(mar=c(1,2,1,2))
+par(lend="butt")
+NDaysInSecs <- 60*60*24*n
+RadiusOfWindow <- NDaysInSecs + 60*60*24
+a1 <- rev(a)
+plot(a1, y=rep(0, length(a1)), type = "l", axes = F, 
+     ylim=c(-1, 1), xlim = c(RadiusOfWindow, -RadiusOfWindow),
+     xlab="", ylab="")
+axis(1, at=a, labels=a, pos=0)
+arrows(x0=a[1]-60*60*24, y0=0, x1=a[2*n+1]+60*60*24, length=.1, code = 2)
+text(a[2*n+1]+60*60*12, 0, "t", pos = 1)
+segments(x0=a[1:(2*n)], y0=0, x1=a[2:(2*n+1)], col="blue", lwd =4)
+for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "]", col="blue", font = 2, cex=2)
+for (i in 2:(2*n+1)) text(x=a[i] - 15*60, y=0, "(", col="blue", font = 2, cex=2)
+axis(2, pos=0, labels = FALSE, lwd.ticks=0, lty="dotted")
+text(0, .8, "origin =\n\"1970-01-01 00:00:00\"", pos=1)
+box()
+```
+
+
+
 Labeling an interval
 
 rotate around origin -- "dual"
 
 "cut"
 
-leap second?
-
-
+leap seconds occur at midnight beginning July 1st's UTC as necessary
+```{r}
+format(.leap.seconds, format = "%Y-%m-%d %H:%M:%S", tz="UTC",usetz=TRUE)
+```
 
 ### duration
 
@@ -497,6 +541,30 @@ A balance sheet often states that it is prepared as of a specific date, referred
 http://www.casact.org/professionalism/standards/princip/SOP-Regarding-Property-and-Casualty-Unpaid-Claims-Estimates_Final%204-22-2015.pdf
 
 # Bibliography
+
+Today is `r format(Sys.Date(), format = "%B %d, %Y")`
+
+Ripley, Brian D. and Kurt Hornik,
+"Date-Time Classes",
+*R News*, Vol. 1/2, June 2001. 
+[https://www.r-project.org/doc/Rnews/Rnews_2001-2.pdf]
+
+POSIX.1  
+http://www.opengroup.org/austin/papers/backgrounder.html  
+http://www.opengroup.org/austin/papers/posix_faq.html
+
+From ?strptime References
+
+The POSIX 1003.1 standard, which is in some respects stricter than ISO 8601.
+
+See LC_TIME in Base Definitions: Detailed ToC
+
+file:///Users/danielmurphy/Downloads/susv4tc1/basedefs/toc.html
+
+See folder susv4tc1 in mondate vignettes folder
+
+file:///Users/danielmurphy/Downloads/susv4tc1/basedefs/V1_chap07.html#tag_07_03_05
+
 
 Here's a pretty good paper about dates, Lubridate, Chron:
 http://biostat.mc.vanderbilt.edu/wiki/pub/Main/ColeBeck/datestimes.pdf
