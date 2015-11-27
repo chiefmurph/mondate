@@ -31,7 +31,105 @@ are somewhat cumbersome to implement using base R alone:
 The purpose of this paper is show a way to
 implement ISO-8601:2004-consistent solutions to those requirements in an R package.
 
-## A Short Background on ISO 8601
+## Background 
+
+Base R --
+`r R.version.string` as of this writing --
+uses two general classes for representing dates and times,
+`POSIXt` and `Date`.
+
+### The POSIXt class
+
+The `POSIXt` class of objects was modeled after the POSIX 
+standards.^[
+IEEE Std 1003.1,
+a.k.a. "POSIX.1.",
+is a standard for computer operating systems that covers 
+a variety of topics.
+More information for IEE Std 1003.1 can be found online; 
+see for example
+http://www.opengroup.org/austin/papers/backgrounder.html.]
+R's implementation is in the form of two separate but related classes,
+`POSIXlt` and `POSIXct`.
+
+The `POSIXlt` class (the "l" stands for "local", 
+but "list" is also a useful mnemonic)
+is a list of a sufficient number of elements such as "year", "mon", "hour", "sec", etc.
+so as to completely determine an instant of time
+"to sub-second accuracy"^[Ripley, B. D. and Hornik, K. 
+(2001) Date-time classes. R News, 1/2, p. 9.
+http://www.r-project.org/doc/Rnews/Rnews_2001-2.pdf]
+in the user's time zone.
+The `POSIXct` class (the "c" stands for 
+"calendar time"^[In R, see the help for any of these classes.
+R help on a topic can be read by invoking the function
+`help` at the console with the topic name in quotes, e.g., `help("POSIXt")`.
+A shorthand version uses the question mark alone -- 
+`?POSIXt` -- often found in the footnotes herein.])
+is built around a `numeric` that holds the 
+number of seconds since the beginning of January 1, 1970,
+not in the user's time zone but
+in the UTC time zone.
+
+`POSIXct` objects are more "compact" (another mnemonic)
+are are the more suitable for storage in data.frames.
+However, it is the `POSIXlt` class of objects that is used 
+"behind the scenes" when communicating with the user via
+character representations of dates and times.
+The technical distinctions between the two classes
+are generally of little concern to the user.
+However, R's handling of time-zones when communicating with the user
+can be somewhat confusing.
+Here is an example.
+
+Let us define the object `a` to be the first instant of 1970,
+which of course occurs zero seconds "after the beginning of 1970."
+We will store that instant as a `POSIXct` object
+without regard to the time zone.
+
+```{r}
+a <- as.POSIXct(0, origin="1970-01-01")
+print(a)
+```
+
+Note that when printing the value of `a` at the console,
+R displays that value in the author's local time zone
+(Pacific Standard Time),
+which appears hour 16 of December 31, 1969.
+Indeed, when the year 1970 came into being in the UTC time zone,
+it was still December 31st on the California coast.
+The reason `a` displays in PST time is that R
+uses the POSIXlt class at the intermediary between POSIXct
+and the character representation to the user,
+which, as mentioned previously, defaults to the user's local time zone.
+To confirm for yourself that `a` really does hold the value
+"zero seconds after the beginning of 1970",
+simply strip away the accoutrements surrounding `a` with the `unclass`
+function:
+
+```{r}
+unclass(a)
+```
+
+To force R to display the value of `a` in the UTC time zone,
+use the `format` function with the `tz` argument as 
+below:^[The subject of time zones is a troublesome one in R.
+For a good summary and solution, see David Smith's blog
+"Converting time zones in R: tips, tricks and pitfalls,"
+*Revolutions*, June 02, 2009,
+http://blog.revolutionanalytics.com/2009/06/converting-time-zones.html.
+See also the `with_tz` function in the `lubridate` package on CRAN:
+https://cran.r-project.org/web/packages/lubridate/index.html]
+
+```{r}
+format(a, tz="UTC")
+```
+
+### The Date Class
+
+The `Date` class in R holds the 
+number of days since the beginning of January 1, 1970.
+
 
 It will be important to visit a few "basic concepts"
 that people understand intuitively but must be defined precisely
@@ -54,8 +152,9 @@ Each includes its respective endpoints
 as indicated by the square brackets.
 A and B overlap at time point 1.
 
-```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="time intervals A and B"}
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+```{r time_interval_int, fig.width = 10, fig.height=2, echo = F, fig.cap="generic time intervals A and B"}
+op <- par(no.readonly = TRUE)
+
 n=3
 par(mar=c(1,2,1,2))
 par(lend="butt")
@@ -63,7 +162,6 @@ plot(c(0,n), c(0,0), col="black", type = "l",
      axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
      xlab="", ylab="")
 axis(1, pos=0, labels=FALSE, tick=FALSE)
-box()
 
 arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
 text(n+.1, 0, "t", pos = 1)
@@ -81,10 +179,8 @@ text(x=1.013, y=0, "[", col="blue", font = 2, cex=2)
 text(x=1.987, y=0, "]", col="blue", font = 2, cex=2)
 text(x=1.5, y= .1, "B", col="blue")
 
-#segments(x0=4.01, y0=0, x1=4.99, col="blue", lwd =4)
-#text(x=4.01, y=0, "[", col="blue", font = 2, cex=2)
-#text(x=4.987, y=0, "]", col="blue", font = 2, cex=2)
-#text(x=4.5, y= .1, "C", col="blue")
+box("outer")
+par(op)
 ```
 
 Time intervals are generally endowed with more evocative names than
@@ -147,9 +243,10 @@ calendar days are represented by left-closed/right-open time intervals.
 The endpoints are modeled by POSIXt objects.
 
 ```{r surrounding_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="Calendar days surrounding January 1, 1970, time interval borders modeled by POSIXt instance `a`"}
+op <- par(no.readonly = TRUE)
+
 n = 3
 a <- as.POSIXct((-n:n)*60*60*24, origin = "1970-01-01 00:00:00", tz="UTC")
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
 par(mar=c(1,2,1,2))
 par(lend="butt")
 NDaysInSecs <- 60*60*24*n
@@ -165,7 +262,179 @@ for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "[", col="blue", font = 2, cex=2)
 for (i in 2:(2*n+1)) text(x=a[i] - 15*60, y=0, ")", col="blue", font = 2, cex=2)
 axis(2, pos=0, labels = FALSE, lwd.ticks=0, lty="dotted")
 text(0, .8, "origin =\n\"1970-01-01 00:00:00\"", pos=1)
-box()
+
+box("outer")
+par(op)
+```
+
+R's left-closed/right-open paradigm runs consistently throughout
+its representation of time intervals.
+In Figure 3 below are shown
+five different time intervals in increasing magnitude.
+Calendar day, calendar month, and calendar year are defined terms in ISO 8601:2004.
+"Calendar second, minute and hour" are represented in the same spirit.
+
+Each interval has a "label" (a "mark" in 8601 terminology, also called a "name" in R)
+corresponding to the instant beginning the interval.
+Note that all first intervals in Fugure 4 are labeled "1970-01-01".
+This is an example of R being "helpful":
+if the instant corresponds to midnight, R only shows the date.^[In R, 
+see argument `format` under help for `strftime`.]
+For example, 
+to show the full date and time for the first instant of 1970
+try the format specifier "%Y-%m-%d %H:%M:%S".
+
+```{r}
+FirstInstant <- as.POSIXlt(0, origin="1970-01-01", tz="UTC")
+format(FirstInstant, usetz=FALSE)
+format(FirstInstant, format = "%Y-%m-%d %H:%M:%S", usetz=FALSE)
+```
+
+```{r DifferentTimeIntervals, fig.width = 10, fig.height=6, echo = F, fig.cap="Different types of time intervals in R"}
+op <- par(no.readonly = TRUE)
+par(mfrow=c(5,1))
+par(mar=c(1,2,1,2))
+par(lend="butt")
+xlab.y <- -.45
+# second
+n=3
+plot(c(0,n), c(0,0), col="black", type = "l", 
+     axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
+     xlab="", ylab="")
+axis(1, pos=0, labels=FALSE, tick=FALSE)
+text(n/2, xlab.y, "\"calendar second\" (undefined in ISO 8601:2004)")
+
+arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
+text(n+.1, 0, "t", pos = 1)
+
+# major ticks
+axis(1, at=0:n, pos=0) 
+# minor ticks
+axis(1, at=seq(from=0, to=n, length.out=n*10+1), tcl=par("tcl")*.5, labels=FALSE, pos=0)
+
+for (i in 1:n){
+  segments(x0=(i-1)+0.01, y0=0, x1=i-.01, col="blue", lwd =4)
+  text(x=(i-1)+0.013, y=0, "[", col="blue", font = 2, cex=2)
+  text(x=i-0.013, y=0, ")", col="blue", font = 2, cex=2)
+  text(x=(i-.5), y= .1, col="blue", 
+       labels=format(as.POSIXct((i-1), origin="1970-01-01", tz="UTC")
+#                     , format="%Y-%m-%d %H:%M:%S"
+                     )
+       )
+}
+
+
+# minute
+n=3
+plot(c(0,n), c(0,0), col="black", type = "l", 
+     axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
+     xlab="", ylab="")
+axis(1, pos=0, labels=FALSE, tick=FALSE)
+text(n/2, xlab.y, "\"calendar minute\" (undefined in ISO 8601:2004)")
+
+arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
+text(n+.1, 0, "t", pos = 1)
+
+# major ticks
+axis(1, at=0:n, pos=0) 
+# minor ticks
+axis(1, at=seq(from=0, to=n, length.out=n*60+1), tcl=par("tcl")*.5, labels=FALSE, pos=0)
+
+for (i in 1:n){
+  segments(x0=(i-1)+0.01, y0=0, x1=i-.01, col="blue", lwd =4)
+  text(x=(i-1)+0.013, y=0, "[", col="blue", font = 2, cex=2)
+  text(x=i-0.013, y=0, ")", col="blue", font = 2, cex=2)
+  text(x=(i-.5), y= .1, col="blue", 
+       labels=format(as.POSIXct((i-1)*60, origin="1970-01-01", tz="UTC")
+#                     , format="%Y-%m-%d %H:%M:%S"
+                     )
+       )
+}
+
+# hour
+n=3
+plot(c(0,n), c(0,0), col="black", type = "l", 
+     axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
+     xlab="", ylab="")
+axis(1, pos=0, labels=FALSE, tick=FALSE)
+text(n/2, xlab.y, "\"calendar hour\" (undefined in ISO 8601:2004)")
+
+arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
+text(n+.1, 0, "t", pos = 1)
+
+# major ticks
+axis(1, at=0:n, pos=0) 
+# minor ticks
+axis(1, at=seq(from=0, to=n, length.out=n*60+1), tcl=par("tcl")*.5, labels=FALSE, pos=0)
+
+for (i in 1:n){
+  segments(x0=(i-1)+0.01, y0=0, x1=i-.01, col="blue", lwd =4)
+  text(x=(i-1)+0.013, y=0, "[", col="blue", font = 2, cex=2)
+  text(x=i-0.013, y=0, ")", col="blue", font = 2, cex=2)
+  text(x=(i-.5), y= .1, col="blue", 
+       labels=format(as.POSIXct((i-1)*60*60, origin="1970-01-01", tz="UTC")
+#                     , format="%Y-%m-%d %H:%M:%S"
+                     )
+       )
+}
+
+# day
+n=3
+plot(c(0,n), c(0,0), col="black", type = "l", 
+     axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
+     xlab="", ylab="")
+axis(1, pos=0, labels=FALSE, tick=FALSE)
+text(n/2, xlab.y, "calendar day (ISO 8601:2004 2.2.6)")
+
+arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
+text(n+.1, 0, "t", pos = 1)
+
+# major ticks
+axis(1, at=0:n, pos=0) 
+# minor ticks
+axis(1, at=seq(from=0, to=n, length.out=n*24+1), tcl=par("tcl")*.5, labels=FALSE, pos=0)
+
+for (i in 1:n){
+  segments(x0=(i-1)+0.01, y0=0, x1=i-.01, col="blue", lwd =4)
+  text(x=(i-1)+0.013, y=0, "[", col="blue", font = 2, cex=2)
+  text(x=i-0.013, y=0, ")", col="blue", font = 2, cex=2)
+  text(x=(i-.5), y= .1, col="blue", 
+       labels=format(as.POSIXct((i-1)*60*60*24, origin="1970-01-01", tz="UTC")
+#                     , format="%Y-%m-%d %H:%M:%S"
+                     )
+       )
+}
+
+# month
+n=3
+plot(c(0,n), c(0,0), col="black", type = "l", 
+     axes=F, xlim=c(0,n+.15), ylim=c(-.5, .5), 
+     xlab="", ylab="")
+axis(1, pos=0, labels=FALSE, tick=FALSE)
+text(n/2, xlab.y, "calendar month (ISO 8601:2004 2.2.11)")
+
+arrows(x0=-.1, y0=0, x1=n+.15, length=.1)
+text(n+.1, 0, "t", pos = 1)
+
+# major ticks
+axis(1, at=0:n, pos=0) 
+# minor ticks
+axis(1, at=seq(from=0, to=n, length.out=n*30+1), tcl=par("tcl")*.5, labels=FALSE, pos=0)
+
+for (i in 1:n){
+  segments(x0=(i-1)+0.01, y0=0, x1=i-.01, col="blue", lwd =4)
+  text(x=(i-1)+0.013, y=0, "[", col="blue", font = 2, cex=2)
+  text(x=i-0.013, y=0, ")", col="blue", font = 2, cex=2)
+  text(x=(i-.5), y= .1, col="blue", 
+       labels=format(ISOdate(1970, i, 1, 0, 0, 0, tz="UTC")
+#                     , format="%Y-%m-%d %H:%M:%S"
+                     )
+       )
+}
+
+
+box("outer")
+par(op)
 ```
 
 Although R's choice of hour 00 is understandable and defensible,
@@ -178,8 +447,9 @@ if Figure 2 were rotated around the origin,
 the resulting diagram would illustrate a sequence of
 left-open/right-closed time intervals.
 
-```{r rotated_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="Calendar days surrounding January 1, 1970, time interval borders modeled by POSIXt instance `a`"}
-#plot.window(xlim=c(0,5), ylim=c(-.5, .5))
+```{r rotated_5_days, fig.width = 10, fig.height=2, echo = F, fig.cap="Calendar days surrounding January 1, 1970, from a different perspective"}
+op <- par(no.readonly = TRUE)
+
 par(mar=c(1,2,1,2))
 par(lend="butt")
 NDaysInSecs <- 60*60*24*n
@@ -196,10 +466,10 @@ for (i in 1:(2*n)) text(x=a[i] + 15*60, y=0, "]", col="blue", font = 2, cex=2)
 for (i in 2:(2*n+1)) text(x=a[i] - 15*60, y=0, "(", col="blue", font = 2, cex=2)
 axis(2, pos=0, labels = FALSE, lwd.ticks=0, lty="dotted")
 text(0, .8, "origin =\n\"1970-01-01 00:00:00\"", pos=1)
-box()
+
+box("outer")
+par(op)
 ```
-
-
 
 Labeling an interval
 
@@ -211,6 +481,20 @@ leap seconds occur at midnight beginning July 1st's UTC as necessary
 ```{r}
 format(.leap.seconds, format = "%Y-%m-%d %H:%M:%S", tz="UTC",usetz=TRUE)
 ```
+
+? strptime
+
+Remember that in most time zones some times do not occur and some occur twice because of transitions to/from ‘daylight saving’ (also known as ‘summer’) time. strptime does not validate such times (it does not assume a specific time zone), but conversion by as.POSIXct will do so. Conversion by strftime and formatting/printing uses OS facilities and may return nonsensical results for non-existent times at DST transitions.
+
+?DateTimeClasses
+
+Unfortunately, the conversion is complicated by the operation of time zones and leap seconds (26 days have been 86401 seconds long so far, the last at the time of writing being added in 2015: the times of the extra seconds are in the object .leap.seconds). The details of this are entrusted to the OS services where possible. It seems that some rare systems used to use leap seconds, but all known current platforms ignore them (as required by POSIX). This is detected and corrected for at build time, so "POSIXct" times used by R do not include leap seconds on any platform.
+
+A few times have specific issues. First, the leap seconds are ignored, and real times such as "2005-12-31 23:59:60" are (probably) treated as the next second. However, they will never be generated by R, and are unlikely to arise as input. Second, on some OSes there is a problem in the POSIX/C99 standard with "1969-12-31 23:59:59 UTC", which is -1 in calendar time and that value is on those OSes also used as an error code. Thus as.POSIXct("1969-12-31 23:59:59", format = "%Y-%m-%d %H:%M:%S", tz = "UTC") may give NA, and hence as.POSIXct("1969-12-31 23:59:59", tz = "UTC") will give "1969-12-31 23:59:00". Other OSes (including the code used by R on Windows) report errors separately and so are able to handle that time as valid.
+
+Fractional seconds are printed only if options("digits.secs") is set: see strftime.
+
+
 
 ### duration
 
@@ -517,8 +801,7 @@ equals the number of elapsed months divided by 12.
 ABC Ins. Co. started on 1/1/2010 to write earthquake insurance in California. 
 As claims are made, 
 ABC defines the occurrence date of a claim claim to be the date of 
-the earthquake and stores that date in an ISO-8601 compliant o
-bject (`POSIXt`). 
+the earthquake and stores that date in an ISO-8601 compliant object (`POSIXt`). 
 ABC has had good luck so far -- only 20 claims have been made. 
 Here are their occurrence dates and their know values as of 12/31/2015:
 
@@ -541,6 +824,17 @@ A balance sheet often states that it is prepared as of a specific date, referred
 http://www.casact.org/professionalism/standards/princip/SOP-Regarding-Property-and-Casualty-Unpaid-Claims-Estimates_Final%204-22-2015.pdf
 
 # Bibliography
+
+David Smith's blog
+"Converting time zones in R: tips, tricks and pitfalls,"
+*Revolutions*, June 02, 2009
+http://blog.revolutionanalytics.com/2009/06/converting-time-zones.html
+
+Lubridate  
+Grolemund, Garrett and Hadley Wickham,
+"Dates and Times Made Easy with lubridate",
+*Journal of Statistical Software*,
+April 2011, Volume 40, Issue 3. 
 
 Today is `r format(Sys.Date(), format = "%B %d, %Y")`
 
@@ -568,3 +862,4 @@ file:///Users/danielmurphy/Downloads/susv4tc1/basedefs/V1_chap07.html#tag_07_03_
 
 Here's a pretty good paper about dates, Lubridate, Chron:
 http://biostat.mc.vanderbilt.edu/wiki/pub/Main/ColeBeck/datestimes.pdf
+
