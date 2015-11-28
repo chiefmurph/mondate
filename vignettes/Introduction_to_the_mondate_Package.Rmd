@@ -72,7 +72,7 @@ not in the user's time zone but
 in the UTC time zone.
 
 `POSIXct` objects are more "compact" (another mnemonic)
-are are the more suitable for storage in data.frames.
+and, as such, the more suitable for storage in data.frames.
 However, it is the `POSIXlt` class of objects that is used 
 "behind the scenes" when communicating with the user via
 character representations of dates and times.
@@ -95,10 +95,12 @@ print(a)
 Note that when printing the value of `a` at the console,
 R displays that value in the author's local time zone
 (Pacific Standard Time),
-which appears hour 16 of December 31, 1969.
-Indeed, when the year 1970 came into being in the UTC time zone,
-it was still December 31st on the California coast.
-The reason `a` displays in PST time is that R
+which appears as hour 16 of December 31, 1969.
+It is true when the year 1970 came into being in the UTC time zone
+it was still 8pm December 31st on the California coast,
+but that was not how `a` was defined so that 
+is not how one might expect `a` to appear when printed.
+The reason `a` displays in local (PST) time is that R
 uses the POSIXlt class at the intermediary between POSIXct
 and the character representation to the user,
 which, as mentioned previously, defaults to the user's local time zone.
@@ -111,10 +113,13 @@ function:
 unclass(a)
 ```
 
-To force R to display the value of `a` in the UTC time zone,
+So "under the hood" `a` is simply the number 0 (zero) with a
+"tzone" attribute (which R uses to drive its date/time "class" behavior).
+To force R to represent `a` in the UTC time zone,
+one option is to
 use the `format` function with the `tz` argument as 
-below:^[The subject of time zones is a troublesome one in R.
-For a good summary and solution, see David Smith's blog
+follows:^[Other options exist.
+For a good summary, see David Smith's blog
 "Converting time zones in R: tips, tricks and pitfalls,"
 *Revolutions*, June 02, 2009,
 http://blog.revolutionanalytics.com/2009/06/converting-time-zones.html.
@@ -123,6 +128,25 @@ https://cran.r-project.org/web/packages/lubridate/index.html]
 
 ```{r}
 format(a, tz="UTC")
+```
+
+In the remainder of this paper it will be assumed that the timezone
+is 
+
+```{r, fig.width = 4, fig.height=4, echo = F, fig.cap="UTC"}
+t <- seq(0,2*pi,length=100) 
+coords <- t(rbind(sin(t), cos(t))) 
+plot(coords, type="l", axes=F, xlab="", ylab="", xlim=c(-1.2,1.2), ylim=c(-1.2,1.2))
+a <- -3
+r <- sqrt(a*a+1)
+t <- seq(-atan(-1/a), atan(-1/a), length=100)
+lines(a+r*cos(t), 0+r*sin(t), lty="dotted")
+lines(-(a+r*cos(t)), 0+r*sin(t), lty="dotted", col="gray")
+lines(0+r*sin(t), a+r*cos(t), lty="dotted", col="gray")
+lines(0+r*sin(t), -(a+r*cos(t)), lty="dotted", col="black")
+#text(0, 1, "0", pos=3)
+text(.2, -.1, "0", pos=1)
+text(0, .7, "UTC", pos=4)
 ```
 
 ### The Date Class
@@ -824,6 +848,37 @@ A balance sheet often states that it is prepared as of a specific date, referred
 http://www.casact.org/professionalism/standards/princip/SOP-Regarding-Property-and-Casualty-Unpaid-Claims-Estimates_Final%204-22-2015.pdf
 
 # Bibliography
+
+http://www.timeanddate.com/time/gmt-utc-time.html
+
+Greenwich Mean Time (GMT) is often interchanged or confused with Coordinated Universal Time (UTC). But GMT is a time zone and UTC is a time standard.
+
+Although GMT and UTC share the same current time in practice, there is a basic difference between the two:
+
+GMT is a time zone officially used in some European and African countries. The time can be displayed using both the 24-hour format (0 - 24) or the 12-hour format (1 - 12 am/pm).
+UTC is not a time zone, but a time standard that is the basis for civil time and time zones worldwide. This means that no country or territory officially uses UTC as a local time.
+
+Universal time
+
+https://en.wikipedia.org/wiki/Universal_Time#Versions
+
+Universal Time (UT) is a time standard based on Earth's rotation. It is a modern continuation of Greenwich Mean Time (GMT), i.e., the mean solar time on the Prime Meridian at Greenwich. In fact, the expression "Universal Time" is ambiguous (when accuracy of better than a few seconds is required), as there are several versions of it, the most commonly used being Coordinated Universal Time (UTC) and UT1 (see below).[1] All of these versions of UT, except for UTC, are based on Earth's rotation relative to distant celestial objects (stars and quasars), but with a scaling factor and other adjustments to make them closer to solar time. UTC is based on International Atomic Time, with leap seconds added to keep it within 0.9 second of UT1.
+
+Versions
+There are several versions of Universal Time:
+
+UT0 is Universal Time determined at an observatory by observing the diurnal motion of stars or extragalactic radio sources, and also from ranging observations of the Moon and artificial Earth satellites. The location of the observatory is considered to have fixed coordinates in a terrestrial reference frame (such as the International Terrestrial Reference Frame) but the position of the rotational axis of the Earth wanders over the surface of the Earth; this is known as polar motion. UT0 does not contain any correction for polar motion. The difference between UT0 and UT1 is on the order of a few tens of milliseconds. The designation UT0 is no longer in common use.[11]
+UT1 is the principal form of Universal Time. While conceptually it is mean solar time at 0° longitude, precise measurements of the Sun are difficult. Hence, it is computed from observations of distant quasars using long baseline interferometry, laser ranging of the Moon and artificial satellites, as well as the determination of GPS satellite orbits. UT1 is the same everywhere on Earth, and is proportional to the rotation angle of the Earth with respect to distant quasars, specifically, the International Celestial Reference Frame (ICRF), neglecting some small adjustments. The observations allow the determination of a measure of the Earth's angle with respect to the ICRF, called the Earth Rotation Angle (ERA, which serves as a modern replacement for Greenwich Mean Sidereal Time). UT1 is required to follow the relationship
+ERA = 2*pi*(0.7790572732640 + 1.00273781191135448Tu) radians
+where Tu = (Julian UT1 date - 2451545.0)[12]
+
+UTC (Coordinated Universal Time) is an atomic timescale that approximates UT1. It is the international standard on which civil time is based. It ticks SI seconds, in step with TAI. It usually has 86,400 SI seconds per day but is kept within 0.9 seconds of UT1 by the introduction of occasional intercalary leap seconds. As of 2015, these leaps have always been positive (the days which contained a leap second were 86,401 seconds long). Whenever a level of accuracy better than one second is not required, UTC can be used as an approximation of UT1. The difference between UT1 and UTC is known as DUT1.[15]
+
+
+https://commons.wikimedia.org/wiki/File:World_Time_Zones_Map.png
+
+By TimeZonesBoy (US Central Intelligence Agency) [Public domain], via Wikimedia Commons
+(Attribution not legally required)
 
 David Smith's blog
 "Converting time zones in R: tips, tricks and pitfalls,"
