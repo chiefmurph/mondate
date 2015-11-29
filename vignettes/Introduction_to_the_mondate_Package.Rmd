@@ -33,70 +33,72 @@ implement ISO-8601:2004-consistent solutions to those requirements in an R packa
 
 ## Background 
 
+### Representing time instants in R
+
 Base R --
 `r R.version.string` as of this writing --
-uses two general classes for representing dates and times,
-`POSIXt` and `Date`.
-
-### The POSIXt class
-
-The `POSIXt` class of objects was modeled after the POSIX 
-standards.^[
-IEEE Std 1003.1,
+uses two general "classes" (objects with special properties) for representing 
+instants in time,
+`POSIXct` and `POSIXlt`, 
+modeled after the POSIX 
+standards for computer operating systems.^[IEEE Std 1003.1,
 a.k.a. "POSIX.1.",
 is a standard for computer operating systems that covers 
 a variety of topics.
+"POSIX" stands for "Portable Operating System Interface."
 More information for IEE Std 1003.1 can be found online; 
 see for example
 http://www.opengroup.org/austin/papers/backgrounder.html.]
-R's implementation is in the form of two separate but related classes,
-`POSIXlt` and `POSIXct`.
-
-The `POSIXlt` class (the "l" stands for "local", 
-but "list" is also a useful mnemonic)
-is a list of a sufficient number of elements such as "year", "mon", "hour", "sec", etc.
-so as to completely determine an instant of time
-"to sub-second accuracy"^[Ripley, B. D. and Hornik, K. 
-(2001) Date-time classes. R News, 1/2, p. 9.
+Historical background for these classes
+can be found in the original paper "Date-Time Classes" 
+by Brian Ripley and Kurt Hornik.^[*R News*, 1/2, p. 9.
 http://www.r-project.org/doc/Rnews/Rnews_2001-2.pdf]
-in the user's time zone.
+
 The `POSIXct` class (the "c" stands for 
-"calendar time"^[In R, see the help for any of these classes.
+"calendar time")
+is built around a `numeric` that holds the (potentially fractional) 
+number of seconds since the beginning of January 1, 1970
+"in the UTC time zone."^[See R's help for "DateTimeClasses".
 R help on a topic can be read by invoking the function
 `help` at the console with the topic name in quotes, e.g., `help("POSIXt")`.
 A shorthand version uses the question mark alone -- 
-`?POSIXt` -- often found in the footnotes herein.])
-is built around a `numeric` that holds the 
-number of seconds since the beginning of January 1, 1970,
-not in the user's time zone but
-in the UTC time zone.
+`?POSIXt` -- often found in the footnotes herein.]
+To borrow the words of Ripley and Hornik^["Date-Time Classes"],
+this representation of time "is not easily digestible" by the user. 
 
-`POSIXct` objects are more "compact" (another mnemonic)
-and, as such, the more suitable for storage in data.frames.
-However, it is the `POSIXlt` class of objects that is used 
-"behind the scenes" when communicating with the user via
-character representations of dates and times.
-The technical distinctions between the two classes
-are generally of little concern to the user.
-However, R's handling of time-zones when communicating with the user
-can be somewhat confusing.
-Here is an example.
+The `POSIXlt` class 
+is a list of a sufficient number of elements such as "year", "mon", "hour", "sec", etc.
+so as to completely determine an instant of time in the user's 
+local time zone and
+communicate that instant to the user.
+Per `?POSIXlt`, the "l" stands for "local", but could also stand for "list."
+In most cases the technical distinctions between the two classes
+are of little concern to the user,
+with the possible exception of "time zone."
+Here is an example of a possible source of confusion.
 
-Let us define the object `a` to be the first instant of 1970,
+Let the R variable `a` represent the first instant of 1970,
 which of course occurs zero seconds "after the beginning of 1970."
-We will store that instant as a `POSIXct` object
-without regard to the time zone.
+R requires that the 1970 "origin" be provided
+because `POSIXct` objects can potentially reference off of
+any time point.
 
 ```{r}
 a <- as.POSIXct(0, origin="1970-01-01")
-print(a)
+a
 ```
 
-Note that when printing the value of `a` at the console,
-R displays that value in the author's local time zone
-(Pacific Standard Time),
-which appears as hour 16 of December 31, 1969.
-It is true when the year 1970 came into being in the UTC time zone
+To display `a` at the console,
+R uses a `POSIXlt` object in the background.
+Because the timezone was not set explicitly when `a` was defined,
+`POSIXlt` assumes the user's local time zone
+(Pacific Standard Time for this author).
+That time-zone shift
+between the user's definition of `a` and R's regurgitation of `a`'s value
+can be confusing.
+If time-zone distinctions are not important, 
+that confusion can be avoided by always working in the 
+"UTC time zone."
 it was still 8pm December 31st on the California coast,
 but that was not how `a` was defined so that 
 is not how one might expect `a` to appear when printed.
