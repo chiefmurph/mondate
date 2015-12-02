@@ -1,0 +1,208 @@
+---
+title: "Time Standards and R"
+author: "dmm"
+date: "December 1, 2015"
+output: pdf_document
+---
+
+Dates and times can often be difficult
+for the software engineer.
+One source of difficulty can be the plethora of time zones and daylight savings times,
+and the subjectivity of those human-contrivances to the 
+commercial and political whim of
+regions throughout the world, year after year.
+Another source is the number of different time standards.
+Of those two sources,
+the former might be perceived as the more exciting.
+This paper is about the latter,
+and the potential impact on the R user.
+
+# Time Standards
+
+A cursory internet search for 
+"time standard" might yield 
+[the newspaper in Eureka, California](http://www.times-standard.com/).
+(Nice town.)
+But back to the topic at hand,
+the best site by far these days is that maintainted by the folks at the 
+Time Services Deparment of the United States 
+Navy ("Tycho")
+(http://tycho.usno.navy.mil/).^[My 
+Greek friends are mixed regarding
+the translation of $\tau\upsilon\chi\omega\nu$ as
+"hitting the target."]
+
+Tycho [lists](http://tycho.usno.navy.mil/sysime.html) these Top Six time standards:
+
+1. UT1
+2. TAI
+3. UTC
+4. TDT
+5. TCG
+6. Siderial
+
+We will cover the first three in this paper.
+
+# Universal Time
+
+Universal Time (UT) is a family of time scales based on the rotation of the earth.
+The unit of time is the `mean solar day`.
+The `mean solar second` is defined to be 
+
+Friend: "Everyone knows what a \"day\" is. 
+If you want to get technical about it,
+it's the distance in time between
+consecutive zeniths of the sun. 
+Between two noons.
+Right?"
+
+You: "Well, did you know that, 
+due to the elyptical orbit of the earth around the sun
+and because the earth spins in the same counterclockwise rotation as its orbit,
+the zeniths at the pointier (\"major\") arc of the ellipse must rotate more to see the sun
+at the center of the ellipse day to day
+than they do when the earth is at the flatter (\"minor\") arc of the 
+ellipse.
+So the apparent solar day per the zenith variesduring the year 
+in terms of the number of elapsed seconds.
+In the northern hemisphere, for example, days are longer during
+the summer and winter than during the fall and spring."
+
+Friend: "So take the average."
+
+And that's how it was done for a long, long time.
+
+The organization granted responsibility for recording and averaging those zeniths
+was the Royal Observatory (RO) in Greenwich, England.
+All clocks around the world were synchronized to their calculations,
+known as `Greenich Mean Time`. 
+Historically, 
+the `second` was defined as one 
+86400th (86400=60x60x24) of the `mean solar day`.^[http://tycho.usno.navy.mil/leapsec.html]
+
+Over time it became apparent that the teutonic plates under the
+RO were moving, and moving in a somewhat irregular pattern
+that did not coincide with the `mean solar day`.
+Those teutonic shifts were found 
+to be having a not-insignificant impact on
+the 
+moved with a non-annual pattern,
+causing aberrations in the duration of the `second.
+A more stable reference point would be needed for accuracy
+beyond that possible by `Greenwich Mean Time`.
+The decision was to set up solar monitoring devices at many
+
+locations throughout the world.
+A weighted average of their observations would be the final value. 
+This algorithm is the Universal Time standard according to which 
+interested parties around the world
+recon time.
+The current version of the Universal Time standard is called UT1.
+
+
+# Atomic time
+
+The search was on for an element that resonated in time with 
+UT1. 
+Eventually one was found,
+
+As straightforward a time system as UT1 is,
+it is not conducive to 
+As satisfactory as that solution is for humans to keep track of, 
+something much more reg
+
+(or )
+
+One was chosen and given the name "Universal Time."
+
+
+A non-earth reference needed to be chosen.
+
+
+, so that those zeniths could be recognized.
+
+"Mean solar time")
+during the pointy months.
+But that is not rocket science.
+That 
+After all,
+"Greenwich Mean Time" has always been 
+the mean time it takes the sun to zenith each day (solar time)
+of=ver the course of a year.
+Unfortnately, that is no longer good eanough in terms of accuracy.
+That was recognized a long time ago and an international committee was formed.
+
+The first resulting standard --
+in this paper and in Tycho's list --
+was that based on the definition of a "second."
+
+>[]
+
+
+, which they refer with the more appropriate
+"Systems of Time":^[http://tycho.usno.navy.mil/systime.html]
+
+1. Atomic time
+2. Universal time
+3. Coordinated Universal
+Time^[
+"Wait. Not `CUT`?"
+
+I would so much enjoyed to have been a fly on that wall.
+]
+
+
+
+"Who cares,"
+one hears,
+"my plot of "
+If in the past, problems attacked by computer solutions
+via 
+statistical or analytical models tended to be dimensionally local so,
+Who cares?,
+that may be changed these days.
+In the past
+It is arguable that most analysis need not be concerned
+about time standards, time zones, or daylight time,
+so, who cares?
+However, with the ever interconnectedness of our world these days,
+more and more people see the importance of getting it straight.
+
+If you ask people what the current time standard is,
+many people might say "Greenwich Mean Time" (GMT).
+But GMT has not been a *time standard* since the 1960's.
+Today, GMT is simply a *time zone* adopted by many countries 
+along the prime meridian,
+0&deg; longitude.
+Time zones are typically an integral number of hours apart
+(1 hour, 3 hours, -5 hours),
+but fractional hour differences do exist,
+as with some of Australia's time zones.^[For an entertaining video 
+on strange time zones, 
+see https://www.youtube.com/watch?v=uW6QqcmCfm8]
+
+A *time standard* is an agreed-upon procedure for determining the time
+corresponding to an instant. 
+Also known as *time systems,* 
+the United States Naval Observatory lists seven different systems of time 
+on its "tycho" website.^[http://tycho.usno.navy/mil/systime.html.
+The word "tycho" comes from the greek for "hitting the mark."
+It is also the name of a Danish astronomer, Tycho Brahe (1546-1601).]
+We will look at the first three of those systems.
+
+
+
+```{r}
+format(as.POSIXlt(tail(.leap.seconds,1), tz="UTC"), format="%Y-%m-%d %H:%M:%S")
+as.numeric(as.POSIXlt(tail(.leap.seconds,1), tz="UTC")) #1435708800
+a <- as.numeric(as.POSIXlt(tail(.leap.seconds,1), tz="UTC")) - 86400
+format(as.POSIXlt(a, origin="1970-01-01", tz="UTC"), format="%Y-%m-%d %H:%M:%S")
+format(as.POSIXlt(a, origin="1970-01-01", tz="UTC"), format="%Y-%m-%d %H:%M:%S")
+d <- as.Date("2015-06-29")
+d + 0:3
+t <- as.POSIXlt(d + 0:3)
+format(t, format="%Y-%m-%d %H:%M:%S")
+a <- as.numeric(t)
+a
+a[1] + 86400*(0:3) # no leap second
+```

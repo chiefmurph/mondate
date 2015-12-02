@@ -2,9 +2,10 @@
 title: "Introduction to the mondate Package"
 author: "Dan Murphy"
 date: "November 25, 2015"
-output: 
+output:
   pdf_document:
     fig_caption: yes
+  html_document: default
 ---
 
 ## Abstract:
@@ -18,35 +19,36 @@ use the R Statistical Environment ("R") for creating models,
 they have access to tried-and-true implementations of those standards
 through R's offering of two "objects" ("classes") to the user:
 POSIXt and Date.
-Those two objects satisfy the vast majority of date/time user requirements,
-an important factor in R's rise in
-in popularity
-as the go-to computational tool.
+The ability of those two classes to satisfy a broad range of date/time requirements
+has been an important factor in R's rise in popularity
+as a scientific analytical tool.
 
-Those base objects are not completely satisfactory, however.
-There are two key accounting concepts that 
-are somewhat cumbersome to implement using base R alone:
+However, those two objects are somewhat unsatisfactory
+in the financial industry for modeling two
+key accounting concepts:
 *accounting date* and *account aging in month units*.
 
-The purpose of this paper is show a way to
-implement ISO-8601:2004-consistent solutions to those requirements in an R package.
+The purpose of this paper is show how to define
+ISO-compliant implementations of accounting date
+and elapsed time in units of months in an R package.
 
 ## Background 
 
 ### Representing time instants in R
 
 Base R --
-`r R.version.string` as of this writing --
+version `r paste(R.version$major, R.version$minor, sep=".")`
+as of this writing --
 uses two general "classes" (objects with special properties) for representing 
 instants in time,
 `POSIXct` and `POSIXlt`, 
-modeled after the POSIX 
-standards for computer operating systems.^[IEEE Std 1003.1,
+modeled after the Portable Operating System Interface ("POSIX")
+standards for UNIX operating systems.^[IEEE Std 1003.1,
 a.k.a. "POSIX.1.",
 is a standard for computer operating systems that covers 
-a variety of topics.
-"POSIX" stands for "Portable Operating System Interface."
-More information for IEE Std 1003.1 can be found online; 
+a variety of topics,
+including software structures for representing time.
+Much information can be found online; 
 see for example
 http://www.opengroup.org/austin/papers/backgrounder.html.]
 Historical background for these classes
@@ -849,7 +851,173 @@ A balance sheet often states that it is prepared as of a specific date, referred
 
 http://www.casact.org/professionalism/standards/princip/SOP-Regarding-Property-and-Casualty-Unpaid-Claims-Estimates_Final%204-22-2015.pdf
 
+# Appendix A: Two Universal Time Standards
+
+Two time standards in common use today are Universal Time ("UT1")
+and Coordinated Universal Time ("UTC").
+
+UT1 is a time standard based on the rotation of the earth. 
+It starts with mean solar time at zero degrees longitude 
+(a.k.a., the Prime Meridian), 
+which is the longitude on which is located the Royal Greenwich Observatory.
+Mean solar time, in turn, starts with "apparent" solar time,
+which defines a "solar day" as the time period between two "noons",
+where a "noon" is the moment when the sun reaches its zenith during the day.
+Apparent solar time is the time one would see on a sundial.
+It turns out that a solar day 
+is not a constant 86,400=60x60x24 seconds in length but changes
+each day due to the eliptical orbit of the earth. 
+^[https://en.wikipedia.org/wiki/Time_standard
+https://en.wikipedia.org/wiki/Universal_Time#Versions]
+The average length of a solar day over the course of a year is
+called a "mean solar day."
+"Currently a mean solar day is about 86,400.002 SI seconds.[2]"
+
 # Bibliography
+
+http://tycho.usno.navy.mil/leapsec.html
+
+https://igscb.jpl.nasa.gov/mail/igsmail/1997/msg00096.html
+
+Dennis McCarthy  
+Director of Time, U.S. Naval Observatory
+
+https://en.wikipedia.org/wiki/Universal_Time#Versions
+
+The rotation of the Earth is somewhat irregular, and is very gradually slowing due to tidal acceleration.
+
+http://maia.usno.navy.mil/
+
+The United States' contribution to the international standards
+is handled by the U.S. Naval Observatory:
+
+"The IERS Rapid Service/Prediction Center is the product center of the International Earth Rotation and Reference Systems Service responsible for providing Earth orientation parameters (EOPs) on a rapid turnaround basis. This service is primarily intended for real-time users and others needing the highest quality EOP information sooner than is available in the IERS final series (Bulletin B) published by the IERS Earth Orientation Center, which is based at the Observatoire de Paris."
+
+"This Center is an activity of the Earth Orientation (EO) Department at the U.S. Naval Observatory (USNO). The mission of the USNO includes determining the positions and motions of celestial bodies, measuring the Earth's rotation and orientation, maintaining the master clock for the U.S., and disseminating precise time (atomic and astronomical). The EO Dept. contributes to this mission by collecting suitable observations and performing data analyses to determine and predict the time-varying orientation of the terrestrial reference frame within the quasi-inertial celestial reference frame. The key parameters determined and disseminated are polar motion coordinates, Universal Time (UT1), precession, and nutation. The user community is very broadly based, the main applications involving principally high-accuracy navigation and positioning, particularly in real-time and near real-time modes."
+
+"Contact Information: 202-762-1518 (primary); 202-550-6407 (alternate); 202-762-1444 (alternate)"
+
+DMM: It would appear that the USNO uses JPL software.
+Here is a link to that software:
+http://ssd.jpl.nasa.gov/?planet_eph_export.
+Here is a website that suggests JPL is in charge of ephemeral time rather
+than the USNO:
+https://en.wikipedia.org/wiki/Newcomb%27s_Tables_of_the_Sun
+
+Here is a USNO site that defines leap seconds:
+http://tycho.usno.navy.mil/leapsec.html
+
+That site also defines
+
+ephemeris second  
+"the fraction 1/31,556,925.9747 of the tropical year for 1900 January 0
+at 12 hours ephemeris time."
+Note that there are `r prettyNum(60*60*24*365, big.mark = ",")` "seconds"
+in a 365-day year, where a "day" equals 24 hours,
+an "hour" equals 60 minutes, and a "minute" equals 60 seconds.
+There are `r prettyNum(60*60*24*366, big.mark = ",")` "seconds"
+in a 366-day year (leap year).
+If a leap year comes around every four years,
+then there are about
+```{r}
+prettyNum(60*60*24*365*.75 + 60*60*24*366*.25, big.mark = ",")
+```
+
+This definition of the ephemeris second
+was ratified by the Eleventh General Conference on Weights and Measures in 1960.
+Thus, Ephemeris Time (ET) is defined as 
+"the measure of time 
+that brings the observed positions of the celestial bodies 
+into accord with the Newtonian dynamical theory of 
+motion."^[http://tycho.usno.navy.mil/leapsec.html]
+
+"Following several years of work, two astronomers at the U.S. Naval Observatory (USNO) and two astronomers at the National Physical Laboratory (Teddington, England) determined the relationship between the frequency of the cesium atom (the standard of time) and the ephemeris second. They determined the orbital motion of the Moon about the Earth, from which the apparent motion of the Sun could be inferred, in terms of time as  measured by an atomic clock.  As a result, in 1967 the Thirteenth General Conference on Weights and Measures defined the second of atomic time in the International System of Units (SI) as
+
+*the duration of 9,192,631,770 periods of the radiation corresponding to the transition between the two hyperfine levels of the ground state of the cesium 133 atom.*
+
+The ground state is defined at zero magnetic field.
+The second thus defined is equivalent to the ephemeris second."
+
+http://maia.usno.navy.mil/ser7/ser7.dat
+
+26 November 2015                                   Vol. XXVIII No. 048
+
+Sample from the UT1-UTC Table 
+
+                    MJD      x(arcsec)   y(arcsec)   UT1-UTC(sec)              
+       2015 11 27  57353       0.1178      0.2540      0.13841         
+       2015 11 28  57354       0.1163      0.2541      0.13711         
+       2015 11 29  57355       0.1146      0.2542      0.13582         
+       2015 11 30  57356       0.1129      0.2543      0.13449         
+       2015 12  1  57357       0.1110      0.2542      0.13312         
+       2015 12  2  57358       0.1092      0.2540      0.13171         
+       2015 12  3  57359       0.1074      0.2538      0.13026         
+
+
+https://msdn.microsoft.com/en-us/library/ms973825.aspx
+
+Performing date and time calculations on values that represent machine local time may not always yield the correct result. When performing calculations on time values in time-zone contexts that practice daylight savings time, you should convert values to universal time representations before performing date arithmetic calculations.
+
+There are several advantages to performing calculations using UCT time. Chief among them is the fact that when represented in universal time, every day has a fixed length, and there are no time-zone offsets to deal with.
+
+The recommended format strings for converting DateTime to strings are:
+'yyyy'-'MM'-'dd'T'HH': 'mm': 'ss.fffffff'Z' —For UCT values
+'yyyy'-'MM'-'dd'T'HH': 'mm': 'ss.fffffff'zzz' —For local values
+'yyyy'-'MM'-'dd'T'HH': 'mm': 'ss.fffffff' —For abstract time values
+
+http://www.diffen.com/difference/GMT_vs_UTC
+
+Greenwich Mean Time (GMT) is a term originally referring to mean solar time at the Royal Observatory, Greenwich where a system was first developed around 1850 for tracking time based on the rotation of the Earth. It is now often used to refer to Coordinated Universal Time (UTC) when this is viewed as a time zone.
+
+Strictly speaking, UTC is not a time zone but an atomic time scale which only approximates GMT in the old sense. It is also used to refer to Universal Time (UT), which is an astronomical concept that directly replaced the original GMT.
+
+In 1970 the Coordinated Universal Time system was devised by an international advisory group of technical experts within the International Telecommunication Union (ITU). UTC is the International Atomic Time (TAI, from the French Temps atomique international) with leap seconds added at irregular intervals to compensate for the Earth's slowing rotation. Leap seconds are used to allow UTC to closely track UT1, which is the mean solar time at the Royal Observatory, Greenwich.
+
+The ITU felt it was best to designate a single abbreviation for use in all languages in order to minimize confusion. Since unanimous agreement could not be achieved on using either the English word order, CUT (coordinated universal time), or the French word order, TUC (temps universel coordonné), the acronym UTC was chosen as a compromise.
+
+The difference between UTC and UT1 cannot exceed 0.9 s, so if high precision is not required, the general term Universal Time (without a suffix) may be used.
+
+In casual use, Greenwich Mean Time (GMT) is the same as UTC and UT1. Owing to the ambiguity of whether UTC or UT1 is meant, and because timekeeping laws usually refer to UTC, GMT is avoided in careful writing.
+
+http://www.diffen.com/difference/GMT_vs_UTC
+
+Video says "UTC ... is an offset of the prime meridian"
+
+Comparison chart
+================
+                GMT                               UTC
+Stands for	    Greenwich Mean Time	              Coordinated Universal Time (Abbreviated From The French Name)
+Refers To	      A Time Zone	                      A System Of Time-Keeping
+Usage	By        Human Readable Clocks	            By Digitally Synchronized Clocks
+Measured Using	Rotation Of Earth (Historically)	Atomic Transition Principle (Periodic updates with astronomical time)
+
+http://stackoverflow.com/questions/14986043/is-gmt-same-as-utc
+
+I am running a world targeted website where people from all over the world visit. The database contains time in International Date Line West format. I am taking the user time zone using JavaScript and converting the time in the database to user's time and then showing on the page. I want to ask that is International Date Line West is correct format for world level website? Or setting to UTC or GMT will be better? And what is the difference between UTC and GMT and International Date Line West? Are these three same? Finally what time should I set onto my server that will be converted using offset of timezone of user?
+
+If you're interested in astronomical observations, for example of satellites such as GPS, or if you want to cite a technical standard (ITU-R TF.460-6), then you might care that we use UTC and that GMT no longer has a precise definition. Otherwise you probably consider GMT to be the same thing as UTC, and also consider UT and UT1 to be the same as UTC--which technically they are not.
+
+Also, if you're tracking computer criminals or other distributed activity, then you need to determine whether certain events at various sites may or may not have occurred before certain other events. For that purpose you will want to learn and use Network Time Protocol (NTP). That will have a much bigger effect on your understanding of time than the little differences between UTC, UT1, and UT.
+
+"International Date Line West" is just a friendly name for a timezone where the time is defined as twelve hours less than UTC (that is, UTC-12).
+
+https://en.wikipedia.org/wiki/Atomic_clock
+
+An atomic clock is a clock device that uses an electronic transition frequency in the microwave, optical, or ultraviolet region[2] of the electromagnetic spectrum of atoms as a frequency standard for its timekeeping element. Atomic clocks are the most accurate time and frequency standards known, and are used as primary standards for international time distribution services, to control the wave frequency of television broadcasts, and in global navigation satellite systems such as GPS.
+
+National standards agencies in many countries maintain a network of atomic clocks which are intercompared and kept synchronized to an accuracy of 
+10^(-9) seconds per day (approximately 1 part in 1014). These clocks collectively define a continuous and stable time scale, International Atomic Time (TAI). For civil time, another time scale is disseminated, Coordinated Universal Time (UTC). UTC is derived from TAI, but approximately synchronised, by using leap seconds, to UT1, which is based on actual rotation of the Earth with respect to the solar time.
+
+https://en.wikipedia.org/wiki/Solar_time
+
+The effect of this is that a clock running at a constant rate – e.g. completing the same number of pendulum swings in each hour – cannot follow the actual Sun; instead it follows an imaginary "mean Sun" that moves along the celestial equator at a constant rate that matches the real Sun's average rate over the year.[1] This is "mean solar time", which is still not perfectly constant from one century to the next but is close enough for most purposes. Currently a mean solar day is about 86,400.002 SI seconds.[2]
+
+https://en.wikipedia.org/wiki/Earth's_rotation
+
+The Earth rotates once in about 24 hours with respect to the sun and once every 23 hours, 56 minutes and 4 seconds with respect to the stars (see below). Earth's rotation is slowing slightly with time; thus, a day was shorter in the past. This is due to the tidal effects the Moon has on Earth's rotation. Atomic clocks show that a modern-day is longer by about 1.7 milliseconds than a century ago,[1] slowly increasing the rate at which UTC is adjusted by leap seconds.
+
+
+
 
 http://www.timeanddate.com/time/gmt-utc-time.html
 
