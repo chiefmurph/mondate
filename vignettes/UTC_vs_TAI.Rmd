@@ -46,65 +46,57 @@ We will cover the first three in this paper.
 # Universal Time
 
 Universal Time (UT) is a family of time scales based on the rotation of the earth.
-The unit of time is the `mean solar day`.
-The `mean solar second` is defined to be 
-
-Friend: "Everyone knows what a \"day\" is. 
-If you want to get technical about it,
-it's the distance in time between
-consecutive zeniths of the sun. 
-Between two noons.
-Right?"
-
-You: "Well, did you know that, 
-due to the elyptical orbit of the earth around the sun
-and because the earth spins in the same counterclockwise rotation as its orbit,
-the zeniths at the pointier (\"major\") arc of the ellipse must rotate more to see the sun
-at the center of the ellipse day to day
-than they do when the earth is at the flatter (\"minor\") arc of the 
-ellipse.
-So the apparent solar day per the zenith variesduring the year 
-in terms of the number of elapsed seconds.
-In the northern hemisphere, for example, days are longer during
-the summer and winter than during the fall and spring."
-
-Friend: "So take the average."
-
-And that's how it was done for a long, long time.
-
-The organization granted responsibility for recording and averaging those zeniths
-was the Royal Observatory (RO) in Greenwich, England.
-All clocks around the world were synchronized to their calculations,
-known as `Greenich Mean Time`. 
-Historically, 
-the `second` was defined as one 
+The unit of Universal Time is the `mean solar day`.
+The `mean solar second` is defined to be one 
 86400th (86400=60x60x24) of the `mean solar day`.^[http://tycho.usno.navy.mil/leapsec.html]
+Due to the gravitational pull of the moon and the motions of the tides,
+the earth is taking longer to orbit the sun.
 
-Over time it became apparent that the teutonic plates under the
-RO were moving, and moving in a somewhat irregular pattern
-that did not coincide with the `mean solar day`.
-Those teutonic shifts were found 
-to be having a not-insignificant impact on
-the 
-moved with a non-annual pattern,
-causing aberrations in the duration of the `second.
-A more stable reference point would be needed for accuracy
-beyond that possible by `Greenwich Mean Time`.
-The decision was to set up solar monitoring devices at many
+"Greenwich Mean Time" was also based on the rotation of the earth.
+Over time it became clear that GMT
+as measured at the Royal Observatory was subject to an unsatisfactory amount
+of variability due to many factors, including
+polar shifts, tectonic plate movements, and the slowing of the earth's
+orbit around the sun due to the moon's gravitational pull and its impact
+on the tides.
+Eventually the international community settled on a more stable time scale
+(see below).
 
-locations throughout the world.
-A weighted average of their observations would be the final value. 
-This algorithm is the Universal Time standard according to which 
-interested parties around the world
-recon time.
-The current version of the Universal Time standard is called UT1.
+Nevertheless, 
+people do find it useful to look upon a "day" in terms of the 
+rotation of the earth.
+Therefore Universal Time is still in use today.
+Its current version is called UT1
+and is the result of a mathematical formula based on 
+observations of the sun and other astronomical 
+objects.^[For more information, see "The New Definition of Universal Time" by
+Aoki et. al., 
+*Astronomy and Astrophysics*, vol. 105, no. 2, Jan. 1982, p. 359-361.]
 
+# Atomic Time
 
-# Atomic time
+The search for an intrinsically stable time scale led 
+to in investigation of oscillation properties of various atoms,
+eventually settling on cesium 133.
+The `SI second` (Systeme International) is time it takes the cesium 133 atom
+to oscillate through 9,192,631,770 cycles under strict measurement
+conditions.^[See for instance http://tycho.usno.navy.mil.leapsec.html.]
+The Bureau International des Poids et Mesures (BIPM)
+averages readings from a large number of cesium 133 clocks in over
+fifty laboratories around the world,
+and publishes the definitive SI second for worldwide 
+consumption.^[See http://www.bipm.org/en/biipm/tai/tai.html]
 
-The search was on for an element that resonated in time with 
-UT1. 
-Eventually one was found,
+This time standard is known as `TAI`,
+*International Atomic Time*.
+
+# Coordinated Universal Time (UTC)
+
+"UTC is defined by the *CCIR Recommendation 460-4 (1986)*"^[tycho/leapsec.html]
+
+The last time a mean solar day was precisely 86400 seconds 
+(as atomically determined; see below) was in 
+1820.^[http://tycho.usno.navy.mil.leapsec.html.]
 
 As straightforward a time system as UT1 is,
 it is not conducive to 
