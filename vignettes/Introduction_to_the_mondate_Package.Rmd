@@ -875,6 +875,9 @@ called a "mean solar day."
 
 # Bibliography
 
+Here is a pretty good summary:  
+https://www.eecis.udel.edu/~ntp/ntpfaq/NTP-s-time.htm#Q-UTC
+
 http://tycho.usno.navy.mil/leapsec.html
 
 https://igscb.jpl.nasa.gov/mail/igsmail/1997/msg00096.html
