@@ -131,6 +131,7 @@ The first resulting standard --
 in this paper and in Tycho's list --
 was that based on the definition of a "second."
 
+>[]
 
 
 , which they refer with the more appropriate
@@ -167,7 +168,7 @@ many people might say "Greenwich Mean Time" (GMT).
 But GMT has not been a *time standard* since the 1960's.
 Today, GMT is simply a *time zone* adopted by many countries 
 along the prime meridian,
-0 degrees longitude.
+0&deg; longitude.
 Time zones are typically an integral number of hours apart
 (1 hour, 3 hours, -5 hours),
 but fractional hour differences do exist,
@@ -197,8 +198,14 @@ A typical PC quartz seems to have an accuracy of about ten to fifty parts per mi
 
 #### DUT1
 https://en.wikipedia.org/wiki/DUT1
-
-UTC is maintained via leap seconds, such that DUT1 remains within the range −0.9 s < DUT1 < +0.9 s. The reason for this correction is partly that the rate of rotation of the Earth is not constant, due to tidal braking and the redistribution of mass within the Earth, including its oceans and atmosphere, and partly because the SI second (as now used for UTC) was already, when adopted, a little shorter than the current value of the second of mean solar time.
+UTC is maintained via leap seconds, 
+such that DUT1 remains within the range -0.9s < DUT1 < 0.9s.
+The reason for this correction is partly that the rate of 
+rotation of the Earth is not constant, 
+due to tidal braking and the redistribution of mass within the Earth, 
+including its oceans and atmosphere, 
+and partly because the SI second (as now used for UTC) was already, 
+when adopted, a little shorter than the current value of the second of mean solar time.
 
 # Appendix
 
