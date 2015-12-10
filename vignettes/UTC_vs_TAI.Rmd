@@ -90,6 +90,9 @@ consumption.^[See http://www.bipm.org/en/biipm/tai/tai.html]
 This time standard is known as `TAI`,
 *International Atomic Time*.
 
+aka "Unix time" (also known as POSIX time or Epoch time)  
+https://en.wikipedia.org/wiki/Unix_time
+
 # Coordinated Universal Time (UTC)
 
 "UTC is defined by the *CCIR Recommendation 460-4 (1986)*"^[tycho/leapsec.html]
@@ -128,7 +131,6 @@ The first resulting standard --
 in this paper and in Tycho's list --
 was that based on the definition of a "second."
 
->[]
 
 
 , which they refer with the more appropriate
@@ -165,7 +167,7 @@ many people might say "Greenwich Mean Time" (GMT).
 But GMT has not been a *time standard* since the 1960's.
 Today, GMT is simply a *time zone* adopted by many countries 
 along the prime meridian,
-0&deg; longitude.
+0 degrees longitude.
 Time zones are typically an integral number of hours apart
 (1 hour, 3 hours, -5 hours),
 but fractional hour differences do exist,
@@ -182,7 +184,23 @@ The word "tycho" comes from the greek for "hitting the mark."
 It is also the name of a Danish astronomer, Tycho Brahe (1546-1601).]
 We will look at the first three of those systems.
 
+# Bibliography
 
+A good site on the difference between TAI and UTC,
+definition of TAI-10, an algorithm based on TAI-10,
+and an argument against that.
+
+http://www.madore.org/~david/computers/unix-leap-seconds.html
+
+Footnote 2 says  
+A typical PC quartz seems to have an accuracy of about ten to fifty parts per million, i.e., a couple of seconds per day. Counting SI seconds without any attempt at correction gives UT1 an accuracy of about 2ms per day, i.e., 20 parts per billion, so that's around a thousand times better. Hence, without external assistance (say by NTP, an atomic clock or a GPS receiver), the typical PC quartz cannot see or hope to see the difference between universal time and atomic time.
+
+#### DUT1
+https://en.wikipedia.org/wiki/DUT1
+
+UTC is maintained via leap seconds, such that DUT1 remains within the range −0.9 s < DUT1 < +0.9 s. The reason for this correction is partly that the rate of rotation of the Earth is not constant, due to tidal braking and the redistribution of mass within the Earth, including its oceans and atmosphere, and partly because the SI second (as now used for UTC) was already, when adopted, a little shorter than the current value of the second of mean solar time.
+
+# Appendix
 
 ```{r}
 format(as.POSIXlt(tail(.leap.seconds,1), tz="UTC"), format="%Y-%m-%d %H:%M:%S")
