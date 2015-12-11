@@ -196,6 +196,13 @@ http://www.madore.org/~david/computers/unix-leap-seconds.html
 Footnote 2 says  
 A typical PC quartz seems to have an accuracy of about ten to fifty parts per million, i.e., a couple of seconds per day. Counting SI seconds without any attempt at correction gives UT1 an accuracy of about 2ms per day, i.e., 20 parts per billion, so that's around a thousand times better. Hence, without external assistance (say by NTP, an atomic clock or a GPS receiver), the typical PC quartz cannot see or hope to see the difference between universal time and atomic time.
 
+these sites explain how months came about:  
+http://science.howstuffworks.com/science-vs-myth/everyday-myths/time6.htm
+
+https://www.quora.com/Why-the-do-calender-months-have-such-varied-days-such-as-30-31-28-and-29
+
+
+
 #### DUT1
 https://en.wikipedia.org/wiki/DUT1
 UTC is maintained via leap seconds, 
