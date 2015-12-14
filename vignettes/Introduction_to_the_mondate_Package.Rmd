@@ -875,6 +875,18 @@ called a "mean solar day."
 
 # Bibliography
 
+I asked David Madore about his CLOCK_UTC and friends website:
+http://www.madore.org/~david/computers/unix-leap-seconds.html.
+He answered my email on 2015-12-14 and included some references:  
+http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+
+This second reference at the end has a good summary of
+how the acronyms UTC, TAI, and ISO do not match the order
+of the words in English or French:
+
+https://groups.google.com/forum/#!msg/comp.std.unix/GaIQpDHUl1U/nnlJgCfZZb8J
+
+
 Here is a pretty good summary:  
 https://www.eecis.udel.edu/~ntp/ntpfaq/NTP-s-time.htm#Q-UTC
 
