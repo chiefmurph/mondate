@@ -2,15 +2,15 @@ Version: 0.11.01.01
 ==================
 New features
     o   A seqmondate generic. It works as seq.mondate for mondates. 
-        It operates directly on Date and POSIXt objects for by
-        given in units based on "months".
+        It operates directly on Date and POSIXt objects for
+        "months" units.
     o   A cutmondate generic. It works as cut.mondate for mondates. 
         It operates directly on Date and POSIXt objects for breaks
         given in units based on "months".
     
 Changes
     o   cut.mondate 
-        include.lowest defaults to FALSE
+        include.lowest argument defaults to FALSE
         
 Bug Fixes
     o   Conversions from POSIXt to Date and mondate 
