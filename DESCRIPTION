@@ -5,12 +5,14 @@ Version: 0.10.02
 Date: 2021-01-28
 Author: Dan Murphy
 Maintainer: Dan Murphy <chiefmurphy@gmail.com>
-Description: Keep track of dates in terms of fractional calendar months ala Laker.
+Description: Keep track of dates in terms of fractional calendar months 
+  per Damien Laker "Time Calculations for Annualizing Returns: the Need for Standardization", 
+  The Journal of Performance Measurement, 2008.
   Model dates as of close of business.
   Perform date arithmetic in units of "months" and "years".
   Allow "infinite" dates to model "ultimate" time.
 License: MPL-2.0 | file LICENSE
-URL: https://www.R-project.org, http://code.google.com/p/mondate/
+URL: https://www.R-project.org, https://github.com/chiefmurph/mondate
 LazyLoad: yes
 Depends: utils, methods, R (>= 3.0.0)
 Suggests: zoo
