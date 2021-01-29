@@ -1,28 +1,25 @@
 \name{seq.mondate}
-\alias{seq.mondate}
 \alias{seq}
+\alias{seq.mondate}
 \title{
-Sequence Generation
+Mondate Sequence Generation
 }
 \description{
 Generate regular \code{mondate} sequences. 
 }
 \usage{
-## S3 method for class 'mondate':
-seq.mondate(from=NULL, to, ...)
+\method{seq}{mondate}(from, to, \dots)
 }
 \arguments{
-  \item{from}{
-a \code{mondate}. Optional, but at least one of 
-\code{from} and \code{to} must be provided.
+\item{from}{
+a \code{mondate}. May be "missing".
 }
-  \item{to}{
-a \code{mondate}. Optional, but at least one of 
-\code{from} and \code{to} must be provided.
+\item{to}{
+a \code{mondate}. May be "missing".
 }
-  \item{\dots}{
-arguments passed to or from methods.
-Examples include \code{by} and \code{length.out}. 
+\item{\dots}{
+optional arguments passed to \code{seq.default},
+including \code{by}, \code{length.out}, and \code{along.with}.
 See \code{\link{seq}} for more details.
 }
 }
@@ -31,12 +28,13 @@ For more details about sequence generation, see \code{\link{seq}}.
 
 If \code{from} and \code{to} are both provided,
 the \code{displayFormat} and \code{timeunits} properties are
-taken from \code{from}, without a warning if they differ from 
+taken from \code{from}, 
+without a warning if \code{from}'s properties differ from 
 \code{to}'s.
 }
 \value{
-A \code{mondate} with \code{displayFormat} and \code{timeunits}
-from \code{from}, if provided, otherwise from \code{to}.
+A \code{mondate} vector with \code{displayFormat} and \code{timeunits}
+from argument \code{from}, if provided, otherwise from argument \code{to}.
 }
 \author{
 Dan Murphy
@@ -45,6 +43,11 @@ Dan Murphy
 \code{\link{seq}}
 }
 \examples{
+x<-mondate.ymd(2010,1)
+x                          # January 31, 2010
+y<-mondate.ymd(2010,12)
+y                          # December 31, 2010
+seq(from=x, to=y)  # all month-ends in 2010
 # 8 quarter-ends beginning 1st quarter 2009; US displayFormat
 seq(mondate("3/31/2009"), by=3, length.out=8) 
 # 8 quarter-ends ending year-end 2009; non-US displayFormat

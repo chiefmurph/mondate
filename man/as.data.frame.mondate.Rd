@@ -1,46 +1,48 @@
-\name{data.frame-methods}
+\name{as.data.frame method}
 \alias{as.data.frame.mondate}
 \title{
-Coerce to a data.frame
+Coerce a mondate to a Data Frame
 }
 \description{
-Functions to coerce a mondate for containment in a data.frame.
+Function to coerce a mondate for containment in a data.frame.
 }
-\section{Methods}{
-\describe{
-\item{\code{data.frame(x = "mondate")}}{
-Coerce \code{mondate} to a \code{data.frame}.
-This is the function that users would normally call.
-For the full argument list, see \code{data.frame}.
+\usage{
+\S3method{as.data.frame}{mondate}(x, row.names = NULL, optional = FALSE, \dots)
 }
-
-\item{\code{as.data.frame(x = "mondate", ...)}}{
-Coerce \code{mondate} to a \code{data.frame}.
-This function, not normally called directly, 
-is the workhorse of \code{data.frame} coersion.
-This is the function that \code{data.frame} will call when 
-it encounters a \code{mondate} in its argument list.
-Using the S3 method approach, 
-the \code{as.data.frame.mondate} method goes through the 
-necessary contortions to enable a \code{mondate}
-stored in a \code{data.frame} to display as a date 
-when the \code{data.frame} is displayed.
-Fashioned after \code{as.data.frame.Date},
-\cr 
-\code{as.data.frame.mondate}
-enables \code{array}s to also be stored in a \code{data.frame},
-retaining the number of rows and "flattening" in the
+\arguments{
+\item{x}{
+a \code{mondate}.
+}
+\item{row.names}{
+\code{NULL} or a character vector giving the row names 
+for the data frame. 
+Missing values are not allowed.
+}
+\item{optional}{
+logical. 
+See \code{base::as.data.frame} for details.
+}
+\item{\dots}{
+optional additional arguments to be passed to or from methods.
+}
+}
+\details{
+Although users would normally call \code{data.frame}, 
+the \code{as.data.frame} function is the underlying workhorse that
+enables a \code{mondate} to be stored in a \code{data.frame}.
+When array-shaped mondates are stored, 
+the number of rows is retained and if the dimension > 2 it is 
+"flattened" in the
 usual \code{data.frame} sense.
-For the full argument list, see \code{as.data.frame}.
+The \code{mondate} method is fashioned after 
+the \code{as.data.frame.Date} method.
 }
-
-}}
 \seealso{
 \code{\link{data.frame}},
 \code{\link{as.data.frame}},
 \code{\link{format}}
 }
 \examples{
-M<-mondate.mdy(12,31,2001:2005)
-data.frame(YearEnd=M, Liability=1000*1.05^(1:5)) # 5% annual inflation
+YE <- mondate.mdy(12, 31, 2001:2005)
+data.frame(yearend = YE, value = 1000 * 1.05^(1:5)) # 5% annual inflation
 }
