@@ -56,10 +56,9 @@ And one year = 12 months in mondate by definition.
 However, specifying the beginning date for mondate's arithmetic
 can trip up a user.
 The reason is perhaps
-best explained with a story.
+best explained with a simple word problem.
 
-Your son Jacob was born on January 1, 
-the first baby born in his hospital in 2021.
+Your son Jacob was born on January 1, 2021.
 How old will Jacob be at the end of the year?
 Isn't that just 
 ```
