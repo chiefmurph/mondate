@@ -50,8 +50,8 @@ That makes it easy to measure the age of an accounting object relative
 to the month or year it arose.
 For instance,
 the distance between two year-end accounting statements is 
-exactly 12 months.
-And one year = 12 months in mondate by definition.
+always a multiple of 12.
+A year equals 12 months in mondate by definition.
 
 However, specifying the beginning date for mondate's arithmetic
 can trip up a user.
