@@ -1,7 +1,7 @@
 Package: mondate
 Type: Package
 Title: Keep Track of Dates in Terms of Months
-Version: 0.10.01.03
+Version: 0.10.02
 Date: 2021-01-28
 Author: Dan Murphy
 Maintainer: Dan Murphy <chiefmurphy@gmail.com>
