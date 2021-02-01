@@ -78,5 +78,6 @@ for objects of class `Date`.
 
 ### Homework
 
-What is the numeric value under the hood of `mondate("1/1/2021")`?
+What is the numeric value under the hood of `mondate("1/1/2021")`? (Hint: There are 31 days in January.)
+
 Check that your answer equals 21*12+1/31 with `as.numeric(mondate("1/1/2021"))`.
