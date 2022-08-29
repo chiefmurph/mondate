@@ -16,6 +16,7 @@
 ##  SCALARS
 
 .mondate.tolerance <- .Machine$double.eps^0.5
+.mondate.precision <- -floor(log10(.mondate.tolerance))
 .motbl<-c(31,28,31,30,31,30,31,31,30,31,30,31)
 
 .mondate.origin <- "1999-12-31"
@@ -189,8 +190,8 @@ setMethod("mondate", "numeric", function(x, displayFormat, timeunits, ...) {
     else {
         # x represents the number of days since beginning of 01/01/2000
         x <- as.POSIXlt(as.Date(x, origin = .mondate.origin))
-        new("mondate", (x$year - .origin.diff.years) * 12 + x$mon + x$mday /
-                       .daysinmonth(x$year + .ISO.year.zero, x$mon + 1),
+        new("mondate", round((x$year - .origin.diff.years) * 12 + x$mon + x$mday /
+                       .daysinmonth(x$year + .ISO.year.zero, x$mon + 1), .mondate.precision),
             displayFormat = displayFormat,
             timeunits = timeunits,
             ...)
@@ -207,8 +208,8 @@ setMethod("mondate", "numeric", function(x, displayFormat, timeunits, ...) {
     x <- as.POSIXlt(as.Date(x), ...)
     # Note that per ISO standard, x is time since 1900; i.e.,
     #   close of business 12/31/1899.
-    new("mondate", (x$year - .origin.diff.years) * 12 + x$mon + x$mday /
-                   .daysinmonth(x$year + .ISO.year.zero, x$mon + 1),
+    new("mondate", round((x$year - .origin.diff.years) * 12 + x$mon + x$mday /
+                   .daysinmonth(x$year + .ISO.year.zero, x$mon + 1), .mondate.precision),
                    displayFormat = displayFormat,
                    timeunits = timeunits,
                    ...)
