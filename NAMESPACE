@@ -1,4 +1,5 @@
-importFrom(methods, show)
+importFrom("methods", "show", "callGeneric", "callNextMethod", "getDataPart",
+               "new", "slot")
 importFrom(utils, head, head.matrix, tail, tail.matrix)
 exportPattern("^[[:alpha:]]+")
 exportMethods(
